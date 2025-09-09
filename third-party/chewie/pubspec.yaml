@@ -1,0 +1,96 @@
+name: awesome_chewie
+description: Cloudchewie UI/UX/Utils
+version: 0.2.0
+publish_to: none
+
+environment:
+  sdk: '>=3.1.4 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  # 控件
+  fluttertoast: ^8.2.12
+  flutter_animate: ^4.5.2
+  auto_size_text: ^3.0.0
+  lottie: 3.3.0
+  flutter_widget_from_html: ^0.15.0
+  flutter_widget_from_html_core:
+  markdown_widget:
+    path: ../widget/markdown_widget
+  lucide_icons:
+    path: ../widget/lucide_icons
+  modal_bottom_sheet: ^3.0.0
+  markdown: ^7.3.0
+  highlight: ^0.7.0
+  flutter_math_fork:
+    git:
+      url: https://github.com/dakshatsuraasa/flutter_math.git
+      ref: main
+  # 存储/网络
+  path:
+  logger: ^2.5.0
+  hive: 2.2.3 # 轻量存储
+  dio: ^5.8.0+1
+  cookie_jar: ^4.0.8
+  path_provider: ^2.0.12
+  cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
+  file_picker: ^8.3.1
+  process_run: 1.2.2+1
+  flutter_svg: ^2.2.0
+  html_unescape: ^2.0.0
+  # 系统
+  http:
+  provider: ^6.1.4
+  local_auth: ^2.3.0
+  local_auth_android: ^1.0.48
+  package_info_plus: ^8.3.0
+  device_info_plus: ^11.3.0
+  share_plus: ^10.1.4
+  url_launcher: ^6.3.0
+  app_links: ^6.4.0
+  flutter_displaymode: ^0.6.0
+  image_gallery_saver:
+    path: ../tool/image_gallery_saver
+  permission_handler: ^11.3.1
+  hotkey_manager: ^0.2.3
+  flutter_inappwebview: 6.1.5
+  # 工具
+  intl: ^0.19.0
+  html: ^0.15.5+1
+  uuid: ^4.4.2
+  tuple: ^2.0.0
+  encrypt: ^5.0.3
+  pinyin: ^3.3.0
+  pointycastle: 3.9.1
+  palette_generator: ^0.3.3+3
+  metadata_fetch: ^0.4.2
+  path_drawing: ^1.0.1
+  # 平台适配
+  flutter_windowmanager:
+    path: ../tool/flutter_windowmanager
+  responsive_builder: ^0.7.1
+  window_manager: ^0.4.3
+  restart_app: ^1.3.2
+  local_notifier: ^0.1.6
+  screen_protector: ^1.4.2+1
+  shell_executor: ^0.1.6
+  # 插件依赖
+  decimal: ^3.0.2
+  equatable: ^2.0.7
+
+dependency_overrides:
+  webview_flutter_android: 3.16.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.11
+  flutter_lints: ^4.0.0
+  json_serializable: ^6.7.1
+
+flutter:
+  generate: true

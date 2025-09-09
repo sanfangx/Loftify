@@ -1,94 +1,20 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:loftify/Screens/Navigation/webview_screen.dart';
 import 'package:loftify/Screens/Post/collection_detail_screen.dart';
 import 'package:loftify/Screens/Post/grain_detail_screen.dart';
 import 'package:loftify/Screens/Post/tag_detail_screen.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/itoast.dart';
 import 'package:loftify/Utils/request_header_util.dart';
 import 'package:loftify/Utils/request_util.dart';
-import 'package:loftify/Utils/responsive_util.dart';
-import 'package:loftify/Utils/route_util.dart';
 import 'package:loftify/Utils/utils.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../Screens/Info/user_detail_screen.dart';
 import '../Screens/Post/post_detail_screen.dart';
-import '../Widgets/Dialog/custom_dialog.dart';
 import '../generated/l10n.dart';
-import 'ilogger.dart';
 
-class UriUtil {
-  static String? encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
-  }
-
-  static Future<bool> launchEmailUri(BuildContext context, String email,
-      {String subject = "", String body = ""}) async {
-    try {
-      final Uri emailLaunchUri = Uri(
-        scheme: 'mailto',
-        path: email,
-        query: encodeQueryParameters(<String, String>{
-          'subject': subject,
-          'body': body,
-        }),
-      );
-      if (!await launchUrl(
-        emailLaunchUri,
-        mode: LaunchMode.externalApplication,
-      )) {
-        if (ResponsiveUtil.isIOS()) {
-          IToast.showTop(S.current.noEmailClient);
-        }
-        Clipboard.setData(ClipboardData(text: email));
-      }
-    } catch (e, t) {
-      ILogger.error("Failed to launch email app", e, t);
-      IToast.showTop(S.current.noEmailClient);
-    }
-    return true;
-  }
-
-  static share(BuildContext context, String str) {
-    Share.share(str).then((shareResult) {
-      if (shareResult.status == ShareResultStatus.success) {
-        IToast.showTop(S.current.shareSuccess);
-      } else if (shareResult.status == ShareResultStatus.dismissed) {
-        IToast.showTop(S.current.cancelShare);
-      } else {
-        IToast.showTop(S.current.shareFailed);
-      }
-    });
-  }
-
-  static void launchUrlUri(BuildContext context, String url) async {
-    if (HiveUtil.getBool(HiveUtil.inappWebviewKey)) {
-      openInternal(context, url);
-    } else {
-      openExternal(url);
-    }
-    // if (!await launchUrl(Uri.parse(url),
-    //     mode: LaunchMode.externalApplication)) {
-    //   Clipboard.setData(ClipboardData(text: url));
-    // }
-  }
-
-  static Future<bool> canLaunchUri(Uri uri) async {
-    return await canLaunchUrl(uri);
-  }
-
-  static void launchUri(Uri uri) async {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
-
+class LoftifyUriUtil {
   static bool isShortLinkUrl(String url) {
     var reg = RegExp(r"(http|https|lofter)://s\.lofter\.com/-s/[0-9a-zA-Z]+");
     return reg.hasMatch(url);
@@ -276,26 +202,26 @@ class UriUtil {
     bool quiet = false,
   }) async {
     try {
-      if (!quiet) CustomLoadingDialog.showLoading(title: S.current.loading);
+      if (!quiet) CustomLoadingDialog.showLoading(title: appLocalizations.loading);
       url = Uri.decodeComponent(url);
-      if (UriUtil.isShortLinkUrl(url)) {
+      if (LoftifyUriUtil.isShortLinkUrl(url)) {
         var tmp = url;
         url = await UriUtil.getRedirectUrl(url);
         ILogger.info("Redirect from $tmp to $url");
       }
-      if (UriUtil.isMentionBlogIdUrl(url)) {
+      if (LoftifyUriUtil.isMentionBlogIdUrl(url)) {
         String blogId = extractMentionBlogId(url);
         if (!quiet) await CustomLoadingDialog.dismissLoading();
         RouteUtil.pushPanelCupertinoRoute(
           context,
           UserDetailScreen(
-            blogId: Utils.parseToInt(blogId),
+            blogId: NumberUtil.parseToInt(blogId),
             blogName: "",
           ),
         );
         return true;
-      } else if (UriUtil.isPostUrl(url)) {
-        Map<String, String> map = UriUtil.extractPostInfo(url);
+      } else if (LoftifyUriUtil.isPostUrl(url)) {
+        Map<String, String> map = LoftifyUriUtil.extractPostInfo(url);
         if (!quiet) await CustomLoadingDialog.dismissLoading();
         RouteUtil.pushPanelCupertinoRoute(
           context,
@@ -305,13 +231,13 @@ class UriUtil {
           ),
         );
         return true;
-      } else if (UriUtil.isTagUrl(url)) {
-        String tag = UriUtil.extractTagName(url);
+      } else if (LoftifyUriUtil.isTagUrl(url)) {
+        String tag = LoftifyUriUtil.extractTagName(url);
         if (!quiet) await CustomLoadingDialog.dismissLoading();
         RouteUtil.pushPanelCupertinoRoute(context, TagDetailScreen(tag: tag));
         return true;
-      } else if (UriUtil.isCollectionShareUrl(url)) {
-        Map collectionInfo = UriUtil.extractCollectionShareInfo(url);
+      } else if (LoftifyUriUtil.isCollectionShareUrl(url)) {
+        Map collectionInfo = LoftifyUriUtil.extractCollectionShareInfo(url);
         if (!quiet) await CustomLoadingDialog.dismissLoading();
         RouteUtil.pushPanelCupertinoRoute(
           context,
@@ -323,8 +249,8 @@ class UriUtil {
           ),
         );
         return true;
-      } else if (UriUtil.isGrainShareUrl(url)) {
-        Map grainInfo = UriUtil.extractGrainShareInfo(url);
+      } else if (LoftifyUriUtil.isGrainShareUrl(url)) {
+        Map grainInfo = LoftifyUriUtil.extractGrainShareInfo(url);
         if (!quiet) await CustomLoadingDialog.dismissLoading();
         RouteUtil.pushPanelCupertinoRoute(
           context,
@@ -334,8 +260,8 @@ class UriUtil {
           ),
         );
         return true;
-      } else if (UriUtil.isHomePageUrl(url)) {
-        String blogName = UriUtil.extractHomePageName(url);
+      } else if (LoftifyUriUtil.isHomePageUrl(url)) {
+        String blogName = LoftifyUriUtil.extractHomePageName(url);
         if (!quiet) await CustomLoadingDialog.dismissLoading();
         RouteUtil.pushPanelCupertinoRoute(
           context,
@@ -353,7 +279,7 @@ class UriUtil {
         if (!quiet) await CustomLoadingDialog.dismissLoading();
         if (!quiet) {
           if (pass) {
-            if (HiveUtil.getBool(HiveUtil.inappWebviewKey,
+            if (ChewieHiveUtil.getBool(HiveUtil.inappWebviewKey,
                 defaultValue: true)) {
               UriUtil.openInternal(context, url);
             } else {
@@ -374,39 +300,12 @@ class UriUtil {
     }
   }
 
-  static void openInternal(
-    BuildContext context,
-    String url, {
-    bool processUri = true,
-  }) {
-    if (ResponsiveUtil.isMobile()) {
-      RouteUtil.pushPanelCupertinoRoute(
-          context, WebviewScreen(url: url, processUri: processUri));
-    } else {
-      openExternal(url);
-    }
-  }
-
-  static Future<void> openExternal(String url) async {
-    await launchUrl(
-      Uri.parse(url),
-      mode: LaunchMode.externalNonBrowserApplication,
-    );
-  }
-
-  static Future<void> openExternalUri(WebUri uri) async {
-    await launchUrl(
-      uri,
-      mode: LaunchMode.externalNonBrowserApplication,
-    );
-  }
-
   static String getPostUrlByPermalink(String blogName, String permalink) {
     return "https://$blogName.lofter.com/post/$permalink";
   }
 
   static String getPostUrlById(String blogName, int postId, int blogId) {
-    return "https://$blogName.lofter.com/post/${Utils.intToHex(blogId)}_${Utils.intToHex(postId)}";
+    return "https://$blogName.lofter.com/post/${NumberUtil.intToHex(blogId)}_${NumberUtil.intToHex(postId)}";
   }
 
   static String getTagUrlByTagName(String tagName, {bool isNew = true}) {

@@ -1,20 +1,16 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/login_api.dart';
 import 'package:loftify/Screens/Login/login_by_captcha_screen.dart';
 import 'package:loftify/Screens/Login/login_by_password_screen.dart';
 import 'package:loftify/Utils/enums.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/ilogger.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:loftify/Utils/responsive_util.dart';
-import 'package:loftify/Widgets/Custom/no_shadow_scroll_behavior.dart';
 
 import '../../Utils/app_provider.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/request_util.dart';
-import '../../Utils/route_util.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'login_by_lofterid_screen.dart';
 
 class LoginByMailScreen extends StatefulWidget {
@@ -28,7 +24,7 @@ class LoginByMailScreen extends StatefulWidget {
   State<LoginByMailScreen> createState() => _LoginByMailScreenState();
 }
 
-class _LoginByMailScreenState extends State<LoginByMailScreen>
+class _LoginByMailScreenState extends BaseDynamicState<LoginByMailScreen>
     with TickerProviderStateMixin {
   late TextEditingController _mailController;
   late TextEditingController _passwordController;
@@ -48,14 +44,14 @@ class _LoginByMailScreenState extends State<LoginByMailScreen>
       String mail = _mailController.text;
       String password = _passwordController.text;
       if (mail.isEmpty || password.isEmpty) {
-        IToast.showTop(S.current.emailOrPasswordCannotBeEmpty);
+        IToast.showTop(appLocalizations.emailOrPasswordCannotBeEmpty);
         return;
       }
       var resPower = await LoginApi.getMailPower(mail);
       if (resPower['ret'] == "201") {
         mailPower = resPower['pVInfo'];
       } else {
-        IToast.showTop(S.current.emailNotExist);
+        IToast.showTop(appLocalizations.emailNotExist);
         return;
       }
       var resGt = await LoginApi.loginByMailGt(mail);
@@ -63,28 +59,28 @@ class _LoginByMailScreenState extends State<LoginByMailScreen>
         String tk = resGt['tk'];
         var resL = await LoginApi.loginByMailL(mail, password, tk);
         if (resL['ret'] == "200") {
-          IToast.showTop(S.current.loginSuccess);
+          IToast.showTop(appLocalizations.loginSuccess);
           appProvider.token = resL['token'] ?? "";
           await RequestUtil.clearCookie();
-          await HiveUtil.put(HiveUtil.userIdKey, resL['userId']);
-          await HiveUtil.put(HiveUtil.tokenKey, resL['token']);
-          await HiveUtil.put(HiveUtil.tokenTypeKey, TokenType.lofterID.index);
+          await ChewieHiveUtil.put(HiveUtil.userIdKey, resL['userId']);
+          await ChewieHiveUtil.put(HiveUtil.tokenKey, resL['token']);
+          await ChewieHiveUtil.put(HiveUtil.tokenTypeKey, TokenType.lofterID.index);
           mainScreenState?.login();
         } else if (resL['ret'] == "413" && resL['dt'] == "01") {
-          IToast.showTop(S.current.retryLoginLater);
+          IToast.showTop(appLocalizations.retryLoginLater);
         } else if (resL['ret'] == "413" && resL['dt'] == "02") {
-          IToast.showTop(S.current.retryLoginTomorrow);
+          IToast.showTop(appLocalizations.retryLoginTomorrow);
         } else if (resL['ret'] == "413" && resL['dt'] == "02") {
-          IToast.showTop(S.current.retryLoginLaterWithIP);
+          IToast.showTop(appLocalizations.retryLoginLaterWithIP);
         } else if (resL['ret'] == "413") {
-          IToast.showTop(S.current.accountOrPasswordWrong);
+          IToast.showTop(appLocalizations.accountOrPasswordWrong);
         } else if (resL['ret'] == "447") {
-          IToast.showTop(S.current.retryLaterWithFrequency);
+          IToast.showTop(appLocalizations.retryLaterWithFrequency);
         } else {
-          IToast.showTop(S.current.passwordWrong);
+          IToast.showTop(appLocalizations.passwordWrong);
         }
       } else {
-        IToast.showTop(S.current.loadUnkownError);
+        IToast.showTop(appLocalizations.loadUnkownError);
       }
     } catch (e, t) {
       ILogger.error("Failed to login by mail", e, t);
@@ -98,13 +94,9 @@ class _LoginByMailScreenState extends State<LoginByMailScreen>
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: ItemBuilder.buildSimpleAppBar(
-          title: S.current.loginByEmail,
-          context: context,
-          leadingIcon: Icons.close_rounded,
-          transparent: true,
-          titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
-          showLeading: !ResponsiveUtil.isLandscape(),
+        appBar: ResponsiveAppBar(
+          title: appLocalizations.loginByEmail,
+          titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
         ),
         body: Container(
           margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -115,29 +107,36 @@ class _LoginByMailScreenState extends State<LoginByMailScreen>
                 child: ListView(
                   children: [
                     const SizedBox(height: 50),
-                    ItemBuilder.buildInputItem(
-                      context: context,
-                      hint: S.current.inputEmail,
+                    InputItem(
+                      hint: appLocalizations.inputEmail,
                       textInputAction: TextInputAction.next,
                       controller: _mailController,
-                      tailingType: TailingType.clear,
-                      leadingIcon: Icons.mail_outline_rounded,
+                      leadingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.icon,
+                        icon: Icons.mail_outline_rounded,
+                      ),
+                      tailingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.clear,
+                      ),
                     ),
-                    ItemBuilder.buildInputItem(
-                      context: context,
-                      hint: S.current.inputPassword,
+                    InputItem(
+                      hint: appLocalizations.inputPassword,
                       textInputAction: TextInputAction.next,
-                      leadingIcon: Icons.verified_outlined,
+                      leadingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.icon,
+                        icon: Icons.verified_outlined,
+                      ),
                       controller: _passwordController,
-                      tailingType: TailingType.password,
+                      tailingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.password,
+                      ),
                     ),
                     const SizedBox(height: 30),
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 50),
-                      child: ItemBuilder.buildRoundButton(
-                        context,
-                        text: S.current.login,
-                        onTap: _login,
+                      child: RoundIconTextButton(
+                        text: appLocalizations.login,
+                        onPressed: _login,
                         background: Theme.of(context).primaryColor,
                         color: Colors.white,
                         fontSizeDelta: 2,
@@ -155,27 +154,27 @@ class _LoginByMailScreenState extends State<LoginByMailScreen>
                   children: [
                     ItemBuilder.buildTextDivider(
                       context: context,
-                      text: S.current.otherLoginMethods,
+                      text: appLocalizations.otherLoginMethods,
                     ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        ItemBuilder.buildSmallIcon(
+                        ToolButton(
                             context: context,
                             icon: Icons.phone_android_rounded,
-                            onTap: () {
+                            onPressed: () {
                               RouteUtil.pushCupertinoRoute(
                                 context,
                                 const LoginByCaptchaScreen(),
                               );
                             }),
                         const SizedBox(width: 30),
-                        ItemBuilder.buildSmallIcon(
+                        ToolButton(
                             context: context,
                             icon: Icons.password_rounded,
-                            onTap: () {
+                            onPressed: () {
                               RouteUtil.pushCupertinoRoute(
                                 context,
                                 LoginByPasswordScreen(
@@ -184,10 +183,10 @@ class _LoginByMailScreenState extends State<LoginByMailScreen>
                               );
                             }),
                         const SizedBox(width: 30),
-                        ItemBuilder.buildSmallIcon(
+                        ToolButton(
                             context: context,
                             icon: Icons.card_membership_rounded,
-                            onTap: () {
+                            onPressed: () {
                               RouteUtil.pushCupertinoRoute(
                                 context,
                                 LoginByLofterIDScreen(

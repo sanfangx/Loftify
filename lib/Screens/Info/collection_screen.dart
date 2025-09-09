@@ -1,21 +1,13 @@
-import 'dart:io';
-
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Api/user_api.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Models/post_detail_response.dart';
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../Post/collection_detail_screen.dart';
 import 'nested_mixin.dart';
 
@@ -46,7 +38,7 @@ class CollectionScreen extends StatefulWidgetForNested {
   State<CollectionScreen> createState() => _CollectionScreenState();
 }
 
-class _CollectionScreenState extends State<CollectionScreen>
+class _CollectionScreenState extends BaseDynamicState<CollectionScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -115,7 +107,7 @@ class _CollectionScreenState extends State<CollectionScreen>
         } catch (e, t) {
           _initPhase = InitPhase.failed;
           ILogger.error("Failed to load collection list", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {
           if (mounted) setState(() {});
@@ -138,7 +130,7 @@ class _CollectionScreenState extends State<CollectionScreen>
     super.build(context);
     return Scaffold(
       backgroundColor: widget.infoMode == InfoMode.me
-          ? MyTheme.getBackground(context)
+          ? ChewieTheme.getBackground(context)
           : Colors.transparent,
       appBar: widget.infoMode == InfoMode.me ? _buildAppBar() : null,
       body: _buildBody(),
@@ -148,11 +140,10 @@ class _CollectionScreenState extends State<CollectionScreen>
   _buildBody() {
     switch (_initPhase) {
       case InitPhase.connecting:
-        return ItemBuilder.buildLoadingWidget(context,
+        return const LoadingWidget(
             background: Colors.transparent);
       case InitPhase.failed:
-        return ItemBuilder.buildErrorWidget(
-          context: context,
+        return CustomErrorWidget(
           onTap: _onRefresh,
         );
       case InitPhase.successful:
@@ -165,9 +156,8 @@ class _CollectionScreenState extends State<CollectionScreen>
           childBuilder: (context, physics) {
             return _collectionList.isNotEmpty
                 ? _buildMainBody(physics)
-                : ItemBuilder.buildEmptyPlaceholder(
-                    context: context,
-                    text: S.current.noCollection,
+                : EmptyPlaceholder(
+                    text: appLocalizations.noCollection,
                     physics: physics);
           },
         );
@@ -177,7 +167,7 @@ class _CollectionScreenState extends State<CollectionScreen>
   }
 
   Widget _buildMainBody(ScrollPhysics physics) {
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       noMore: _noMore,
       onLoad: _onLoad,
       child: WaterfallFlow.extent(
@@ -212,8 +202,8 @@ class _CollectionScreenState extends State<CollectionScreen>
     double verticalPadding = 12,
   }) {
     List<String> tags = collection.tags.split(",");
-    return ItemBuilder.buildClickable(
-      GestureDetector(
+    return
+      ClickableGestureDetector(
         onTap: onTap,
         child: Container(
           color: Colors.transparent,
@@ -225,8 +215,7 @@ class _CollectionScreenState extends State<CollectionScreen>
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: ItemBuilder.buildCachedImage(
-                      context: context,
+                    child: MyCachedNetworkImage(
                       imageUrl: collection.coverUrl,
                       width: 80,
                       height: 80,
@@ -250,7 +239,7 @@ class _CollectionScreenState extends State<CollectionScreen>
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            "${collection.postCount}${S.current.chapter} · ${S.current.updateAt}${Utils.formatTimestamp(collection.lastPublishTime)}",
+                            "${collection.postCount}${appLocalizations.chapter} · ${appLocalizations.updateAt}${TimeUtil.formatTimestamp(collection.lastPublishTime)}",
                             style: Theme.of(context).textTheme.labelMedium,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -284,15 +273,13 @@ class _CollectionScreenState extends State<CollectionScreen>
             ],
           ),
         ),
-      ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: S.current.myCollections,
+      title: appLocalizations.myCollections,
     );
   }
 }

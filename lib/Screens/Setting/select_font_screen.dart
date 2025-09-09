@@ -10,7 +10,7 @@ import '../../Resources/fonts.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class SelectFontScreen extends StatefulWidget {
   const SelectFontScreen({super.key});
@@ -21,7 +21,7 @@ class SelectFontScreen extends StatefulWidget {
   State<SelectFontScreen> createState() => _SelectFontScreenState();
 }
 
-class _SelectFontScreenState extends State<SelectFontScreen>
+class _SelectFontScreenState extends BaseDynamicState<SelectFontScreen>
     with TickerProviderStateMixin {
   CustomFont _currentFont = CustomFont.getCurrentFont();
   List<CustomFont> customFonts = HiveUtil.getCustomFonts();
@@ -31,9 +31,9 @@ class _SelectFontScreenState extends State<SelectFontScreen>
     return Container(
       color: Colors.transparent,
       child: Scaffold(
-        appBar: ItemBuilder.buildResponsiveAppBar(
+        appBar: ResponsiveAppBar(
           showBack: true,
-          title: S.current.chooseFontFamily,
+          title: appLocalizations.chooseFontFamily,
           context: context,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         ),
@@ -42,9 +42,9 @@ class _SelectFontScreenState extends State<SelectFontScreen>
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
-              if (ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.defaultFontFamily),
+              if (ResponsiveUtil.isLandscapeLayout()) const SizedBox(height: 10),
+              CaptionItem(
+                  context: context, title: appLocalizations.defaultFontFamily),
               ItemBuilder.buildContainerItem(
                 context: context,
                 child: Container(
@@ -59,8 +59,8 @@ class _SelectFontScreenState extends State<SelectFontScreen>
                 bottomRadius: true,
               ),
               const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.customFontFamily),
+              CaptionItem(
+                  context: context, title: appLocalizations.customFontFamily),
               ItemBuilder.buildContainerItem(
                 context: context,
                 child: Container(
@@ -118,9 +118,9 @@ class _SelectFontScreenState extends State<SelectFontScreen>
         onDelete: (_) {
           DialogBuilder.showConfirmDialog(
             context,
-            title: S.current.deleteFont(customFonts[index].intlFontName),
+            title: appLocalizations.deleteFont(customFonts[index].intlFontName),
             message:
-                S.current.deleteFontMessage(customFonts[index].intlFontName),
+                appLocalizations.deleteFontMessage(customFonts[index].intlFontName),
             onTapConfirm: () async {
               if (customFonts[index] == _currentFont) {
                 _currentFont = CustomFont.Default;
@@ -143,7 +143,7 @@ class _SelectFontScreenState extends State<SelectFontScreen>
         context: context,
         onTap: () async {
           FilePickerResult? result = await FileUtil.pickFiles(
-            dialogTitle: S.current.loadFontFamily,
+            dialogTitle: appLocalizations.loadFontFamily,
             allowedExtensions: ['ttf', 'otf'],
             lockParentWindow: true,
             type: FileType.custom,
@@ -159,7 +159,7 @@ class _SelectFontScreenState extends State<SelectFontScreen>
               CustomFont.loadFont(context, _currentFont, autoRestartApp: false);
               setState(() {});
             } else {
-              IToast.showTop(S.current.fontFamlyLoadFailed);
+              IToast.showTop(appLocalizations.fontFamlyLoadFailed);
             }
           }
         },

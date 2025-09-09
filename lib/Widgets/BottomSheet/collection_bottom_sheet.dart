@@ -1,3 +1,4 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loftify/Api/collection_api.dart';
@@ -7,14 +8,8 @@ import 'package:loftify/Screens/Post/collection_detail_screen.dart';
 import 'package:loftify/Utils/asset_util.dart';
 
 import '../../Models/history_response.dart';
-import '../../Resources/theme.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
-import '../Dialog/custom_dialog.dart';
-import '../General/EasyRefresh/easy_refresh.dart';
+import '../../l10n/l10n.dart';
 import '../Item/item_builder.dart';
 import '../Item/loftify_item_builder.dart';
 import '../PostItem/common_info_post_item_builder.dart';
@@ -66,7 +61,7 @@ class CollectionBottomSheetState extends State<CollectionBottomSheet> {
     bool showLoading = false,
   }) async {
     if (loading || (upDown != -1 && startPostId == 0)) return;
-    if (showLoading) CustomLoadingDialog.showLoading(title: S.current.loading);
+    if (showLoading) CustomLoadingDialog.showLoading(title: appLocalizations.loading);
     loading = true;
     return await CollectionApi.getCollection(
       postId: widget.postId,
@@ -112,7 +107,7 @@ class CollectionBottomSheetState extends State<CollectionBottomSheet> {
           }
           Map<String, int> monthCount = {};
           for (var e in posts) {
-            String yearMonth = Utils.formatYearMonth(e.post!.publishTime);
+            String yearMonth = TimeUtil.formatYearMonth(e.post!.publishTime);
             monthCount.putIfAbsent(yearMonth, () => 0);
             monthCount[yearMonth] = monthCount[yearMonth]! + 1;
           }
@@ -138,7 +133,7 @@ class CollectionBottomSheetState extends State<CollectionBottomSheet> {
         }
       } catch (e, t) {
         ILogger.error("Failed to load collection detail list", e, t);
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (showLoading) CustomLoadingDialog.dismissLoading();
@@ -179,7 +174,7 @@ class CollectionBottomSheetState extends State<CollectionBottomSheet> {
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
-        color: MyTheme.getBackground(context),
+        color: ChewieTheme.getBackground(context),
       ),
       height: MediaQuery.sizeOf(context).height * 0.8,
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -219,12 +214,12 @@ class CollectionBottomSheetState extends State<CollectionBottomSheet> {
                 ),
               );
             },
-            child: ItemBuilder.buildClickable(
+            child: ClickableWrapper(child:
               Row(
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: ItemBuilder.buildCachedImage(
+                    child: ChewieItemBuilder.buildCachedImage(
                       context: context,
                       imageUrl: widget.postCollection.coverUrl,
                       width: 50,
@@ -261,8 +256,8 @@ class CollectionBottomSheetState extends State<CollectionBottomSheet> {
                   LoftifyItemBuilder.buildFramedDoubleButton(
                       context: context,
                       isFollowed: subscribed,
-                      positiveText: S.current.subscribed,
-                      negtiveText: S.current.subscribe,
+                      positiveText: appLocalizations.subscribed,
+                      negtiveText: appLocalizations.subscribe,
                       onTap: () {
                         HapticFeedback.mediumImpact();
                         CollectionApi.subscribeOrUnSubscribe(
@@ -334,14 +329,14 @@ class CollectionBottomSheetState extends State<CollectionBottomSheet> {
       widgets.add(Container(
         padding: const EdgeInsets.only(top: 12),
         child: Text(
-          S.current.descriptionWithPostCount(e.desc, e.count.toString()),
+          appLocalizations.descriptionWithPostCount(e.desc, e.count.toString()),
           style: Theme.of(context).textTheme.titleMedium,
         ),
       ));
       widgets.add(_buildNineGrid(startIndex, count));
       startIndex += e.count;
     }
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       child: ListView(
         controller: _scrollController,
         padding: EdgeInsets.zero,

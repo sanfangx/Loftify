@@ -1,3 +1,4 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:loftify/Utils/utils.dart';
 
@@ -118,7 +119,7 @@ class AssetUtil {
     BoxFit? fit,
   }) {
     return Image.asset(
-      Utils.isDark(context) ? dark : light,
+      ColorUtil.isDark(context) ? dark : light,
       fit: fit,
       width: width ?? size,
       height: height ?? size,

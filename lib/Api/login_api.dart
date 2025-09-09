@@ -2,13 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:dart_sm/dart_sm.dart';
 import 'package:dio/dio.dart';
-import 'package:loftify/Utils/crypt_util.dart';
 import 'package:loftify/Utils/request_util.dart';
-
-import '../Utils/ilogger.dart';
 
 class LoginApi {
   static String RSA_PUBLIC_KEY =

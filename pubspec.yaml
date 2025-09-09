@@ -15,7 +15,6 @@ dependencies:
   lottie: ^3.1.2 # Lottie
   animations: ^2.0.11 # 动画
   fluttertoast: ^8.2.6 # 吐司
-  waterfall_flow: ^3.0.3 # 瀑布流
   auto_size_text: ^3.0.0 # 自适应文本
   flutter_widget_from_html: ^0.15.3 # 将HTML渲染成组件
   card_swiper: ^3.0.1 # 卡片滑动
@@ -27,11 +26,8 @@ dependencies:
   sliding_up_panel: ^2.0.0+1 # 滑动面板
   blur: ^3.1.0 # 模糊
   path_drawing: ^1.0.1
-  group_button:
-    path: third-party/group_button
-  context_menus:
-    path: third-party/context_menus
-  custom_sliding_segmented_control: ^1.8.3 # 分段控制器
+  awesome_chewie:
+    path: third-party/chewie
   flutter_inappwebview: ^6.0.0 # Webview
   extended_nested_scroll_view: ^6.2.1 # 嵌套滚动
   # 系统
@@ -39,13 +35,17 @@ dependencies:
   local_auth: ^2.2.0 # 指纹验证
   local_auth_android: ^1.0.42 # 指纹验证
   package_info_plus: ^8.0.0 # 应用信息
-  device_info_plus: ^10.1.0 # 设备信息
-  flutter_windowmanager: ^0.2.0 # 窗口管理
+  device_info_plus: ^11.3.0 # 设备信息
+  flutter_windowmanager:
+    path: third-party/tool/flutter_windowmanager # 防截图
   share_plus: ^10.1.4 # 分享
   url_launcher: ^6.3.0 # URL跳转
   app_links: ^6.1.4 # 应用URI
   flutter_displaymode: ^0.6.0 # 设置刷新率
-  image_gallery_saver: ^2.0.3 # 保存图片
+  image_gallery_saver:
+    path: third-party/tool/image_gallery_saver # 保存图片到相册
+  lucide_icons:
+    path: third-party/widget/lucide_icons
   permission_handler: ^11.3.1 # 权限管理
   install_plugin: ^2.1.0 # 安装APP
   flutter_local_notifications: ^17.2.1+2 # 通知
@@ -80,8 +80,7 @@ dependencies:
   # 平台适配
   responsive_builder: ^0.7.1 # 响应式布局
   tray_manager: ^0.2.3 # 托盘图标
-  flutter_resizable_container: ^2.0.0 # 可调整大小的容器
-  window_manager: ^0.3.9 # 窗口管理
+  window_manager: ^0.4.3 # 窗口管理
   restart_app: ^1.2.1 # 重启APP
   launch_at_startup: ^0.3.1 # 开机启动
   local_notifier: ^0.1.6 # 本地通知
@@ -134,15 +133,8 @@ flutter_native_splash:
     image_dark: assets/logo-transparent.png
     icon_background_color_dark: "#121212"
 
-flutter_intl:
-  enabled: true # Required. Must be set to true to activate the package. Default: false
-  class_name: S # Optional. Sets the name for the generated localization class. Default: S
-  main_locale: zh_CN # Optional. Sets the main locale used for generating localization files. Provided value should consist of language code and optional script and country codes separated with underscore (e.g. 'en', 'en_GB', 'zh_Hans', 'zh_Hans_CN'). Default: en
-  arb_dir: lib/l10n # Optional. Sets the directory of your ARB resource files. Provided value should be a valid path on your system. Default: lib/l10n
-  output_dir: lib/generated # Optional. Sets the directory of generated localization files. Provided value should be a valid path on your system. Default: lib/generated
-  use_deferred_loading: false # Optional. Must be set to true to generate localization code that is loaded with deferred loading. Default: false
-
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - assets/lottie/

@@ -1,26 +1,27 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:loftify/Utils/ilogger.dart';
 import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../Utils/app_provider.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/list_bottom_sheet.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../Lock/pin_change_screen.dart';
 import '../Lock/pin_verify_screen.dart';
+import 'base_setting_screen.dart';
 
-class ExperimentSettingScreen extends StatefulWidget {
-  const ExperimentSettingScreen({super.key});
+class ExperimentSettingScreen extends BaseSettingScreen {
+  const ExperimentSettingScreen({
+    super.key,
+    super.padding,
+    super.showTitleBar,
+    super.searchConfig,
+    super.searchText,
+  });
 
   static const String routeName = "/setting/experiment";
 
@@ -29,16 +30,17 @@ class ExperimentSettingScreen extends StatefulWidget {
       _ExperimentSettingScreenState();
 }
 
-class _ExperimentSettingScreenState extends State<ExperimentSettingScreen>
+class _ExperimentSettingScreenState
+    extends BaseDynamicState<ExperimentSettingScreen>
     with TickerProviderStateMixin {
   bool _enableGuesturePasswd =
-      HiveUtil.getBool(HiveUtil.enableGuesturePasswdKey);
-  bool _autoLock = HiveUtil.getBool(HiveUtil.autoLockKey);
+      ChewieHiveUtil.getBool(HiveUtil.enableGuesturePasswdKey);
+  bool _autoLock = ChewieHiveUtil.getBool(HiveUtil.autoLockKey);
   bool _enableSafeMode =
-      HiveUtil.getBool(HiveUtil.enableSafeModeKey, defaultValue: false);
-  bool _enableBiometric = HiveUtil.getBool(HiveUtil.enableBiometricKey);
+      ChewieHiveUtil.getBool(HiveUtil.enableSafeModeKey, defaultValue: false);
+  bool _enableBiometric = ChewieHiveUtil.getBool(HiveUtil.enableBiometricKey);
   bool _biometricAvailable = false;
-  int _refreshRate = HiveUtil.getInt(HiveUtil.refreshRateKey);
+  int _refreshRate = ChewieHiveUtil.getInt(HiveUtil.refreshRateKey);
   List<DisplayMode> _modes = [];
   DisplayMode? _activeMode;
   DisplayMode? _preferredMode;
@@ -64,37 +66,28 @@ class _ExperimentSettingScreenState extends State<ExperimentSettingScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: ItemBuilder.buildResponsiveAppBar(
-        title: S.current.experimentSetting,
-        context: context,
-        showBack: true,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      ),
-      body: EasyRefresh(
-        child: Selector<AppProvider, bool>(
+    return ChewieItemBuilder.buildSettingScreen(
+      context: context,
+      title: appLocalizations.experimentSetting,
+      showTitleBar: widget.showTitleBar,
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
+      padding: widget.padding,
+      children: [
+        Selector<AppProvider, bool>(
           selector: (context, globalProvider) => globalProvider.pinSettled,
-          builder: (context, pinSettled, child) => ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            children: [
-              if (ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
-              ..._privacySettings(pinSettled),
-              if (ResponsiveUtil.isAndroid()) ..._fpsSettings(),
-              const SizedBox(height: 30),
-            ],
-          ),
+          builder: (context, pinSettled, child) => _privacySettings(pinSettled),
         ),
-      ),
+        if (ResponsiveUtil.isAndroid()) _fpsSettings(),
+      ],
     );
   }
 
   _fpsSettings() {
     return [
       const SizedBox(height: 10),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.refreshRate,
-        description: S.current.refreshRateDescription(
+      EntryItem(
+        title: appLocalizations.refreshRate,
+        description: appLocalizations.refreshRateDescription(
           _modes.isNotEmpty
               ? _modes[_refreshRate.clamp(0, _modes.length - 1)].toString()
               : "",
@@ -120,28 +113,28 @@ class _ExperimentSettingScreenState extends State<ExperimentSettingScreen>
                   ILogger.info(
                       "Active display mode after set: ${_activeMode.toString()}\nPreferred display mode after set: ${_preferredMode.toString()}");
                   if (_preferredMode?.toString() != item2.toString()) {
-                    IToast.showTop(S.current.setRefreshRateFailed);
+                    IToast.showTop(appLocalizations.setRefreshRateFailed);
                   } else {
                     if (_activeMode?.toString() != item2.toString()) {
                       IToast.showTop(S.current
                           .setRefreshRateSuccessWithDisplayModeNotChanged);
                     } else {
-                      IToast.showTop(S.current.setRefreshRateSuccess);
+                      IToast.showTop(appLocalizations.setRefreshRateSuccess);
                     }
                   }
                 } catch (e, t) {
-                  IToast.showTop(
-                      S.current.setRefreshRateFailedWithError(e.toString()));
+                  IToast.showTop(appLocalizations
+                      .setRefreshRateFailedWithError(e.toString()));
                   ILogger.error("Failed to set display mode", e, t);
                 }
                 _refreshRate = _modes.indexOf(item2);
                 getRefreshRate();
-                HiveUtil.put(HiveUtil.refreshRateKey, _refreshRate);
+                ChewieHiveUtil.put(HiveUtil.refreshRateKey, _refreshRate);
                 Navigator.pop(context);
               },
               selected: _modes[_refreshRate.clamp(0, _modes.length - 1)],
               context: context,
-              title: S.current.chooseRefreshRate,
+              title: appLocalizations.chooseRefreshRate,
               onCloseTap: () => Navigator.pop(context),
             ),
           );
@@ -151,84 +144,81 @@ class _ExperimentSettingScreenState extends State<ExperimentSettingScreen>
   }
 
   _privacySettings(bool pinSettled) {
-    return [
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.privacySetting),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        value: _enableGuesturePasswd,
-        title: S.current.enableGestureLock,
-        onTap: onEnablePinTapped,
-      ),
-      Visibility(
-        visible: _enableGuesturePasswd,
-        child: ItemBuilder.buildEntryItem(
-          context: context,
-          title: pinSettled
-              ? S.current.changeGestureLock
-              : S.current.setGestureLock,
-          description: pinSettled ? "" : S.current.haveToSetGestureLockTip,
-          onTap: onChangePinTapped,
+    return CaptionItem(
+      title: appLocalizations.privacySetting,
+      children: [
+        CheckboxItem(
+          value: _enableGuesturePasswd,
+          title: appLocalizations.enableGestureLock,
+          onTap: onEnablePinTapped,
         ),
-      ),
-      Visibility(
-        visible: _enableGuesturePasswd && pinSettled && _biometricAvailable,
-        child: ItemBuilder.buildRadioItem(
-          context: context,
-          value: _enableBiometric,
-          disabled: ResponsiveUtil.isMacOS() || ResponsiveUtil.isLinux(),
-          title: S.current.biometric,
-          description: S.current.biometricUnlockTip,
-          onTap: onBiometricTapped,
-        ),
-      ),
-      Visibility(
-        visible: _enableGuesturePasswd && pinSettled,
-        child: ItemBuilder.buildRadioItem(
-          context: context,
-          value: _autoLock,
-          title: S.current.autoLock,
-          description: S.current.autoLockTip,
-          onTap: onEnableAutoLockTapped,
-        ),
-      ),
-      Visibility(
-        visible: _enableGuesturePasswd && pinSettled && _autoLock,
-        child: Selector<AppProvider, int>(
-          selector: (context, globalProvider) => globalProvider.autoLockSeconds,
-          builder: (context, autoLockTime, child) => ItemBuilder.buildEntryItem(
-            context: context,
-            title: S.current.autoLockDelay,
-            tip: AppProvider.getAutoLockOptionLabel(autoLockTime),
-            onTap: () {
-              BottomSheetBuilder.showListBottomSheet(
-                context,
-                (context) => TileList.fromOptions(
-                  AppProvider.getAutoLockOptions(),
-                  (item2) {
-                    appProvider.autoLockSeconds = item2;
-                    Navigator.pop(context);
-                  },
-                  selected: autoLockTime,
-                  context: context,
-                  title: S.current.chooseAutoLockDelay,
-                  onCloseTap: () => Navigator.pop(context),
-                ),
-              );
-            },
+        Visibility(
+          visible: _enableGuesturePasswd,
+          child: EntryItem(
+            title: pinSettled
+                ? appLocalizations.changeGestureLock
+                : appLocalizations.setGestureLock,
+            description:
+                pinSettled ? "" : appLocalizations.haveToSetGestureLockTip,
+            onTap: onChangePinTapped,
           ),
         ),
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        value: _enableSafeMode,
-        title: S.current.safeMode,
-        disabled: ResponsiveUtil.isDesktop(),
-        roundBottom: true,
-        description: S.current.safeModeTip,
-        onTap: onSafeModeTapped,
-      ),
-    ];
+        Visibility(
+          visible: _enableGuesturePasswd && pinSettled && _biometricAvailable,
+          child: CheckboxItem(
+            value: _enableBiometric,
+            disabled: ResponsiveUtil.isMacOS() || ResponsiveUtil.isLinux(),
+            title: appLocalizations.biometric,
+            description: appLocalizations.biometricUnlockTip,
+            onTap: onBiometricTapped,
+          ),
+        ),
+        Visibility(
+          visible: _enableGuesturePasswd && pinSettled,
+          child: CheckboxItem(
+            value: _autoLock,
+            title: appLocalizations.autoLock,
+            description: appLocalizations.autoLockTip,
+            onTap: onEnableAutoLockTapped,
+          ),
+        ),
+        Visibility(
+          visible: _enableGuesturePasswd && pinSettled && _autoLock,
+          child: Selector<AppProvider, int>(
+            selector: (context, globalProvider) =>
+                globalProvider.autoLockSeconds,
+            builder: (context, autoLockTime, child) => InlineSelectionItem<SelectionItemModel<(
+              title: appLocalizations.autoLockDelay,
+              tip: AppProvider.getAutoLockOptionLabel(autoLockTime),
+              onTap: () {
+                BottomSheetBuilder.showListBottomSheet(
+                  context,
+                  (context) => TileList.fromOptions(
+                    AppProvider.getAutoLockOptions(),
+                    (item2) {
+                      appProvider.autoLockSeconds = item2;
+                      Navigator.pop(context);
+                    },
+                    selected: autoLockTime,
+                    context: context,
+                    title: appLocalizations.chooseAutoLockDelay,
+                    onCloseTap: () => Navigator.pop(context),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        CheckboxItem(
+          value: _enableSafeMode,
+          title: appLocalizations.safeMode,
+          disabled: ResponsiveUtil.isDesktop(),
+          roundBottom: true,
+          description: appLocalizations.safeModeTip,
+          onTap: onSafeModeTapped,
+        ),
+      ],
+    );
   }
 
   initBiometricAuthentication() async {
@@ -248,9 +238,9 @@ class _ExperimentSettingScreenState extends State<ExperimentSettingScreen>
             setState(() {
               _enableGuesturePasswd = !_enableGuesturePasswd;
               IToast.showTop(_enableGuesturePasswd
-                  ? S.current.enableGestureLockSuccess
-                  : S.current.disableGestureLockSuccess);
-              HiveUtil.put(
+                  ? appLocalizations.enableGestureLockSuccess
+                  : appLocalizations.disableGestureLockSuccess);
+              ChewieHiveUtil.put(
                   HiveUtil.enableGuesturePasswdKey, _enableGuesturePasswd);
             });
           },
@@ -266,10 +256,10 @@ class _ExperimentSettingScreenState extends State<ExperimentSettingScreen>
         context,
         PinVerifyScreen(
           onSuccess: () {
-            IToast.showTop(S.current.enableBiometricSuccess);
+            IToast.showTop(appLocalizations.enableBiometricSuccess);
             setState(() {
               _enableBiometric = !_enableBiometric;
-              HiveUtil.put(HiveUtil.enableBiometricKey, _enableBiometric);
+              ChewieHiveUtil.put(HiveUtil.enableBiometricKey, _enableBiometric);
             });
           },
           isModal: false,
@@ -278,7 +268,7 @@ class _ExperimentSettingScreenState extends State<ExperimentSettingScreen>
     } else {
       setState(() {
         _enableBiometric = !_enableBiometric;
-        HiveUtil.put(HiveUtil.enableBiometricKey, _enableBiometric);
+        ChewieHiveUtil.put(HiveUtil.enableBiometricKey, _enableBiometric);
       });
     }
   }
@@ -289,8 +279,8 @@ class _ExperimentSettingScreenState extends State<ExperimentSettingScreen>
       //     .then((value) {
       //   setState(() {
       //     _hasGuesturePasswd =
-      //         HiveUtil.getString(HiveUtil.guesturePasswdKey) != null &&
-      //             HiveUtil.getString(HiveUtil.guesturePasswdKey)!.isNotEmpty;
+      //         ChewieHiveUtil.getString(HiveUtil.guesturePasswdKey) != null &&
+      //             ChewieHiveUtil.getString(HiveUtil.guesturePasswdKey)!.isNotEmpty;
       //   });
       // });
     });
@@ -299,7 +289,7 @@ class _ExperimentSettingScreenState extends State<ExperimentSettingScreen>
   onEnableAutoLockTapped() {
     setState(() {
       _autoLock = !_autoLock;
-      HiveUtil.put(HiveUtil.autoLockKey, _autoLock);
+      ChewieHiveUtil.put(HiveUtil.autoLockKey, _autoLock);
     });
   }
 
@@ -313,7 +303,7 @@ class _ExperimentSettingScreenState extends State<ExperimentSettingScreen>
           FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
         }
       }
-      HiveUtil.put(HiveUtil.enableSafeModeKey, _enableSafeMode);
+      ChewieHiveUtil.put(HiveUtil.enableSafeModeKey, _enableSafeMode);
     });
   }
 }

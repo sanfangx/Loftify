@@ -1,20 +1,15 @@
-import '../../generated/l10n.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
+
+import '../../l10n/l10n.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loftify/Api/user_api.dart';
-import 'package:loftify/Resources/colors.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Models/user_response.dart';
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import 'user_detail_screen.dart';
 
@@ -38,7 +33,7 @@ class SupporterScreen extends StatefulWidget {
   State<SupporterScreen> createState() => _SupporterScreenState();
 }
 
-class _SupporterScreenState extends State<SupporterScreen>
+class _SupporterScreenState extends BaseDynamicState<SupporterScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -81,7 +76,7 @@ class _SupporterScreenState extends State<SupporterScreen>
           }
         } catch (e, t) {
           ILogger.error("Failed to load supporter list", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {
           if (mounted) setState(() {});
@@ -103,7 +98,7 @@ class _SupporterScreenState extends State<SupporterScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: EasyRefresh.builder(
         refreshOnStart: true,
@@ -119,7 +114,7 @@ class _SupporterScreenState extends State<SupporterScreen>
   }
 
   Widget _buildBody(ScrollPhysics physics) {
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       noMore: _noMore,
       onLoad: _onLoad,
       child: WaterfallFlow.extent(
@@ -134,73 +129,70 @@ class _SupporterScreenState extends State<SupporterScreen>
   }
 
   _buildItem(int index, SupporterItem item) {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
-        onTap: () {
-          RouteUtil.pushPanelCupertinoRoute(
-            context,
-            UserDetailScreen(
-              blogId: item.blogInfo.blogId,
-              blogName: item.blogInfo.blogName,
-            ),
-          );
-        },
-        child: Container(
-          color: Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: Row(
-            children: [
-              ItemBuilder.buildAvatar(
-                context: context,
-                size: 40,
-                imageUrl: item.blogInfo.bigAvaImg,
-                tagPrefix: "$index",
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.blogInfo.blogNickName,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    if (item.blogInfo.selfIntro!.isNotEmpty)
-                      const SizedBox(height: 5),
-                    if (item.blogInfo.selfIntro!.isNotEmpty)
-                      Text(
-                        item.blogInfo.selfIntro!,
-                        style: Theme.of(context).textTheme.labelMedium,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(right: 5),
-                child: Icon(
-                  Icons.workspace_premium_rounded,
-                  size: 22,
-                  color: MyColors.getHotTagTextColor(context),
-                ),
-              ),
-              Text(
-                item.score.toString(),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
+    return ClickableGestureDetector(
+      onTap: () {
+        RouteUtil.pushPanelCupertinoRoute(
+          context,
+          UserDetailScreen(
+            blogId: item.blogInfo.blogId,
+            blogName: item.blogInfo.blogName,
           ),
+        );
+      },
+      child: Container(
+        color: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        child: Row(
+          children: [
+            ItemBuilder.buildAvatar(
+              context: context,
+              size: 40,
+              imageUrl: item.blogInfo.bigAvaImg,
+              tagPrefix: "$index",
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.blogInfo.blogNickName,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (item.blogInfo.selfIntro!.isNotEmpty)
+                    const SizedBox(height: 5),
+                  if (item.blogInfo.selfIntro!.isNotEmpty)
+                    Text(
+                      item.blogInfo.selfIntro!,
+                      style: Theme.of(context).textTheme.labelMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(right: 5),
+              child: Icon(
+                Icons.workspace_premium_rounded,
+                size: 22,
+                color: ChewieColors.getHotTagTextColor(context),
+              ),
+            ),
+            Text(
+              item.score.toString(),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
         ),
       ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: S.current.supporterList,
+      title: appLocalizations.supporterList,
     );
   }
 }

@@ -6,7 +6,7 @@ import 'package:loftify/Utils/responsive_util.dart';
 
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class SelectThemeScreen extends StatefulWidget {
   const SelectThemeScreen({super.key});
@@ -17,7 +17,7 @@ class SelectThemeScreen extends StatefulWidget {
   State<SelectThemeScreen> createState() => _SelectThemeScreenState();
 }
 
-class _SelectThemeScreenState extends State<SelectThemeScreen>
+class _SelectThemeScreenState extends BaseDynamicState<SelectThemeScreen>
     with TickerProviderStateMixin {
   int _selectedLightIndex = HiveUtil.getLightThemeIndex();
   int _selectedDarkIndex = HiveUtil.getDarkThemeIndex();
@@ -27,9 +27,9 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
     return Container(
       color: Colors.transparent,
       child: Scaffold(
-        appBar: ItemBuilder.buildResponsiveAppBar(
+        appBar: ResponsiveAppBar(
           showBack: true,
-          title: S.current.selectTheme,
+          title: appLocalizations.selectTheme,
           context: context,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         ),
@@ -37,9 +37,9 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
-              if (ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.lightTheme),
+              if (ResponsiveUtil.isLandscapeLayout()) const SizedBox(height: 10),
+              CaptionItem(
+                  context: context, title: appLocalizations.lightTheme),
               ItemBuilder.buildContainerItem(
                 context: context,
                 child: Container(
@@ -56,8 +56,8 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
                 bottomRadius: true,
               ),
               const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.darkTheme),
+              CaptionItem(
+                  context: context, title: appLocalizations.darkTheme),
               ItemBuilder.buildContainerItem(
                 context: context,
                 child: Container(
@@ -83,11 +83,11 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
 
   List<Widget> _buildLightThemeList() {
     var list = List<Widget>.generate(
-      ThemeColorData.defaultLightThemes.length,
+      ChewieThemeColorData.defaultLightThemes.length,
       (index) => ItemBuilder.buildThemeItem(
           index: index,
           groupIndex: _selectedLightIndex,
-          themeColorData: ThemeColorData.defaultLightThemes[index],
+          themeColorData: ChewieThemeColorData.defaultLightThemes[index],
           context: context,
           onChanged: (index) {
             setState(() {
@@ -102,11 +102,11 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
 
   List<Widget> _buildDarkThemeList() {
     var list = List<Widget>.generate(
-      ThemeColorData.defaultDarkThemes.length,
+      ChewieThemeColorData.defaultDarkThemes.length,
       (index) => ItemBuilder.buildThemeItem(
           index: index,
           groupIndex: _selectedDarkIndex,
-          themeColorData: ThemeColorData.defaultDarkThemes[index],
+          themeColorData: ChewieThemeColorData.defaultDarkThemes[index],
           context: context,
           onChanged: (index) {
             setState(() {

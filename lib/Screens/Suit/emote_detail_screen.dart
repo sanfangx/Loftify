@@ -1,21 +1,12 @@
-import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Api/dress_api.dart';
 import 'package:loftify/Models/gift_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Info/nested_mixin.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
-import '../../Utils/file_util.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/Dialog/custom_dialog.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class EmoteDetailScreen extends StatefulWidgetForNested {
   const EmoteDetailScreen({
@@ -32,7 +23,7 @@ class EmoteDetailScreen extends StatefulWidgetForNested {
   State<EmoteDetailScreen> createState() => _EmoteDetailScreenState();
 }
 
-class _EmoteDetailScreenState extends State<EmoteDetailScreen>
+class _EmoteDetailScreenState extends BaseDynamicState<EmoteDetailScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -46,7 +37,7 @@ class _EmoteDetailScreenState extends State<EmoteDetailScreen>
   void initState() {
     super.initState();
     currentAvatarImg =
-        HiveUtil.getString(HiveUtil.customAvatarBoxKey, defaultValue: null);
+        ChewieHiveUtil.getString(HiveUtil.customAvatarBoxKey, defaultValue: null);
     setState(() {});
   }
 
@@ -70,7 +61,7 @@ class _EmoteDetailScreenState extends State<EmoteDetailScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load dress detail", e, t);
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -87,7 +78,7 @@ class _EmoteDetailScreenState extends State<EmoteDetailScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: EasyRefresh.builder(
           refreshOnStart: true,
@@ -121,12 +112,12 @@ class _EmoteDetailScreenState extends State<EmoteDetailScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: MyTheme.getCardBackground(context),
+        color: ChewieTheme.canvasColor,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         children: [
-          ItemBuilder.buildHeroCachedImage(
+          ChewieItemBuilder.buildHeroCachedImage(
             context: context,
             width: 90,
             height: 90,
@@ -141,7 +132,7 @@ class _EmoteDetailScreenState extends State<EmoteDetailScreen>
           ),
           const SizedBox(height: 5),
           Text(
-            S.current.emote,
+            appLocalizations.emote,
             style: Theme.of(context).textTheme.labelMedium,
           ),
           const SizedBox(height: 10),
@@ -149,9 +140,9 @@ class _EmoteDetailScreenState extends State<EmoteDetailScreen>
             children: [
               Expanded(
                 flex: 2,
-                child: ItemBuilder.buildRoundButton(context,
-                    text: S.current.download, onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.downloading);
+                child: RoundIconTextButton(
+                    text: appLocalizations.download, onPressed: () async {
+                  CustomLoadingDialog.showLoading(title: appLocalizations.downloading);
                   String url = item.url;
                   await FileUtil.saveImage(context, url);
                   CustomLoadingDialog.dismissLoading();
@@ -165,10 +156,9 @@ class _EmoteDetailScreenState extends State<EmoteDetailScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: S.current.emotePackageDetail,
+      title: appLocalizations.emotePackageDetail,
     );
   }
 }

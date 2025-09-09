@@ -1,25 +1,12 @@
-import 'dart:io';
-
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Api/user_api.dart';
 import 'package:loftify/Models/favorites_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Info/favorite_folder_detail_screen.dart';
-import 'package:loftify/Widgets/Dialog/dialog_builder.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
-import '../../Utils/constant.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class FavoriteFolderListScreen extends StatefulWidget {
   const FavoriteFolderListScreen({super.key});
@@ -31,7 +18,8 @@ class FavoriteFolderListScreen extends StatefulWidget {
       _FavoriteFolderListScreenState();
 }
 
-class _FavoriteFolderListScreenState extends State<FavoriteFolderListScreen>
+class _FavoriteFolderListScreenState
+    extends BaseDynamicState<FavoriteFolderListScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -70,7 +58,7 @@ class _FavoriteFolderListScreenState extends State<FavoriteFolderListScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load folder list", e, t);
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -91,7 +79,7 @@ class _FavoriteFolderListScreenState extends State<FavoriteFolderListScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: Stack(
         children: [
@@ -104,8 +92,8 @@ class _FavoriteFolderListScreenState extends State<FavoriteFolderListScreen>
             child: _buildBody(),
           ),
           Positioned(
-            right: ResponsiveUtil.isLandscape() ? 16 : 12,
-            bottom: ResponsiveUtil.isLandscape() ? 16 : 76,
+            right: ResponsiveUtil.isLandscapeLayout() ? 16 : 12,
+            bottom: ResponsiveUtil.isLandscapeLayout() ? 16 : 76,
             child: _buildFloatingButtons(),
           ),
         ],
@@ -129,134 +117,129 @@ class _FavoriteFolderListScreenState extends State<FavoriteFolderListScreen>
   }
 
   Widget _buildFolderItem(BuildContext context, FavoriteFolder item) {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
-        onTap: () {
-          RouteUtil.pushPanelCupertinoRoute(
-            context,
-            FavoriteFolderDetailScreen(favoriteFolderId: item.id ?? 0),
-          );
-        },
-        child: Container(
-          color: Colors.transparent,
-          child: Row(
-            children: <Widget>[
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                      color: Theme.of(context).dividerColor, width: 0.5),
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.transparent,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: SizedBox(
-                    height: 80,
-                    width: 80,
-                    child: ItemBuilder.buildCachedImage(
-                      context: context,
-                      fit: BoxFit.cover,
-                      showLoading: false,
-                      imageUrl: Utils.removeWatermark(item.coverUrl ?? ""),
-                    ),
+    return ClickableGestureDetector(
+      onTap: () {
+        RouteUtil.pushPanelCupertinoRoute(
+          context,
+          FavoriteFolderDetailScreen(favoriteFolderId: item.id ?? 0),
+        );
+      },
+      child: Container(
+        color: Colors.transparent,
+        child: Row(
+          children: <Widget>[
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                    color: Theme.of(context).dividerColor, width: 0.5),
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.transparent,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  height: 80,
+                  width: 80,
+                  child: ChewieItemBuilder.buildCachedImage(
+                    context: context,
+                    fit: BoxFit.cover,
+                    showLoading: false,
+                    imageUrl: Utils.removeWatermark(item.coverUrl ?? ""),
                   ),
                 ),
               ),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      ItemBuilder.buildCopyable(
-                        context,
-                        child: Text(
-                          item.name ?? "",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+            ),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: <Widget>[
+                    ItemBuilder.buildCopyable(
+                      context,
+                      child: Text(
+                        item.name ?? "",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
-                        text: item.name ?? "",
-                        toastText: S.current.haveCopiedFolderName,
                       ),
-                      const SizedBox(height: 10),
-                      ItemBuilder.buildCopyable(context,
-                          child: Text(
-                            S.current.folderId(item.id.toString()),
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          text: item.id.toString(),
-                          toastText: S.current.haveCopiedFolderID),
-                      const SizedBox(height: 10),
-                      Text(
-                        "${item.postCount}${S.current.chapter}",
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                    ],
-                  ),
+                      text: item.name ?? "",
+                      toastText: appLocalizations.haveCopiedFolderName,
+                    ),
+                    const SizedBox(height: 10),
+                    ItemBuilder.buildCopyable(context,
+                        child: Text(
+                          appLocalizations.folderId(item.id.toString()),
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        text: item.id.toString(),
+                        toastText: appLocalizations.haveCopiedFolderID),
+                    const SizedBox(height: 10),
+                    Text(
+                      "${item.postCount}${appLocalizations.chapter}",
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ],
                 ),
               ),
-              ItemBuilder.buildIconButton(
-                context: context,
-                icon: const Icon(Icons.edit_note_rounded),
+            ),
+            CircleIconButton(
+              icon: const Icon(Icons.edit_note_rounded),
+              onTap: () {
+                BottomSheetBuilder.showBottomSheet(
+                  context,
+                  (sheetContext) => InputBottomSheet(
+                    title: appLocalizations.editFolderTitle,
+                    hint: appLocalizations.inputFolderTitle,
+                    text: item.name ?? "",
+                    onConfirm: (text) {
+                      var tmp = item;
+                      tmp.name = text;
+                      UserApi.editFolder(folder: tmp).then((value) {
+                        if (value['code'] == 0) {
+                          IToast.showTop(appLocalizations.editSuccess);
+                          item.name = text;
+                          setState(() {});
+                        } else {
+                          IToast.showTop(value['msg']);
+                        }
+                      });
+                    },
+                  ),
+                  preferMinWidth: 400,
+                  responsive: true,
+                );
+              },
+            ),
+            if (item.isDefault != 1)
+              CircleIconButton(
+                icon:
+                    const Icon(Icons.delete_outline_rounded, color: Colors.red),
                 onTap: () {
-                  BottomSheetBuilder.showBottomSheet(
+                  DialogBuilder.showConfirmDialog(
                     context,
-                    (sheetContext) => InputBottomSheet(
-                      buttonText: S.current.confirm,
-                      title: S.current.editFolderTitle,
-                      hint: S.current.inputFolderTitle,
-                      text: item.name ?? "",
-                      onConfirm: (text) {
-                        var tmp = item;
-                        tmp.name = text;
-                        UserApi.editFolder(folder: tmp).then((value) {
-                          if (value['code'] == 0) {
-                            IToast.showTop(S.current.editSuccess);
-                            item.name = text;
-                            setState(() {});
-                          } else {
-                            IToast.showTop(value['msg']);
-                          }
-                        });
-                      },
-                    ),
-                    preferMinWidth: 400,
-                    responsive: true,
+                    title: appLocalizations.deleteFolder,
+                    message:
+                        appLocalizations.deleteFolderMessage(item.name.toString()),
+                    messageTextAlign: TextAlign.center,
+                    onTapConfirm: () async {
+                      UserApi.deleteFolder(folderId: item.id ?? 0)
+                          .then((value) {
+                        if (value['code'] == 0) {
+                          IToast.showTop(appLocalizations.deleteSuccess);
+                          _refreshController.callRefresh();
+                        } else {
+                          IToast.showTop(value['msg']);
+                        }
+                      });
+                    },
                   );
                 },
               ),
-              if (item.isDefault != 1)
-                ItemBuilder.buildIconButton(
-                  context: context,
-                  icon: const Icon(Icons.delete_outline_rounded,
-                      color: Colors.red),
-                  onTap: () {
-                    DialogBuilder.showConfirmDialog(
-                      context,
-                      title: S.current.deleteFolder,
-                      message:
-                          S.current.deleteFolderMessage(item.name.toString()),
-                      messageTextAlign: TextAlign.center,
-                      onTapConfirm: () async {
-                        UserApi.deleteFolder(folderId: item.id ?? 0)
-                            .then((value) {
-                          if (value['code'] == 0) {
-                            IToast.showTop(S.current.deleteSuccess);
-                            _refreshController.callRefresh();
-                          } else {
-                            IToast.showTop(value['msg']);
-                          }
-                        });
-                      },
-                    );
-                  },
-                ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -266,14 +249,13 @@ class _FavoriteFolderListScreenState extends State<FavoriteFolderListScreen>
     BottomSheetBuilder.showBottomSheet(
       context,
       (sheetContext) => InputBottomSheet(
-        buttonText: S.current.confirm,
-        title: S.current.newFolder,
-        hint: S.current.inputFolderTitle,
+        title: appLocalizations.newFolder,
+        hint: appLocalizations.inputFolderTitle,
         text: "",
         onConfirm: (text) {
           UserApi.createFolder(name: text).then((value) {
             if (value['code'] == 0) {
-              IToast.showTop(S.current.createSuccess);
+              IToast.showTop(appLocalizations.createSuccess);
               _refreshController.callRefresh();
             } else {
               IToast.showTop(value['msg']);
@@ -287,21 +269,19 @@ class _FavoriteFolderListScreenState extends State<FavoriteFolderListScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: S.current.myFavorites,
+      title: appLocalizations.myFavorites,
       actions: [
-        // ItemBuilder.buildIconButton(
+        // CircleIconButton(
         //     context: context,
         //     icon: Icon(Icons.search_rounded,
         //         color: Theme.of(context).iconTheme.color),
         //     onTap: () {}),
         // const SizedBox(width: 5),
-        ItemBuilder.buildIconButton(
-          context: context,
+        CircleIconButton(
           icon:
-              Icon(Icons.add_rounded, color: Theme.of(context).iconTheme.color),
+              Icon(Icons.add_rounded, color: ChewieTheme.iconColor),
           onTap: handleAdd,
         ),
       ],
@@ -309,11 +289,10 @@ class _FavoriteFolderListScreenState extends State<FavoriteFolderListScreen>
   }
 
   _buildFloatingButtons() {
-    return ResponsiveUtil.isLandscape()
+    return ResponsiveUtil.isLandscapeLayout()
         ? Column(
             children: [
-              ItemBuilder.buildShadowIconButton(
-                context: context,
+              ShadowIconButton(
                 icon: const Icon(Icons.add_rounded),
                 onTap: handleAdd,
               ),

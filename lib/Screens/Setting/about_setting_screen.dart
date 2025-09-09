@@ -1,26 +1,16 @@
 import 'dart:async';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loftify/Screens/Setting/egg_screen.dart';
-import 'package:loftify/Screens/Setting/update_log_screen.dart';
-import 'package:loftify/Utils/route_util.dart';
-import 'package:loftify/Utils/uri_util.dart';
-import 'package:loftify/Widgets/BottomSheet/bottom_sheet_builder.dart';
-import 'package:loftify/Widgets/BottomSheet/star_bottom_sheet.dart';
-import 'package:loftify/Widgets/Custom/no_shadow_scroll_behavior.dart';
-import 'package:loftify/Widgets/Shake/shake_animation_controller.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../Utils/cloud_control_provider.dart';
 import '../../Utils/hive_util.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
-import '../../Widgets/Shake/shake_animation_type.dart';
-import '../../Widgets/Shake/shake_animation_widget.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 const countThreholdLevel1 = 3;
 const countThreholdLevel2 = 6;
@@ -37,11 +27,11 @@ class AboutSettingScreen extends StatefulWidget {
   State<AboutSettingScreen> createState() => _AboutSettingScreenState();
 }
 
-class _AboutSettingScreenState extends State<AboutSettingScreen>
+class _AboutSettingScreenState extends BaseDynamicState<AboutSettingScreen>
     with TickerProviderStateMixin {
   int count = 0;
   late String appName = "";
-  bool inAppBrowser = HiveUtil.getBool(HiveUtil.inappWebviewKey);
+  bool inAppBrowser = ChewieHiveUtil.getBool(HiveUtil.inappWebviewKey);
 
   Timer? _timer;
   Timer? _hapticTimer;
@@ -52,11 +42,6 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
   void initState() {
     super.initState();
     getAppInfo();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   void getAppInfo() {
@@ -96,10 +81,9 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: ItemBuilder.buildResponsiveAppBar(
-        context: context,
+      appBar: ResponsiveAppBar(
         showBack: true,
-        title: S.current.about,
+        title: appLocalizations.about,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: EasyRefresh(
@@ -107,7 +91,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
           children: [
             const SizedBox(height: 20),
             Center(
-              child: ItemBuilder.buildClickable(
+              child: ClickableWrapper(child:
                 GestureDetector(
                   onLongPressStart: (details) {
                     if (controlProvider.globalControl.enableEasterEggs) {
@@ -182,9 +166,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                       padding: EdgeInsets.zero,
                       children: [
                         const SizedBox(height: 10),
-                        ItemBuilder.buildEntryItem(
-                          context: context,
-                          title: S.current.changelog,
+                        EntryItem(
+                          title: appLocalizations.changelog,
                           roundTop: true,
                           showLeading: true,
                           onTap: () {
@@ -193,9 +176,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                           },
                           leading: Icons.merge_type_outlined,
                         ),
-                        ItemBuilder.buildEntryItem(
-                          context: context,
-                          title: S.current.bugReport,
+                        EntryItem(
+                          title: appLocalizations.bugReport,
                           onTap: () {
                             UriUtil.launchUrlUri(context,
                                 cloudControlProvider.globalControl.issueUrl);
@@ -203,9 +185,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                           showLeading: true,
                           leading: Icons.bug_report_outlined,
                         ),
-                        ItemBuilder.buildEntryItem(
-                          context: context,
-                          title: S.current.githubRepo,
+                        EntryItem(
+                          title: appLocalizations.githubRepo,
                           onTap: () {
                             UriUtil.launchUrlUri(context,
                                 cloudControlProvider.globalControl.repoUrl);
@@ -215,10 +196,9 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                           leading: Icons.commit_outlined,
                         ),
                         const SizedBox(height: 10),
-                        ItemBuilder.buildEntryItem(
+                        EntryItem(
                           roundTop: true,
-                          context: context,
-                          title: S.current.rate,
+                          title: appLocalizations.rate,
                           showLeading: true,
                           onTap: () {
                             BottomSheetBuilder.showBottomSheet(
@@ -229,9 +209,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                           },
                           leading: Icons.rate_review_outlined,
                         ),
-                        ItemBuilder.buildEntryItem(
-                          context: context,
-                          title: S.current.shareApp,
+                        EntryItem(
+                          title: appLocalizations.shareApp,
                           showLeading: true,
                           onTap: () {
                             Share.share(
@@ -239,9 +218,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                           },
                           leading: Icons.share_rounded,
                         ),
-                        ItemBuilder.buildEntryItem(
-                          context: context,
-                          title: S.current.contact,
+                        EntryItem(
+                          title: appLocalizations.contact,
                           onTap: () {
                             UriUtil.launchEmailUri(
                               context,
@@ -255,9 +233,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                           showLeading: true,
                           leading: Icons.contact_support_outlined,
                         ),
-                        ItemBuilder.buildEntryItem(
-                          context: context,
-                          title: S.current.officialWebsite,
+                        EntryItem(
+                          title: appLocalizations.officialWebsite,
                           roundBottom: !(cloudControlProvider
                                   .globalControl.showTelegramGroup) &&
                               !(cloudControlProvider.globalControl.showQQGroup),
@@ -271,9 +248,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                           leading: Icons.language_outlined,
                         ),
                         if (cloudControlProvider.globalControl.showQQGroup)
-                          ItemBuilder.buildEntryItem(
-                            context: context,
-                            title: S.current.qqGroup,
+                          EntryItem(
+                            title: appLocalizations.qqGroup,
                             roundBottom: !cloudControlProvider
                                 .globalControl.showTelegramGroup,
                             onTap: () {
@@ -285,9 +261,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                           ),
                         if (cloudControlProvider
                             .globalControl.showTelegramGroup)
-                          ItemBuilder.buildEntryItem(
-                            context: context,
-                            title: S.current.telegramGroup,
+                          EntryItem(
+                            title: appLocalizations.telegramGroup,
                             onTap: () {
                               UriUtil.openExternal(cloudControlProvider
                                   .globalControl.telegramGroupUrl);

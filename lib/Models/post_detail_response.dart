@@ -1,6 +1,6 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:loftify/Models/recommend_response.dart';
 
-import '../Utils/ilogger.dart';
 import '../Utils/utils.dart';
 import 'account_response.dart';
 
@@ -297,9 +297,9 @@ class PostDetail {
     required this.valid,
     required this.viewRank,
   }) {
-    if (Utils.isNotEmpty(embed)) {
+    if (StringUtil.isNotEmpty(embed)) {
       try {
-        videoInfo = VideoInfo.fromJson(Utils.parseJson(embed ?? "{}"));
+        videoInfo = VideoInfo.fromJson(StringUtil.parseJson(embed ?? "{}"));
       } catch (e, t) {
         ILogger.error("Failed to init videoInfo from $embed", e, t);
       }

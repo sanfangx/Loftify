@@ -13,7 +13,7 @@ class SearchPostFlowItemBuilder {
     switch (getPostType(item)) {
       case PostType.video:
         String cover = "";
-        if (Utils.isNotEmpty(item.videoPostView!.videoInfo.videoImgUrl)) {
+        if (StringUtil.isNotEmpty(item.videoPostView!.videoInfo.videoImgUrl)) {
           cover = item.videoPostView!.videoInfo.videoImgUrl;
         } else {
           cover = item.videoPostView!.videoInfo.videoFirstImg;
@@ -70,8 +70,8 @@ class SearchPostFlowItemBuilder {
       photoCount: item.photoPostView?.photoLinks.length ?? 0,
       tags: item.tagList,
       bigAvaImg: item.blogInfo.bigAvaImg,
-      showArticle: HiveUtil.getBool(HiveUtil.showRecommendArticleKey),
-      showVideo: HiveUtil.getBool(HiveUtil.showRecommendVideoKey),
+      showArticle: ChewieHiveUtil.getBool(HiveUtil.showRecommendArticleKey),
+      showVideo: ChewieHiveUtil.getBool(HiveUtil.showRecommendVideoKey),
     );
   }
 

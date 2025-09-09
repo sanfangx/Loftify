@@ -1,20 +1,13 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/tag_api.dart';
 import 'package:loftify/Models/tag_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Post/collection_detail_screen.dart';
 import 'package:loftify/Utils/asset_util.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:loftify/Utils/route_util.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
-
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/responsive_util.dart';
 import '../../Utils/utils.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'grain_detail_screen.dart';
 
 class TagCollectionGrainScreen extends StatefulWidget {
@@ -29,7 +22,8 @@ class TagCollectionGrainScreen extends StatefulWidget {
       _TagCollectionGrainScreenState();
 }
 
-class _TagCollectionGrainScreenState extends State<TagCollectionGrainScreen>
+class _TagCollectionGrainScreenState
+    extends BaseDynamicState<TagCollectionGrainScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -50,14 +44,14 @@ class _TagCollectionGrainScreenState extends State<TagCollectionGrainScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: _buildTabView(),
     );
   }
 
   initTab() {
-    _tabLabelList = [S.current.collection, S.current.grain];
+    _tabLabelList = [appLocalizations.collection, appLocalizations.grain];
     _tabController = TabController(length: _tabLabelList.length, vsync: this);
   }
 
@@ -72,12 +66,11 @@ class _TagCollectionGrainScreenState extends State<TagCollectionGrainScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
       centerTitle: true,
-      titleWidget: ItemBuilder.buildClickable(
-        ItemBuilder.buildTagItem(
+      titleWidget: ClickableWrapper(
+        child: ItemBuilder.buildTagItem(
           context,
           widget.tag,
           TagType.normal,
@@ -88,10 +81,9 @@ class _TagCollectionGrainScreenState extends State<TagCollectionGrainScreen>
         ),
       ),
       bottomHeight: 56,
-      bottomWidget: ItemBuilder.buildTabBar(
-        context,
-        _tabController,
-        _tabLabelList
+      bottomWidget: TabBarWrapper(
+        tabController: _tabController,
+        tabs: _tabLabelList
             .asMap()
             .entries
             .map(
@@ -108,8 +100,8 @@ class _TagCollectionGrainScreenState extends State<TagCollectionGrainScreen>
           });
         },
         width: MediaQuery.sizeOf(context).width,
-        background: MyTheme.getBackground(context),
-        showBorder: ResponsiveUtil.isLandscape(),
+        background: ChewieTheme.getBackground(context),
+        showBorder: ResponsiveUtil.isLandscapeLayout(),
       ),
       actions: [
         Visibility(
@@ -117,8 +109,7 @@ class _TagCollectionGrainScreenState extends State<TagCollectionGrainScreen>
           maintainAnimation: true,
           maintainState: true,
           maintainSize: true,
-          child: ItemBuilder.buildIconButton(
-              context: context,
+          child: CircleIconButton(
               icon: Icon(Icons.more_vert_rounded,
                   color: Theme.of(context).iconTheme.color),
               onTap: () {}),
@@ -140,7 +131,7 @@ class CollectionTab extends StatefulWidget {
   State<StatefulWidget> createState() => CollectionTabState();
 }
 
-class CollectionTabState extends State<CollectionTab>
+class CollectionTabState extends BaseDynamicState<CollectionTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -206,7 +197,7 @@ class CollectionTabState extends State<CollectionTab>
         }
       } catch (e, t) {
         ILogger.error("Failed to load tag collection list", e, t);
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -226,7 +217,7 @@ class CollectionTabState extends State<CollectionTab>
         return await _fetchCollectionResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         noMore: _noMore,
         onLoad: _fetchCollectionResult,
         child: CustomScrollView(
@@ -241,15 +232,14 @@ class CollectionTabState extends State<CollectionTab>
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 16),
                       height: 160,
-                      child: ItemBuilder.buildEmptyPlaceholder(
-                        context: context,
-                        text: S.current.noCollection,
+                      child: EmptyPlaceholder(
+                        text: appLocalizations.noCollection,
                       ),
                     ),
                   if (_hotCollectionList.isNotEmpty)
                     ItemBuilder.buildTitle(
                       context,
-                      title: S.current.hotCollectionRank,
+                      title: appLocalizations.hotCollectionRank,
                       bottomMargin: 12,
                       topMargin: 0,
                     ),
@@ -258,7 +248,7 @@ class CollectionTabState extends State<CollectionTab>
                   if (_recommendCollectionList.isNotEmpty)
                     ItemBuilder.buildTitle(
                       context,
-                      title: S.current.hotRecommend,
+                      title: appLocalizations.hotRecommend,
                       bottomMargin: 12,
                       topMargin: _hotCollectionList.isNotEmpty ? 24 : 0,
                     ),
@@ -290,8 +280,8 @@ class CollectionTabState extends State<CollectionTab>
   }
 
   Widget _buildRecommendCollectionItem(SimpleCollectionInfo info) {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
+    return ClickableWrapper(
+      child: GestureDetector(
         onTap: () {
           RouteUtil.pushPanelCupertinoRoute(
             context,
@@ -310,7 +300,7 @@ class CollectionTabState extends State<CollectionTab>
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: ItemBuilder.buildCachedImage(
+                  child: ChewieItemBuilder.buildCachedImage(
                     context: context,
                     imageUrl: info.coverUrl,
                     width: 120,
@@ -347,7 +337,7 @@ class CollectionTabState extends State<CollectionTab>
                   left: 4,
                   child: ItemBuilder.buildTranslucentTag(
                     context,
-                    text: Utils.formatCount(info.viewCount),
+                    text: StringUtil.formatCount(info.viewCount),
                     icon: const Icon(
                       Icons.local_fire_department_rounded,
                       color: Colors.white,
@@ -426,8 +416,8 @@ class CollectionTabState extends State<CollectionTab>
 
   Widget _buildHotCollectionRankItem(int index, SimpleCollectionInfo info) {
     String? icon = getIcon(index);
-    return ItemBuilder.buildClickable(
-      GestureDetector(
+    return ClickableWrapper(
+      child: GestureDetector(
         onTap: () {
           RouteUtil.pushPanelCupertinoRoute(
             context,
@@ -466,7 +456,7 @@ class CollectionTabState extends State<CollectionTab>
               const SizedBox(width: 24),
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: ItemBuilder.buildCachedImage(
+                child: ChewieItemBuilder.buildCachedImage(
                   context: context,
                   imageUrl: info.coverUrl,
                   width: 60,
@@ -492,7 +482,7 @@ class CollectionTabState extends State<CollectionTab>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "${Utils.formatCount(info.subscribedCount)}${S.current.subscribe} · ${Utils.formatCount(info.viewCount)}${S.current.viewCount}",
+                      "${StringUtil.formatCount(info.subscribedCount)}${appLocalizations.subscribe} · ${StringUtil.formatCount(info.viewCount)}${appLocalizations.viewCount}",
                       style: Theme.of(context).textTheme.labelMedium,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -520,7 +510,8 @@ class GrainTab extends StatefulWidget {
   State<StatefulWidget> createState() => GrainTabState();
 }
 
-class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
+class GrainTabState extends BaseDynamicState<GrainTab>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   final List<SimpleGrainInfo> _hotGrainList = [];
@@ -584,7 +575,7 @@ class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
         }
       } catch (e, t) {
         ILogger.error("Failed to load tag grain list", e, t);
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -604,7 +595,7 @@ class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
         return await _fetchGrainResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         noMore: _noMore,
         onLoad: _fetchGrainResult,
         child: CustomScrollView(
@@ -618,15 +609,14 @@ class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 16),
                       height: 160,
-                      child: ItemBuilder.buildEmptyPlaceholder(
-                        context: context,
-                        text: S.current.noGrain,
+                      child: EmptyPlaceholder(
+                        text: appLocalizations.noGrain,
                       ),
                     ),
                   if (_hotGrainList.isNotEmpty)
                     ItemBuilder.buildTitle(
                       context,
-                      title: S.current.hotGrainRank,
+                      title: appLocalizations.hotGrainRank,
                       bottomMargin: 12,
                       topMargin: 0,
                     ),
@@ -634,7 +624,7 @@ class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
                   if (_recommendGrainList.isNotEmpty)
                     ItemBuilder.buildTitle(
                       context,
-                      title: S.current.hotRecommend,
+                      title: appLocalizations.hotRecommend,
                       bottomMargin: 12,
                       topMargin: _hotGrainList.isNotEmpty ? 24 : 0,
                     ),
@@ -666,8 +656,8 @@ class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
   }
 
   Widget _buildRecommendGrainItem(SimpleGrainInfo info) {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
+    return ClickableWrapper(
+      child: GestureDetector(
         onTap: () {
           RouteUtil.pushPanelCupertinoRoute(
             context,
@@ -693,7 +683,7 @@ class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: ItemBuilder.buildCachedImage(
+                    child: ChewieItemBuilder.buildCachedImage(
                       context: context,
                       imageUrl: info.coverUrl,
                       width: 120,
@@ -731,7 +721,7 @@ class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
                   left: 4,
                   child: ItemBuilder.buildTranslucentTag(
                     context,
-                    text: Utils.formatCount(info.viewCount),
+                    text: StringUtil.formatCount(info.viewCount),
                     icon: const Icon(
                       Icons.local_fire_department_rounded,
                       color: Colors.white,
@@ -810,8 +800,8 @@ class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
 
   Widget _buildHotGrainRankItem(int index, SimpleGrainInfo info) {
     String? icon = getIcon(index);
-    return ItemBuilder.buildClickable(
-      GestureDetector(
+    return ClickableWrapper(
+      child: GestureDetector(
         onTap: () {
           RouteUtil.pushPanelCupertinoRoute(
             context,
@@ -848,7 +838,7 @@ class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
               const SizedBox(width: 24),
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: ItemBuilder.buildCachedImage(
+                child: ChewieItemBuilder.buildCachedImage(
                   context: context,
                   imageUrl: info.coverUrl,
                   width: 60,
@@ -874,7 +864,7 @@ class GrainTabState extends State<GrainTab> with AutomaticKeepAliveClientMixin {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "${Utils.formatCount(info.subscribedCount)}${S.current.subscribe} · ${Utils.formatCount(info.viewCount)}${S.current.viewCount}",
+                      "${StringUtil.formatCount(info.subscribedCount)}${appLocalizations.subscribe} · ${StringUtil.formatCount(info.viewCount)}${appLocalizations.viewCount}",
                       style: Theme.of(context).textTheme.labelMedium,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

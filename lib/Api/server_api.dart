@@ -1,14 +1,13 @@
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:dio/dio.dart';
 import 'package:loftify/Utils/app_provider.dart';
 import 'package:loftify/Utils/cloud_control_provider.dart';
 import 'package:loftify/Utils/constant.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Widgets/Dialog/dialog_builder.dart';
 
 import '../Models/cloud_control.dart';
-import '../Utils/ilogger.dart';
 import '../Utils/utils.dart';
 
 class ServerApi {
@@ -23,7 +22,7 @@ class ServerApi {
         controlProvider.originalCloudControl = cloudControl;
         controlProvider.globalControl = cloudControl;
         if (cloudControl.enableAppNotNull) {
-          if (HiveUtil.getBool(HiveUtil.overrideCloudControlKey,
+          if (ChewieHiveUtil.getBool(HiveUtil.overrideCloudControlKey,
               defaultValue: false)) {
             controlProvider.globalControl =
                 LoftifyControl.getOverridedCloudControl(cloudControl);

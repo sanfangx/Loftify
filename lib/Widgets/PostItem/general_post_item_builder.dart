@@ -1,12 +1,10 @@
 import 'dart:math';
 
-import 'package:context_menus/context_menus.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:like_button/like_button.dart';
-import 'package:loftify/Resources/colors.dart';
 import 'package:loftify/Screens/Post/video_detail_screen.dart';
-import 'package:loftify/Utils/responsive_util.dart';
 import 'package:loftify/Widgets/BottomSheet/shield_bottom_sheet.dart';
 
 import '../../Api/post_api.dart';
@@ -14,21 +12,13 @@ import '../../Api/user_api.dart';
 import '../../Models/grain_response.dart';
 import '../../Models/illust.dart';
 import '../../Models/post_detail_response.dart';
-import '../../Resources/theme.dart';
 import '../../Screens/Info/user_detail_screen.dart';
 import '../../Screens/Post/post_detail_screen.dart';
-import '../../Utils/constant.dart';
 import '../../Utils/enums.dart';
-import '../../Utils/file_util.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
 import '../../Utils/uri_util.dart';
 import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
-import '../BottomSheet/bottom_sheet_builder.dart';
-import '../Custom/floating_modal.dart';
-import '../Custom/hero_photo_view_screen.dart';
+import '../../l10n/l10n.dart';
 import '../Item/item_builder.dart';
 import '../Item/loftify_item_builder.dart';
 import 'image_grid.dart';
@@ -108,22 +98,22 @@ class GeneralPostItem {
 
   bool get hasTitleOrContent {
     var item = this;
-    String title = Utils.clearBlank(item.title);
-    String content = Utils.clearBlank(Utils.extractTextFromHtml(item.content));
-    String digest = Utils.clearBlank(Utils.extractTextFromHtml(item.digest));
-    return (Utils.isNotEmpty(title) ||
-        Utils.isNotEmpty(content) ||
-        Utils.isNotEmpty(digest));
+    String title = StringUtil.clearBlank(item.title);
+    String content = StringUtil.clearBlank(HtmlUtil.extractTextFromHtml(item.content));
+    String digest = StringUtil.clearBlank(HtmlUtil.extractTextFromHtml(item.digest));
+    return (StringUtil.isNotEmpty(title) ||
+        StringUtil.isNotEmpty(content) ||
+        StringUtil.isNotEmpty(digest));
   }
 
   String get processedTitle {
     var item = this;
-    String title = Utils.clearBlank(item.title);
-    String digest = Utils.clearBlank(Utils.extractTextFromHtml(item.digest));
-    String content = Utils.clearBlank(Utils.extractTextFromHtml(item.content));
-    String shownTitle = Utils.isNotEmpty(title)
+    String title = StringUtil.clearBlank(item.title);
+    String digest = StringUtil.clearBlank(HtmlUtil.extractTextFromHtml(item.digest));
+    String content = StringUtil.clearBlank(HtmlUtil.extractTextFromHtml(item.content));
+    String shownTitle = StringUtil.isNotEmpty(title)
         ? title
-        : Utils.isNotEmpty(digest)
+        : StringUtil.isNotEmpty(digest)
             ? digest
             : content;
     return shownTitle;
@@ -188,7 +178,7 @@ class WaterfallFlowPostItemWidgetState
               GeneralPostItemBuilder.showMoreSheet(context, item);
             }
           : null,
-      child: ItemBuilder.buildClickable(main),
+      child: ClickableWrapper(child:main),
     );
   }
 
@@ -197,10 +187,8 @@ class WaterfallFlowPostItemWidgetState
   }) {
     return Column(
       children: [
-        ItemBuilder.buildContainerItem(
+        ContainerItem(
           backgroundColor: Theme.of(context).cardColor,
-          topRadius: true,
-          bottomRadius: true,
           child: Container(
             padding: const EdgeInsets.all(15),
             width: width,
@@ -218,7 +206,7 @@ class WaterfallFlowPostItemWidgetState
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  Utils.extractTextFromHtml(item.digest),
+                  HtmlUtil.extractTextFromHtml(item.digest),
                   maxLines: 6,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall,
@@ -226,7 +214,6 @@ class WaterfallFlowPostItemWidgetState
               ],
             ),
           ),
-          context: context,
         ),
         buildWaterfallFlowPostItemMeta(
           showTitle: false,
@@ -259,7 +246,7 @@ class WaterfallFlowPostItemWidgetState
                     minHeight,
                   ),
                   width: width,
-                  child: ItemBuilder.buildCachedImage(
+                  child: ChewieItemBuilder.buildCachedImage(
                     context: context,
                     fit: BoxFit.cover,
                     showLoading: false,
@@ -276,7 +263,7 @@ class WaterfallFlowPostItemWidgetState
                 left: 4,
                 top: 4,
                 child: ItemBuilder.buildTranslucentTag(context,
-                    text: S.current.animatedGif),
+                    text: appLocalizations.animatedGif),
               ),
             if ((item.photoCount ?? item.photoLinks.length) > 1)
               Positioned(
@@ -321,7 +308,7 @@ class WaterfallFlowPostItemWidgetState
                 child: SizedBox(
                   height: height.isNaN ? maxHeight : height,
                   width: width,
-                  child: ItemBuilder.buildCachedImage(
+                  child: ChewieItemBuilder.buildCachedImage(
                     context: context,
                     fit: BoxFit.cover,
                     showLoading: false,
@@ -337,7 +324,7 @@ class WaterfallFlowPostItemWidgetState
               left: 4,
               top: 4,
               child: ItemBuilder.buildTranslucentTag(context,
-                  text: S.current.video),
+                  text: appLocalizations.video),
             ),
             Positioned(
               bottom: 4,
@@ -361,7 +348,7 @@ class WaterfallFlowPostItemWidgetState
     if (item.tags.isNotEmpty) {
       tag = item.tags[0];
     }
-    if (Utils.isNotEmpty(item.excludeTag)) {
+    if (StringUtil.isNotEmpty(item.excludeTag)) {
       while (tag.contains(item.excludeTag!) && tag != item.tags.last) {
         tag = item.tags[item.tags.indexOf(tag) + 1];
       }
@@ -572,7 +559,7 @@ class GridPostItemWidgetState extends State<GridPostItemWidget> {
       onTap: () {
         GeneralPostItemBuilder.onTapItem(context, item);
       },
-      child: ItemBuilder.buildClickable(main),
+      child: ClickableWrapper(child:main),
     );
   }
 
@@ -599,7 +586,7 @@ class GridPostItemWidgetState extends State<GridPostItemWidget> {
               child: SizedBox(
                 height: wh,
                 width: wh,
-                child: ItemBuilder.buildCachedImage(
+                child: ChewieItemBuilder.buildCachedImage(
                   context: context,
                   fit: BoxFit.cover,
                   showLoading: false,
@@ -629,10 +616,8 @@ class GridPostItemWidgetState extends State<GridPostItemWidget> {
     int? activePostId = 0,
     required double wh,
   }) {
-    return ItemBuilder.buildContainerItem(
+    return ContainerItem(
       backgroundColor: Theme.of(context).cardColor,
-      topRadius: true,
-      bottomRadius: true,
       radius: 12,
       border: activePostId == item.postId
           ? Border.all(color: Theme.of(context).primaryColor, width: 1.6)
@@ -656,7 +641,7 @@ class GridPostItemWidgetState extends State<GridPostItemWidget> {
             SizedBox(height: item.title.isNotEmpty ? 5 : 5),
             Expanded(
               child: Text(
-                Utils.clearBlank(Utils.extractTextFromHtml(item.digest)),
+                StringUtil.clearBlank(HtmlUtil.extractTextFromHtml(item.digest)),
                 maxLines: item.title.isNotEmpty ? 6 : 8,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.apply(
@@ -667,7 +652,6 @@ class GridPostItemWidgetState extends State<GridPostItemWidget> {
           ],
         ),
       ),
-      context: context,
     );
   }
 
@@ -694,7 +678,7 @@ class GridPostItemWidgetState extends State<GridPostItemWidget> {
               child: SizedBox(
                 height: wh,
                 width: wh,
-                child: ItemBuilder.buildCachedImage(
+                child: ChewieItemBuilder.buildCachedImage(
                   context: context,
                   fit: BoxFit.cover,
                   imageUrl: item.photoLinks[0].orign,
@@ -708,7 +692,7 @@ class GridPostItemWidgetState extends State<GridPostItemWidget> {
             left: 5,
             child: ItemBuilder.buildTranslucentTag(
               context,
-              text: S.current.video,
+              text: appLocalizations.video,
             ),
           ),
           Positioned(
@@ -725,10 +709,8 @@ class GridPostItemWidgetState extends State<GridPostItemWidget> {
   }
 
   Widget buildInvalidItem({required double wh}) {
-    return ItemBuilder.buildContainerItem(
-      backgroundColor: MyTheme.getCardBackground(context),
-      topRadius: true,
-      bottomRadius: true,
+    return ContainerItem(
+      backgroundColor: ChewieTheme.canvasColor,
       border: Border.all(color: Theme.of(context).dividerColor, width: 0.8),
       child: Container(
         padding: const EdgeInsets.all(5),
@@ -744,7 +726,7 @@ class GridPostItemWidgetState extends State<GridPostItemWidget> {
             ),
             const SizedBox(height: 5),
             Text(
-              S.current.invalidContent,
+              appLocalizations.invalidContent,
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context)
@@ -755,7 +737,6 @@ class GridPostItemWidgetState extends State<GridPostItemWidget> {
           ],
         ),
       ),
-      context: context,
     );
   }
 }
@@ -829,7 +810,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
         ),
       ),
     );
-    return ResponsiveUtil.isLandscape()
+    return ResponsiveUtil.isLandscapeLayout()
         ? res
         : GestureDetector(
             onTap: () {
@@ -879,8 +860,8 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
                   Expanded(
                     child: Text(
                       id == item.shareInfo!.blogInfo.blogId
-                          ? S.current.fromMyRecommend
-                          : S.current.fromOtherRecommend(
+                          ? appLocalizations.fromMyRecommend
+                          : appLocalizations.fromOtherRecommend(
                               item.shareInfo!.blogInfo.blogNickName),
                       style: Theme.of(context).textTheme.bodySmall,
                       overflow: TextOverflow.ellipsis,
@@ -932,7 +913,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    Utils.formatTimestamp(item.opTime),
+                    TimeUtil.formatTimestamp(item.opTime),
                     style: Theme.of(context).textTheme.bodySmall,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -961,8 +942,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
                 },
               ),
             if (item.followed != true) const SizedBox(width: 8),
-            ItemBuilder.buildIconButton(
-              context: context,
+            CircleIconButton(
               icon: const Icon(Icons.more_vert_rounded, size: 20),
               onTap: () {
                 BottomSheetBuilder.showContextMenu(
@@ -976,15 +956,15 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
   }
 
   _buildMoreButtons() {
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig(
-          S.current.copyLink,
-          icon: const Icon(Icons.copy_rounded),
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem(
+          appLocalizations.copyLink,
+          iconData: Icons.copy_rounded,
           onPressed: () {
             Utils.copy(
               context,
-              UriUtil.getPostUrlById(
+              LoftifyUriUtil.getPostUrlById(
                 item.blogName,
                 item.postId,
                 item.blogId,
@@ -992,11 +972,11 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
             );
           },
         ),
-        ContextMenuButtonConfig(S.current.visitOriginalPost,
-            icon: const Icon(Icons.view_carousel_outlined), onPressed: () {
+        FlutterContextMenuItem(appLocalizations.visitOriginalPost,
+            iconData: Icons.view_carousel_outlined, onPressed: () {
           UriUtil.openInternal(
             context,
-            UriUtil.getPostUrlById(
+            LoftifyUriUtil.getPostUrlById(
               item.blogName,
               item.postId,
               item.blogId,
@@ -1004,21 +984,20 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
             processUri: false,
           );
         }),
-        ContextMenuButtonConfig(S.current.openWithBrowser,
-            icon: const Icon(Icons.open_in_browser_rounded), onPressed: () {
+        FlutterContextMenuItem(appLocalizations.openWithBrowser,
+            iconData: Icons.open_in_browser_rounded, onPressed: () {
           UriUtil.openExternal(
-            UriUtil.getPostUrlById(
+            LoftifyUriUtil.getPostUrlById(
               item.blogName,
               item.postId,
               item.blogId,
             ),
           );
         }),
-        ContextMenuButtonConfig(S.current.shareToOtherApps,
-            icon: const Icon(Icons.share_rounded), onPressed: () {
+        FlutterContextMenuItem(appLocalizations.shareToOtherApps,
+            iconData: Icons.share_rounded, onPressed: () {
           UriUtil.share(
-            context,
-            UriUtil.getPostUrlById(
+            LoftifyUriUtil.getPostUrlById(
               item.blogName,
               item.postId,
               item.blogId,
@@ -1030,7 +1009,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
   }
 
   Widget buildTileContentRow() {
-    String title = Utils.clearBlank(item.title);
+    String title = StringUtil.clearBlank(item.title);
     String content = item.digest;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1042,12 +1021,11 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
           ),
         if (title.isNotEmpty && content.isNotEmpty) const SizedBox(height: 5),
         if (content.isNotEmpty)
-          ItemBuilder.buildHtmlWidget(
-            context,
-            content,
-            textStyle: Theme.of(context).textTheme.bodyMedium,
-            linkBold: false,
-            selectable: false,
+          CustomHtmlWidget(
+            content: content,
+            style: Theme.of(context).textTheme.bodyMedium,
+            // linkBold: false,
+            // selectable: false,
           ),
         if (title.isNotEmpty || content.isNotEmpty) const SizedBox(height: 10),
       ],
@@ -1116,7 +1094,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
                     tagPrefix: tagPrefix,
                     url: imageUrl,
                   ),
-                  child: ItemBuilder.buildCachedImage(
+                  child: ChewieItemBuilder.buildCachedImage(
                     context: context,
                     fit: BoxFit.cover,
                     showLoading: false,
@@ -1132,7 +1110,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
                   left: 4,
                   top: 4,
                   child: ItemBuilder.buildTranslucentTag(context,
-                      text: S.current.animatedGif),
+                      text: appLocalizations.animatedGif),
                 ),
             ],
           ),
@@ -1205,7 +1183,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
                 borderRadius: BorderRadius.circular(10),
                 child: AspectRatio(
                   aspectRatio: ratio,
-                  child: ItemBuilder.buildCachedImage(
+                  child: ChewieItemBuilder.buildCachedImage(
                     context: context,
                     fit: BoxFit.cover,
                     showLoading: false,
@@ -1221,7 +1199,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
               left: 4,
               top: 4,
               child: ItemBuilder.buildTranslucentTag(context,
-                  text: S.current.video),
+                  text: appLocalizations.video),
             ),
             Positioned(
               bottom: 4,
@@ -1279,7 +1257,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
           children: [
             ItemBuilder.buildIconTextButton(
               context,
-              text: Utils.formatCount(item.likeCount),
+              text: StringUtil.formatCount(item.likeCount),
               spacing: 4,
               icon: !item.liked
                   ? const Icon(
@@ -1288,7 +1266,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
                     )
                   : const Icon(
                       Icons.favorite_rounded,
-                      color: MyColors.likeButtonColor,
+                      color: ChewieColors.likeButtonColor,
                       size: 20,
                     ),
               onTap: () {
@@ -1298,7 +1276,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
             const SizedBox(width: 12),
             ItemBuilder.buildIconTextButton(
               context,
-              text: Utils.formatCount(item.shareCount),
+              text: StringUtil.formatCount(item.shareCount),
               spacing: 4,
               icon: !item.shared
                   ? const Icon(
@@ -1307,7 +1285,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
                     )
                   : const Icon(
                       Icons.thumb_up,
-                      color: MyColors.shareButtonColor,
+                      color: ChewieColors.shareButtonColor,
                       size: 18,
                     ),
               onTap: () {
@@ -1317,7 +1295,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
             const SizedBox(width: 12),
             ItemBuilder.buildIconTextButton(
               context,
-              text: S.current.comment,
+              text: appLocalizations.comment,
               icon: const Icon(Icons.mode_comment_outlined, size: 18),
               spacing: 4,
               onTap: () {
@@ -1332,8 +1310,8 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
             ),
           ],
         ),
-        if (!ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
-        if (!ResponsiveUtil.isLandscape())
+        if (!ResponsiveUtil.isLandscapeLayout()) const SizedBox(height: 10),
+        if (!ResponsiveUtil.isLandscapeLayout())
           Container(
             decoration: BoxDecoration(
               border: Border(
@@ -1356,8 +1334,8 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
       blogId: item.blogId,
     ).then((value) {
       if (value['meta']['status'] != 200) {
-        if (Utils.isNotEmpty(value['meta']['desc']) &&
-            Utils.isNotEmpty(value['meta']['msg'])) {
+        if (StringUtil.isNotEmpty(value['meta']['desc']) &&
+            StringUtil.isNotEmpty(value['meta']['msg'])) {
           IToast.showTop(value['meta']['desc'] ?? value['meta']['msg']);
         }
         if (value['meta']['status'] == 4071) {
@@ -1366,7 +1344,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
       } else {
         item.liked = !item.liked;
         if (item.liked != true) {
-          IToast.showTop(S.current.unlike);
+          IToast.showTop(appLocalizations.unlike);
         }
         item.likeCount += item.liked ? 1 : -1;
         item.likeCount = item.likeCount.clamp(0, 100000000000000000);
@@ -1383,8 +1361,8 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
       blogId: item.blogId,
     ).then((value) {
       if (value['meta']['status'] != 200) {
-        if (Utils.isNotEmpty(value['meta']['desc']) &&
-            Utils.isNotEmpty(value['meta']['msg'])) {
+        if (StringUtil.isNotEmpty(value['meta']['desc']) &&
+            StringUtil.isNotEmpty(value['meta']['msg'])) {
           IToast.showTop(value['meta']['desc'] ?? value['meta']['msg']);
         }
         if (value['meta']['status'] == 4071) {
@@ -1393,7 +1371,7 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
       } else {
         item.shared = !item.shared;
         if (item.shared) {
-          IToast.showTop(S.current.unrecommend);
+          IToast.showTop(appLocalizations.unrecommend);
         }
         item.shareCount += item.shared ? 1 : -1;
         item.shareCount = item.shareCount.clamp(0, 100000000000000000);
@@ -1409,10 +1387,10 @@ class TilePostItemWidgetState extends State<TilePostItemWidget>
 class GeneralPostItemBuilder {
   static onTapItem(BuildContext context, GeneralPostItem item) {
     if (item.type == PostType.invalid) {
-      IToast.showTop(S.current.invalidContent);
+      IToast.showTop(appLocalizations.invalidContent);
     } else if (item.type == PostType.video) {
       if (ResponsiveUtil.isDesktop()) {
-        IToast.showTop(S.current.unSupportVideoInDesktop);
+        IToast.showTop(appLocalizations.unSupportVideoInDesktop);
       } else {
         RouteUtil.pushPanelCupertinoRoute(
           context,
@@ -1434,7 +1412,7 @@ class GeneralPostItemBuilder {
     showDialog(
       context: context,
       builder: (context) {
-        return FloatingModal(
+        return BottomSheetWrapperWidget(
           preferMinWidth: 400,
           child: ShieldBottomSheet(
             tags: item.tags,

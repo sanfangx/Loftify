@@ -15,13 +15,19 @@
 
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 
-import '../generated/l10n.dart';
+import '../Widgets/Shortcuts/keyboard_widget.dart';
+import '../generated/app_localizations.dart';
+import '../l10n/l10n.dart';
+import '../main.dart';
+import 'app_provider.dart';
+import 'hive_util.dart';
 
-typedef LocalizationsProvider = String Function(S);
+typedef LocalizationsProvider = String Function(AppLocalizations);
 
 class LockIntent extends Intent {
   const LockIntent();
@@ -31,8 +37,28 @@ class SettingIntent extends Intent {
   const SettingIntent();
 }
 
+class SearchIntent extends Intent {
+  const SearchIntent();
+}
+
 class KeyboardShortcutHelpIntent extends Intent {
   const KeyboardShortcutHelpIntent();
+}
+
+class AddTokenIntent extends Intent {
+  const AddTokenIntent();
+}
+
+class ImportExportIntent extends Intent {
+  const ImportExportIntent();
+}
+
+class CategoryIntent extends Intent {
+  const CategoryIntent();
+}
+
+class ChangeLayoutTypeIntent extends Intent {
+  const ChangeLayoutTypeIntent();
 }
 
 class ChangeDayNightModeIntent extends Intent {
@@ -43,61 +69,8 @@ class EscapeIntent extends Intent {
   const EscapeIntent();
 }
 
-class HomeIntent extends Intent {
-  const HomeIntent();
-}
-
-final defaultLoftifyShortcuts = [
-  LoftifyShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyH,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const HomeIntent(),
-    labelProvider: (s) => s.home,
-  ),
-  LoftifyShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyD,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const ChangeDayNightModeIntent(),
-    labelProvider: (s) => s.changeDayNightMode,
-  ),
-  LoftifyShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyS,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const SettingIntent(),
-    labelProvider: (s) => s.setting,
-  ),
-  LoftifyShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyL,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const LockIntent(),
-    labelProvider: (s) => s.lock,
-  ),
-  // LoftifyShortcut.all(
-  //   key: HotKey(
-  //     key: LogicalKeyboardKey.escape,
-  //   ).singleActivator,
-  //   intent: const EscapeIntent(),
-  //   labelProvider: (s) => s.escape,
-  // ),
-  LoftifyShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.f1,
-    ).singleActivator,
-    intent: const KeyboardShortcutHelpIntent(),
-    labelProvider: (s) => s.shortcutHelp,
-  ),
-];
-
-class LoftifyShortcut {
-  const LoftifyShortcut({
+class CloudOTPShortcut {
+  const CloudOTPShortcut({
     required this.mac,
     required this.linux,
     required this.windows,
@@ -105,7 +78,7 @@ class LoftifyShortcut {
     required this.labelProvider,
   });
 
-  LoftifyShortcut.all({
+  CloudOTPShortcut.all({
     required SingleActivator key,
     required Intent intent,
     required LocalizationsProvider labelProvider,
@@ -216,5 +189,118 @@ extension HotKeyExt on HotKey {
       meta: (modifiers ?? []).contains(HotKeyModifier.meta),
     );
     return activator;
+  }
+}
+
+class ShortcutsUtil {
+  static final shortcuts = [
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.keyD,
+        modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      ).singleActivator,
+      intent: const ChangeDayNightModeIntent(),
+      labelProvider: (s) => s.changeDayNightMode,
+    ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.keyS,
+        modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      ).singleActivator,
+      intent: const SettingIntent(),
+      labelProvider: (s) => s.setting,
+    ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.slash,
+      ).singleActivator,
+      intent: const SearchIntent(),
+      labelProvider: (s) => s.search,
+    ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.keyL,
+        modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      ).singleActivator,
+      intent: const LockIntent(),
+      labelProvider: (s) => s.lock,
+    ),
+    // CloudOTPShortcut.all(
+    //   key: HotKey(
+    //     key: LogicalKeyboardKey.escape,
+    //   ).singleActivator,
+    //   intent: const EscapeIntent(),
+    //   labelProvider: (s) => s.escape,
+    // ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.f1,
+      ).singleActivator,
+      intent: const KeyboardShortcutHelpIntent(),
+      labelProvider: (s) => s.shortcutHelp,
+    ),
+  ];
+
+  static void focusSearch() {
+    appProvider.searchFocusNode.requestFocus();
+    appProvider.searchFocusNode.addListener(() {
+      if (!appProvider.searchFocusNode.hasFocus) {
+        appProvider.shortcutFocusNode.requestFocus();
+      }
+    });
+  }
+
+  static void lock(BuildContext context) {
+    if (HiveUtil.canLock()) {
+      mainScreenState?.jumpToLock();
+    } else {
+      IToast.showDesktopNotification(
+        appLocalizations.noGestureLock,
+        body: appLocalizations.noGestureLockTip,
+        actions: [appLocalizations.cancel, appLocalizations.goToSetGestureLock],
+        onClick: () {
+          ChewieUtils.displayApp();
+          jumpToSetLock(context);
+        },
+        onClickAction: (index) {
+          if (index == 1) {
+            ChewieUtils.displayApp();
+            jumpToSetLock(context);
+          }
+        },
+      );
+    }
+  }
+
+  static void showShortcutHelp(BuildContext context) {
+    RouteUtil.pushDialogRoute(
+      context,
+      KeyboardWidget(
+        bindings: shortcuts,
+        callbackOnHide: () {},
+        title: Text(
+          appLocalizations.shortcut,
+          style: ChewieTheme.titleLarge,
+        ),
+      ),
+    );
+  }
+
+  static void jumpToSetting(BuildContext context) {
+    RouteUtil.pushDialogRoute(context, const SettingNavigationScreen());
+  }
+
+  static void jumpToSetLock(BuildContext context) {
+    RouteUtil.pushDialogRoute(
+        context, const SettingNavigationScreen(initPageIndex: 4));
+  }
+
+  static void jumpToAbout(BuildContext context) {
+    RouteUtil.pushDialogRoute(
+        context, const SettingNavigationScreen(initPageIndex: 5));
+  }
+
+  static void jumpToMain() {
+    RouteUtil.pushRootPage(getRootPage(true));
   }
 }

@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:card_swiper/card_swiper.dart';
-import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_resizable_container/flutter_resizable_container.dart';
 import 'package:loftify/Api/post_api.dart';
 import 'package:loftify/Api/user_api.dart';
 import 'package:loftify/Models/grain_response.dart';
@@ -14,45 +13,32 @@ import 'package:loftify/Models/message_response.dart';
 import 'package:loftify/Models/post_detail_response.dart';
 import 'package:loftify/Models/recommend_response.dart';
 import 'package:loftify/Models/show_case_response.dart';
-import 'package:loftify/Resources/colors.dart';
 import 'package:loftify/Utils/enums.dart';
-import 'package:loftify/Utils/file_util.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/ilogger.dart';
-import 'package:loftify/Utils/itoast.dart';
 import 'package:loftify/Widgets/BottomSheet/collection_bottom_sheet.dart';
 import 'package:loftify/Widgets/BottomSheet/comment_bottom_sheet.dart';
 import 'package:loftify/Widgets/BottomSheet/subscribe_post_bottom_sheet.dart';
-import 'package:loftify/Widgets/Dialog/dialog_builder.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_builder/responsive_builder.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Api/collection_api.dart';
 import '../../Api/recommend_api.dart';
 import '../../Models/return_gift_response.dart';
 import '../../Models/search_response.dart';
-import '../../Resources/theme.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
 import '../../Utils/cloud_control_provider.dart';
 import '../../Utils/constant.dart';
-import '../../Utils/lottie_util.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
+import '../../Utils/lottie_files.dart';
 import '../../Utils/uri_util.dart';
 import '../../Utils/utils.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/Custom/hero_photo_view_screen.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Hidable/scroll_to_hide.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
 import '../../Widgets/PostItem/general_post_item_builder.dart';
 import '../../Widgets/PostItem/recommend_flow_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../Info/user_detail_screen.dart';
 import 'grain_detail_screen.dart';
 
@@ -87,7 +73,7 @@ class PostDetailScreen extends StatefulWidget {
   State<PostDetailScreen> createState() => _PostDetailScreenState();
 }
 
-class _PostDetailScreenState extends State<PostDetailScreen>
+class _PostDetailScreenState extends BaseDynamicState<PostDetailScreen>
     with
         TickerProviderStateMixin,
         AutomaticKeepAliveClientMixin,
@@ -138,9 +124,9 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   final ScrollToHideController _scrollToHideController =
       ScrollToHideController();
   final bool _showPostDetailFloatingOperationBar =
-      HiveUtil.getBool(HiveUtil.showPostDetailFloatingOperationBarKey);
+      ChewieHiveUtil.getBool(HiveUtil.showPostDetailFloatingOperationBarKey);
   final bool _showPostDetailFloatingOperationBarOnlyInArticle =
-      HiveUtil.getBool(
+      ChewieHiveUtil.getBool(
           HiveUtil.showPostDetailFloatingOperationBarOnlyInArticleKey,
           defaultValue: false);
 
@@ -189,7 +175,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     _doubleTapLikeController =
         AnimationController(duration: const Duration(seconds: 3), vsync: this);
     doubleTapLikeWidget = LottieUtil.load(
-      LottieUtil.likeDoubleClickLight,
+      LottieFiles.likeDoubleClickLight,
       size: doubleTapLikeSize,
       controller: _doubleTapLikeController,
     );
@@ -232,8 +218,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         blogId = widget.favoritePostDetailData!.post!.blogId;
         blogName = widget.favoritePostDetailData!.postData!.blogInfo.blogName;
       } else if (widget.meta != null) {
-        postId = Utils.hexToInt(widget.meta!['postId']!);
-        blogId = Utils.hexToInt(widget.meta!['blogId']!);
+        postId = NumberUtil.hexToInt(widget.meta!['postId']!);
+        blogId = NumberUtil.hexToInt(widget.meta!['blogId']!);
         blogName = widget.meta!['blogName']!;
       } else if (widget.searchPost != null) {
         postId = widget.searchPost!.id;
@@ -369,7 +355,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   void _refreshGiftDescription() {
     ReturnGift? gift = _getReturnGift();
     if (gift == null) return;
-    String typeString = gift.planType?.name ?? S.current.easterEgg;
+    String typeString = gift.planType?.name ?? appLocalizations.easterEgg;
     var defaultGifts = gift.defaultSelectedGifts ?? [];
     List<String> unlockCost = [];
     Map<int, int> idToCoinMap = {};
@@ -377,7 +363,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
       for (var gift in defaultGifts) {
         idToCoinMap[gift.id ?? LIANGPIAO_GIFTID] = gift.coin ?? 0;
         if ((gift.coin ?? 0) > 0) {
-          unlockCost.add("${gift.name}(${gift.coin}${S.current.coinCount})");
+          unlockCost.add("${gift.name}(${gift.coin}${appLocalizations.coinCount})");
         } else {
           unlockCost.add("${gift.name}");
         }
@@ -387,17 +373,17 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         idToCoinMap.entries.reduce((a, b) => a.value < b.value ? a : b).key;
     String previewDescription = "";
     if ((gift.wordCount ?? 0) > 0) {
-      previewDescription = "${gift.wordCount}${S.current.wordCount}";
+      previewDescription = "${gift.wordCount}${appLocalizations.wordCount}";
     }
     if ((gift.imgCount ?? 0) > 0) {
-      previewDescription += "${gift.imgCount}${S.current.imageCount}";
+      previewDescription += "${gift.imgCount}${appLocalizations.imageCount}";
     }
     if (previewDescription.isNotEmpty) {
       previewDescription = "($previewDescription)";
     }
     _giftTypeString = typeString;
     _giftPreviewDescription = previewDescription;
-    _giftCost = " ${unlockCost.join(S.current.or)} ";
+    _giftCost = " ${unlockCost.join(appLocalizations.or)} ";
   }
 
   _fetchHotComments() async {
@@ -426,7 +412,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           return IndicatorResult.success;
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load hot comment", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -458,7 +444,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           return IndicatorResult.success;
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load l2 comment", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -525,7 +511,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           return IndicatorResult.success;
         }
       } catch (e, t) {
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load recommend post", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -564,9 +550,9 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         _swiperController.move(0);
       });
     }
-    if (_hasImage() && HiveUtil.getBool(HiveUtil.followMainColorKey)) {
+    if (_hasImage() && ChewieHiveUtil.getBool(HiveUtil.followMainColorKey)) {
       List<PhotoLink> photoLinks = _getImages()[0];
-      Utils.getMainColors(
+      ColorUtil.getMainColors(
         context,
         photoLinks.map((e) => e.middle).toList(),
       ).then((value) {
@@ -575,7 +561,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
       });
     } else {
       List<String> imageUrls = _getArticleImages();
-      Utils.getMainColors(
+      ColorUtil.getMainColors(
         context,
         imageUrls,
       ).then((value) {
@@ -603,7 +589,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     super.build(context);
     return Scaffold(
       appBar: _buildAppBar(),
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       body: _buildBody(),
       extendBody: true,
       bottomNavigationBar: _showBottomBar &&
@@ -618,22 +604,19 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     switch (_inited) {
       case InitPhase.connecting:
       case InitPhase.haveNotConnected:
-        return ItemBuilder.buildLoadingWidget(
-          context,
-          background: MyTheme.getBackground(context),
+        return LoadingWidget(
+          background: ChewieTheme.getBackground(context),
         );
       case InitPhase.successful:
         if (_postDetailData != null) {
           return _buildNormalBody();
         } else {
-          return ItemBuilder.buildErrorWidget(
-            context: context,
+          return CustomErrorWidget(
             onTap: initData,
           );
         }
       case InitPhase.failed:
-        return ItemBuilder.buildErrorWidget(
-          context: context,
+        return CustomErrorWidget(
           onTap: initData,
         );
     }
@@ -703,10 +686,10 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           Positioned(
             right: 16,
             bottom: 16,
-            child: ScrollToHide(
+            child: ScrollToHide.multi(
               controller: _scrollToHideController,
               scrollControllers: [_scrollController],
-              hideDirection: AxisDirection.down,
+              hideDirection: Axis.vertical,
               child: _buildFloatingButtons(),
             ),
           ),
@@ -735,16 +718,18 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     return ResizableContainer(
       direction: Axis.horizontal,
       controller: _resizableController,
-      divider: ResizableDivider(
-        color: Theme.of(context).dividerColor,
-        thickness: ResponsiveUtil.isMobile() ? 2 : 1,
-        size: 6,
-        onHoverEnter: () {
-          if (ResponsiveUtil.isMobile()) {
-            HapticFeedback.lightImpact();
-          }
-        },
-      ),
+      // divider: ResizableDivider(
+      //   color: Theme
+      //       .of(context)
+      //       .dividerColor,
+      //   thickness: ResponsiveUtil.isMobile() ? 2 : 1,
+      //   size: 6,
+      //   onHoverEnter: () {
+      //     if (ResponsiveUtil.isMobile()) {
+      //       HapticFeedback.lightImpact();
+      //     }
+      //   },
+      // ),
       children: [
         ResizableChild(
           size: ResizableSize.pixels(
@@ -752,7 +737,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                 ? MediaQuery.sizeOf(context).width * 2 / 3
                 : max(MediaQuery.sizeOf(context).width * 1 / 3, 400),
           ),
-          minSize: 300,
+          // minSize: 300,
           child: ListView(
             controller: _tabletScrollController,
             children: [
@@ -765,7 +750,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           ),
         ),
         ResizableChild(
-          minSize: 300,
+          // minSize: 300,
           size: const ResizableSize.expand(),
           child: _buildRecommendFlow(sliver: false),
         ),
@@ -787,8 +772,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   }
 
   _operateDoubleTapAction() {
-    DoubleTapAction action = DoubleTapAction.values[Utils.patchEnum(
-        HiveUtil.getInt(HiveUtil.doubleTapActionKey, defaultValue: 1),
+    DoubleTapAction action = DoubleTapAction.values[ChewieUtils.patchEnum(
+        ChewieHiveUtil.getInt(HiveUtil.doubleTapActionKey, defaultValue: 1),
         DoubleTapAction.values.length)];
     switch (action) {
       case DoubleTapAction.none:
@@ -815,9 +800,9 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         break;
       case DoubleTapAction.copyLink:
         HapticFeedback.mediumImpact();
-        Utils.copy(
+        ChewieUtils.copy(
           context,
-          UriUtil.getPostUrlByPermalink(
+          LoftifyUriUtil.getPostUrlByPermalink(
             _postDetailData!.post!.blogInfo!.blogName,
             _postDetailData!.post!.permalink,
           ),
@@ -841,8 +826,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         .then((value) {
       setState(() {
         if (value['meta']['status'] != 200) {
-          if (Utils.isNotEmpty(value['meta']['desc']) &&
-              Utils.isNotEmpty(value['meta']['msg'])) {
+          if (StringUtil.isNotEmpty(value['meta']['desc']) &&
+              StringUtil.isNotEmpty(value['meta']['msg'])) {
             IToast.showTop(value['meta']['desc'] ?? value['meta']['msg']);
           }
           if (value['meta']['status'] == 4071) {
@@ -878,8 +863,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         .then((value) {
       setState(() {
         if (value['meta']['status'] != 200) {
-          if (Utils.isNotEmpty(value['meta']['desc']) &&
-              Utils.isNotEmpty(value['meta']['msg'])) {
+          if (StringUtil.isNotEmpty(value['meta']['desc']) &&
+              StringUtil.isNotEmpty(value['meta']['msg'])) {
             IToast.showTop(value['meta']['desc'] ?? value['meta']['msg']);
           }
           if (value['meta']['status'] == 4071) {
@@ -914,8 +899,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         .then((value) {
       setState(() {
         if (value['meta']['status'] != 200) {
-          if (Utils.isNotEmpty(value['meta']['desc']) &&
-              Utils.isNotEmpty(value['meta']['msg'])) {
+          if (StringUtil.isNotEmpty(value['meta']['desc']) &&
+              StringUtil.isNotEmpty(value['meta']['msg'])) {
             IToast.showTop(value['meta']['desc'] ?? value['meta']['msg']);
           }
           if (value['meta']['status'] == 4071) {
@@ -937,7 +922,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
 
   _handleDownload() {
     if (isArticle) {
-      IToast.showTop(S.current.unsupportDownloadCurrentImageinArticle);
+      IToast.showTop(appLocalizations.unsupportDownloadCurrentImageinArticle);
       return;
     }
     if (downloadState == DownloadState.none) {
@@ -958,7 +943,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
 
   _handleDownloadAll() {
     if (!_hasImage() && !_hasArticleImage()) {
-      IToast.showTop(S.current.noImageToDownload);
+      IToast.showTop(appLocalizations.noImageToDownload);
       return;
     }
     if (downloadState == DownloadState.none) {
@@ -1009,7 +994,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
       _buildMarkInfo(),
       Stack(
         children: [
-          ItemBuilder.buildDivider(context),
+          MyDivider(),
           _buildOperationRow(),
         ],
       ),
@@ -1018,8 +1003,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         child: ItemBuilder.buildTitle(
           context,
           title: hotComments.isNotEmpty
-              ? S.current.hotComment
-              : S.current.latestComment,
+              ? appLocalizations.hotComment
+              : appLocalizations.latestComment,
           bottomMargin: 12,
           topMargin: 24,
         ),
@@ -1033,8 +1018,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         Container(
           alignment: Alignment.center,
           margin: const EdgeInsets.symmetric(vertical: 24),
-          child: ItemBuilder.buildEmptyPlaceholder(
-              context: context, text: S.current.noComment, topPadding: 0),
+          child: EmptyPlaceholder(text: appLocalizations.noComment, topPadding: 0),
         ),
       if (totalHotOrNewComments > 0)
         Center(
@@ -1046,11 +1030,10 @@ class _PostDetailScreenState extends State<PostDetailScreen>
               bottom: isTablet ? 20 : 0,
             ),
             width: isTablet ? 240 : null,
-            child: ItemBuilder.buildRoundButton(
-              context,
+            child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-              text: S.current.viewAllComments,
-              onTap: () {
+              text: appLocalizations.viewAllComments,
+              onPressed: () {
                 BottomSheetBuilder.showBottomSheet(
                   context,
                   (context) => SingleChildScrollView(
@@ -1062,7 +1045,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                     ),
                   ),
                   enableDrag: false,
-                  backgroundColor: MyTheme.getBackground(context),
+                  backgroundColor: ChewieTheme.getBackground(context),
                 );
               },
             ),
@@ -1071,7 +1054,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
       if (!isTablet)
         ItemBuilder.buildTitle(
           context,
-          title: S.current.moreRecommend,
+          title: appLocalizations.moreRecommend,
           bottomMargin: 12,
           topMargin: 24,
         ),
@@ -1096,11 +1079,10 @@ class _PostDetailScreenState extends State<PostDetailScreen>
             alignment: PlaceholderAlignment.middle,
             child: Container(
               margin: const EdgeInsets.only(left: 16, right: 8),
-              child: ItemBuilder.buildRoundButton(
-                context,
+              child: RoundIconTextButton(
                 text: tag,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                background: MyColors.biliPinkPrimaryColor,
+                background: ChewieColors.biliPinkPrimaryColor,
                 radius: 4,
               ),
             ),
@@ -1162,7 +1144,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     if (currentGifts.isNotEmpty) {
       liangpiaoCount = currentGifts.first.count ?? 0;
     }
-    Widget promotionWidget = Utils.isNotEmpty(gift.promotion)
+    Widget promotionWidget = StringUtil.isNotEmpty(gift.promotion)
         ? Container(
             color: Colors.transparent,
             padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
@@ -1185,20 +1167,20 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         child: ItemBuilder.buildTextDivider(
             context: context,
             text:
-                "$_giftTypeString${(gift.unlockCount ?? 0) > 0 ? "(${S.current.unlockCount(gift.unlockCount!)})" : ""}"),
+                "$_giftTypeString${(gift.unlockCount ?? 0) > 0 ? "(${appLocalizations.unlockCount(gift.unlockCount!)})" : ""}"),
       ),
       const SizedBox(height: 20),
       _buildEggTitle(
           returnContent == null
-              ? "$_giftTypeString${S.current.preview}$_giftPreviewDescription"
-              : "${S.current.unlocked}$_giftTypeString$_giftPreviewDescription",
+              ? "$_giftTypeString${appLocalizations.preview}$_giftPreviewDescription"
+              : "${appLocalizations.unlocked}$_giftTypeString$_giftPreviewDescription",
           gift.title ?? ""),
       promotionWidget,
     ];
     if (returnContent == null) {
       topWidgets.addAll(
         [
-          if (Utils.isNotEmpty(gift.digest))
+          if (StringUtil.isNotEmpty(gift.digest))
             Container(
               color: Colors.transparent,
               padding:
@@ -1210,11 +1192,10 @@ class _PostDetailScreenState extends State<PostDetailScreen>
             ),
           const SizedBox(height: 8),
           Center(
-            child: ItemBuilder.buildRoundButton(
-              context,
-              text: "$_giftCost${S.current.unlockGift}",
+            child: RoundIconTextButton(
+              text: "$_giftCost${appLocalizations.unlockGift}",
               background: Theme.of(context).primaryColor,
-              onTap: () async {
+              onPressed: () async {
                 presentAndGetGift() async {
                   var value = await PostApi.presentGift(
                     postId: _postDetailData!.post!.id,
@@ -1236,7 +1217,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                         returnGiftData['ok'] != true) {
                       IToast.showTop(returnGiftData['msg']);
                     } else {
-                      IToast.showTop(S.current.unlockSuccess);
+                      IToast.showTop(appLocalizations.unlockSuccess);
                       var returnGift =
                           ReturnGift.fromJson(returnGiftData['data']['plan']);
                       returnGift.digest = gift.digest;
@@ -1279,22 +1260,22 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   if (liangpiaoCount > 0) {
                     DialogBuilder.showConfirmDialog(
                       context,
-                      title: S.current.presentToUnlock(S.current.liangpiao),
-                      message: S.current.presentToUnlockMessage(
-                          "$liangpiaoCount${S.current.liangpiaoCount}"),
+                      title: appLocalizations.presentToUnlock(appLocalizations.liangpiao),
+                      message: appLocalizations.presentToUnlockMessage(
+                          "$liangpiaoCount${appLocalizations.liangpiaoCount}"),
                       onTapConfirm: () async {
                         await presentAndGetGift();
                       },
                     );
                   } else {
-                    IToast.showTop(S.current.notEnoughLiangpiao);
+                    IToast.showTop(appLocalizations.notEnoughLiangpiao);
                   }
                 } else {
                   DialogBuilder.showConfirmDialog(
                     context,
-                    title: S.current.presentToUnlock(_giftCost),
-                    message: S.current.presentToUnlockMessage(
-                        "$coinCount${S.current.coinCount}"),
+                    title: appLocalizations.presentToUnlock(_giftCost),
+                    message: appLocalizations.presentToUnlockMessage(
+                        "$coinCount${appLocalizations.coinCount}"),
                     onTapConfirm: () async {
                       await presentAndGetGift();
                     },
@@ -1309,13 +1290,13 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     } else {
       topWidgets.addAll(
         [
-          if (Utils.isNotEmpty(returnContent.content))
+          if (StringUtil.isNotEmpty(returnContent.content))
             Container(
               color: Colors.transparent,
               padding:
                   const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-              child: ItemBuilder.buildSelectableArea(
-                context: context,
+              child: SelectableAreaWrapper(
+                focusNode: FocusNode(),
                 child: Text(
                   returnContent.content,
                   style: Theme.of(context)
@@ -1339,12 +1320,12 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   _buildUserRow() {
     bool hasAvatarBox =
         (_postDetailData!.post?.blogInfo!.bigAvaImg ?? "").isNotEmpty;
-    return ItemBuilder.buildClickable(
-      Container(
+    return ClickableWrapper(
+      child: Container(
         color: Colors.transparent,
         padding: EdgeInsets.only(
             left: 16,
-            right: ResponsiveUtil.isLandscape() ? 10 : 16,
+            right: ResponsiveUtil.isLandscapeLayout() ? 10 : 16,
             top: 10,
             bottom: 10),
         child: Row(
@@ -1366,7 +1347,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                 children: [
                   ItemBuilder.buildCopyable(
                     context,
-                    toastText: S.current.haveCopiedNickName,
+                    toastText: appLocalizations.haveCopiedNickName,
                     text: _postDetailData!.post?.blogInfo!.blogNickName,
                     child: Text(
                       _postDetailData!.post?.blogInfo!.blogNickName ?? "",
@@ -1379,7 +1360,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   ),
                   if (hasAvatarBox) const SizedBox(height: 3),
                   Text(
-                    "${Utils.formatTimestamp(_postDetailData!.post?.publishTime ?? 0)} · ${Utils.isNotEmpty(_postDetailData!.post?.ipLocation) ? _postDetailData!.post?.ipLocation : ""} · ${_postDetailData!.post?.postCount?.postHot ?? 0}${S.current.hotCount}",
+                    "${TimeUtil.formatTimestamp(_postDetailData!.post?.publishTime ?? 0)} · ${StringUtil.isNotEmpty(_postDetailData!.post?.ipLocation) ? _postDetailData!.post?.ipLocation : ""} · ${_postDetailData!.post?.postCount?.postHot ?? 0}${appLocalizations.hotCount}",
                     style: Theme.of(context).textTheme.bodySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1410,7 +1391,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   });
                 },
               ),
-            if (ResponsiveUtil.isLandscape()) ..._buildButtons(),
+            if (ResponsiveUtil.isLandscapeLayout()) ..._buildButtons(),
           ],
         ),
       ),
@@ -1419,14 +1400,14 @@ class _PostDetailScreenState extends State<PostDetailScreen>
 
   List<String> _getArticleImages() {
     List<String> imageUrls =
-        Utils.extractImagesFromHtml(_postDetailData!.post!.content);
+        HtmlUtil.extractImagesFromHtml(_postDetailData!.post!.content);
     return imageUrls;
   }
 
   List<dynamic> _getImages() {
     String photoJson = _postDetailData!.post!.photoLinks;
-    if (Utils.isEmpty(photoJson)) photoJson = "[]";
-    List<PhotoLink> photoLinks = Utils.parseJsonList(photoJson)
+    if (StringUtil.isEmpty(photoJson)) photoJson = "[]";
+    List<PhotoLink> photoLinks = StringUtil.parseJsonList(photoJson)
         .map((e) => PhotoLink.fromJson(e))
         .toList();
     int previewIndex = photoLinks.length;
@@ -1450,9 +1431,9 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     late int previewIndex;
     [photoLinks, previewIndex] = _getImages();
     String photoCaptionJson = _postDetailData!.post!.photoCaptions;
-    if (Utils.isEmpty(photoCaptionJson)) photoCaptionJson = "[]";
+    if (StringUtil.isEmpty(photoCaptionJson)) photoCaptionJson = "[]";
     List<String> captions =
-        Utils.parseJsonList(photoCaptionJson).map((e) => e.toString()).toList();
+    StringUtil.parseJsonList(photoCaptionJson).map((e) => e.toString()).toList();
     double heightMinThreshold = 200;
     // double heightMaxThreshold = MediaQuery.sizeOf(context).height - 340;
     double heightMaxThreshold = 600;
@@ -1479,7 +1460,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
               padding = max(padding, 0);
               String imageUrl = Utils.getUrlByQuality(photoLinks[index].middle,
                   HiveUtil.getImageQuality(HiveUtil.postDetailImageQualityKey));
-              String tagPrefix = Utils.getRandomString();
+              String tagPrefix = StringUtil.getRandomString();
               return Container(
                 width: preferedWidth,
                 height: trueHeight,
@@ -1532,7 +1513,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                               tagPrefix: tagPrefix,
                               url: imageUrl,
                             ),
-                            child: ItemBuilder.buildCachedImage(
+                            child: ChewieItemBuilder.buildCachedImage(
                               context: context,
                               imageUrl: imageUrl,
                               fit: BoxFit.cover,
@@ -1548,7 +1529,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                         child: ItemBuilder.buildTranslucentTag(
                           context,
                           text:
-                              _isCatutu ? S.current.eraseBlur : _giftTypeString,
+                              _isCatutu ? appLocalizations.eraseBlur : _giftTypeString,
                           opacity: 0.5,
                         ),
                       ),
@@ -1602,9 +1583,9 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                 onTap: () {
                   _swiperController.previous();
                 },
-                child: ItemBuilder.buildClickable(
+                child: ClickableWrapper(
                   clickable: _currentIndex != 1,
-                  const Icon(
+                  child: const Icon(
                     Icons.keyboard_arrow_left_rounded,
                     size: 30,
                     color: Colors.white,
@@ -1630,9 +1611,9 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                 onTap: () {
                   _swiperController.next();
                 },
-                child: ItemBuilder.buildClickable(
+                child: ClickableWrapper(
                   clickable: _currentIndex != photoLinks.length,
-                  const Icon(
+                  child: const Icon(
                     Icons.keyboard_arrow_right_rounded,
                     size: 30,
                     color: Colors.white,
@@ -1654,7 +1635,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   _hasArticleImage() {
     return _postDetailData == null
         ? false
-        : Utils.extractImagesFromHtml(_postDetailData!.post!.content)
+        : HtmlUtil.extractImagesFromHtml(_postDetailData!.post!.content)
             .isNotEmpty;
   }
 
@@ -1721,16 +1702,16 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   }
 
   _hasContent() {
-    String title = Utils.clearBlank(_postDetailData!.post!.title);
-    String content = Utils.clearBlank(
-        Utils.extractTextFromHtml(_postDetailData!.post!.content));
+    String title = StringUtil.clearBlank(_postDetailData!.post!.title);
+    String content = StringUtil.clearBlank(
+        HtmlUtil.extractTextFromHtml(_postDetailData!.post!.content));
     return (title.isNotEmpty || content.isNotEmpty);
   }
 
   _buildPostContent() {
-    String title = Utils.clearBlank(_postDetailData!.post!.title);
-    String content = Utils.extractTextFromHtml(_postDetailData!.post!.content);
-    String htmlTitle = Utils.isNotEmpty(title)
+    String title = StringUtil.clearBlank(_postDetailData!.post!.title);
+    String content = HtmlUtil.extractTextFromHtml(_postDetailData!.post!.content);
+    String htmlTitle = StringUtil.isNotEmpty(title)
         ? "<p id='title'><strong>${_postDetailData!.post?.title}</strong></p>"
         : "";
     return _hasContent() || title.isNotEmpty || content.isNotEmpty
@@ -1738,11 +1719,10 @@ class _PostDetailScreenState extends State<PostDetailScreen>
             color: Colors.transparent,
             padding:
                 const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
-            child: ItemBuilder.buildHtmlWidget(
-              context,
-              "$htmlTitle${_postDetailData!.post?.content}",
+            child: CustomHtmlWidget(
+              content: "$htmlTitle${_postDetailData!.post?.content}",
               illusts: _getIllusts(),
-              textStyle: Theme.of(context)
+              style: Theme.of(context)
                   .textTheme
                   .bodyMedium
                   ?.apply(fontSizeDelta: 3, heightDelta: 0.3),
@@ -1761,8 +1741,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   }
 
   _buildGrainItem() {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
+    return ClickableWrapper(
+      child: GestureDetector(
         onTap: () {
           RouteUtil.pushPanelCupertinoRoute(
             context,
@@ -1789,15 +1769,15 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   Icon(
                     Icons.grain_rounded,
                     size: 16,
-                    color: MyColors.getHotTagTextColor(context),
+                    color: ChewieColors.getHotTagTextColor(context),
                   ),
                   const SizedBox(width: 3),
                   Text(
-                    S.current.includedIn,
+                    appLocalizations.includedIn,
                     style: Theme.of(context).textTheme.titleSmall?.apply(
                         fontSizeDelta: -1,
                         fontWeightDelta: 2,
-                        color: MyColors.getHotTagTextColor(context)),
+                        color: ChewieColors.getHotTagTextColor(context)),
                   ),
                   const SizedBox(width: 3),
                   Expanded(
@@ -1869,11 +1849,11 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                     }
                   });
                 },
-                child: ItemBuilder.buildClickable(
-                  Text(
+                child: ClickableWrapper(
+                  child: Text(
                     _postDetailData!.post!.postCollection!.subscribed
-                        ? S.current.subscribed
-                        : S.current.subscribeCollection,
+                        ? appLocalizations.subscribed
+                        : appLocalizations.subscribeCollection,
                     style: Theme.of(context).textTheme.titleSmall?.apply(
                           fontSizeDelta: -2,
                           fontWeightDelta: 2,
@@ -1894,15 +1874,15 @@ class _PostDetailScreenState extends State<PostDetailScreen>
               Expanded(
                 child: _buildButton(
                   text: _postDetailData!.post!.pos > 1
-                      ? S.current.prePost
-                      : S.current.atFirstPost,
+                      ? appLocalizations.prePost
+                      : appLocalizations.atFirstPost,
                   disabled: _postDetailData!.post!.pos <= 1,
                   onTap: () {
                     if (_postDetailData!.post!.pos > 1) {
                       setState(() {});
                       _fetchPreOrNextPost(isPre: true);
                     } else {
-                      IToast.showTop(S.current.haveAtFirstPost);
+                      IToast.showTop(appLocalizations.haveAtFirstPost);
                     }
                   },
                 ),
@@ -1910,7 +1890,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
               const SizedBox(width: 8),
               Expanded(
                 child: _buildButton(
-                  text: S.current.catelog,
+                  text: appLocalizations.catelog,
                   onTap: showCollectionBottomSheet,
                 ),
               ),
@@ -1919,8 +1899,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                 child: _buildButton(
                   text: _postDetailData!.post!.pos <
                           _postDetailData!.post!.postCollection!.postCount
-                      ? S.current.nextPost
-                      : S.current.atLastPost,
+                      ? appLocalizations.nextPost
+                      : appLocalizations.atLastPost,
                   disabled: _postDetailData!.post!.pos >=
                       _postDetailData!.post!.postCollection!.postCount,
                   onTap: () {
@@ -1929,7 +1909,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                       setState(() {});
                       _fetchPreOrNextPost(isPre: false);
                     } else {
-                      IToast.showTop(S.current.haveAtLastPost);
+                      IToast.showTop(appLocalizations.haveAtLastPost);
                     }
                   },
                 ),
@@ -1942,14 +1922,14 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   }
 
   _buildButton({String? text, Function()? onTap, bool disabled = false}) {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
+    return ClickableWrapper(
+      child: GestureDetector(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: MyTheme.getBackground(context),
+            color: ChewieTheme.getBackground(context),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -1968,7 +1948,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     Map<String, TagType> tags = {};
     if (_previewImages.isNotEmpty) {
       if (_isCatutu) {
-        tags.addAll({S.current.eraseBlur: TagType.catutu});
+        tags.addAll({appLocalizations.eraseBlur: TagType.catutu});
       } else {
         tags.addAll({_giftTypeString: TagType.egg});
       }
@@ -2008,9 +1988,9 @@ class _PostDetailScreenState extends State<PostDetailScreen>
 
   Widget _buildMarkInfo() {
     var color = Theme.of(context).textTheme.labelSmall?.color;
-    bool showMark = Utils.isNotEmpty(_postDetailData!.post!.imageMarkInfo);
+    bool showMark = StringUtil.isNotEmpty(_postDetailData!.post!.imageMarkInfo);
     bool showReBlog = _postDetailData!.post!.imageReblogMark == 1 &&
-        Utils.isNotEmpty(_postDetailData!.post!.reblogAuthorFromEmbed);
+        StringUtil.isNotEmpty(_postDetailData!.post!.reblogAuthorFromEmbed);
     bool showCopyright = _postDetailData!.post!.cctype > 0;
     if (showMark || showCopyright || showReBlog) {
       return Container(
@@ -2048,7 +2028,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   if (showReBlog)
                     ItemBuilder.buildIconTextButton(
                       context,
-                      text: S.current.reblogFrom(
+                      text: appLocalizations.reblogFrom(
                           _postDetailData!.post!.reblogAuthorFromEmbed),
                       spacing: 6,
                       start: true,
@@ -2114,8 +2094,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
             child: ItemBuilder.buildIconTextButton(
               context,
               text: _postDetailData!.subscribedNotNull
-                  ? S.current.favorited
-                  : S.current.favorite,
+                  ? appLocalizations.favorited
+                  : appLocalizations.favorite,
               icon: _postDetailData!.subscribedNotNull
                   ? const Icon(Icons.star_rounded,
                       size: 28, color: Colors.yellow)
@@ -2146,8 +2126,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   _buildFloatingButtons() {
     return Column(
       children: [
-        ItemBuilder.buildShadowIconButton(
-          context: context,
+        ShadowIconButton(
           icon: const Icon(Icons.comment_bank_outlined),
           onTap: () {
             jumpToComment();
@@ -2158,16 +2137,16 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   }
 
   Widget _buildFloatingOperationRow() {
-    return ScrollToHide(
+    return ScrollToHide.multi(
       controller: _scrollToHideController,
       scrollControllers: [_scrollController],
-      hideDirection: AxisDirection.down,
+      hideDirection: Axis.vertical,
       child: Container(
         height: 64,
         decoration: BoxDecoration(
           color: Theme.of(rootContext).canvasColor,
-          border: MyTheme.topBorder,
-          boxShadow: MyTheme.defaultBoxShadow,
+          border: ChewieTheme.topBorder,
+          boxShadow: ChewieTheme.defaultBoxShadow,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
         ),
         padding: const EdgeInsets.only(left: 6, right: 16, bottom: 8),
@@ -2218,7 +2197,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                 context,
                 text: _postDetailData!.post!.postCount!.responseCount > 0
                     ? "${_postDetailData!.post!.postCount!.responseCount}"
-                    : S.current.comment,
+                    : appLocalizations.comment,
                 icon: const Icon(Icons.comment_bank_outlined, size: 24),
                 direction: Axis.vertical,
                 spacing: 0,
@@ -2234,8 +2213,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
               child: ItemBuilder.buildIconTextButton(
                 context,
                 text: _postDetailData!.subscribedNotNull
-                    ? S.current.favorited
-                    : S.current.favorite,
+                    ? appLocalizations.favorited
+                    : appLocalizations.favorite,
                 icon: _postDetailData!.subscribedNotNull
                     ? const Icon(Icons.star_rounded,
                         size: 28, color: Colors.yellow)
@@ -2334,7 +2313,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
               SliverToBoxAdapter(
                 child: ItemBuilder.buildTitle(
                   context,
-                  title: S.current.moreRecommend,
+                  title: appLocalizations.moreRecommend,
                   bottomMargin: 16,
                   topMargin: 16,
                   left: 8,
@@ -2409,19 +2388,18 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
       titleWidget: Text(
-        S.current.postDetail,
+        appLocalizations.postDetail,
         style: Theme.of(context).textTheme.titleLarge?.apply(
               fontWeightDelta: 2,
             ),
       ),
       actions: [
         if (hasCollection())
-          ItemBuilder.buildClickable(
-            GestureDetector(
+          ClickableWrapper(
+            child: GestureDetector(
               onTap: showCollectionBottomSheet,
               child: Container(
                 padding:
@@ -2440,7 +2418,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                     ),
                     const SizedBox(width: 3),
                     Text(
-                      "${S.current.collection} ${_postDetailData!.post!.pos}/${_postDetailData!.post!.postCollection!.postCount}",
+                      "${appLocalizations.collection} ${_postDetailData!.post!.pos}/${_postDetailData!.post!.postCollection!.postCount}",
                       style: Theme.of(context)
                           .textTheme
                           .titleMedium
@@ -2457,16 +2435,16 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   }
 
   List<Widget> _buildButtons() {
-    bool showDownloadButton = controlProvider
-            .globalControl.showDownloadButton &&
-        (_hasImage() ||
-            _hasArticleImage() &&
-                HiveUtil.getBool(HiveUtil.showDownloadKey, defaultValue: true));
+    bool showDownloadButton =
+        controlProvider.globalControl.showDownloadButton &&
+            (_hasImage() ||
+                _hasArticleImage() &&
+                    ChewieHiveUtil.getBool(HiveUtil.showDownloadKey,
+                        defaultValue: true));
     return [
       const SizedBox(width: 5),
       if (showDownloadButton) ...[
-        ItemBuilder.buildIconButton(
-          context: context,
+        CircleIconButton(
           icon: downloadIcon,
           onTap: () {
             _handleDownloadAll();
@@ -2474,8 +2452,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         ),
         const SizedBox(width: 5),
       ],
-      ItemBuilder.buildIconButton(
-        context: context,
+      CircleIconButton(
         icon: Icon(Icons.more_vert_rounded,
             color: Theme.of(context).iconTheme.color),
         onTap: () {
@@ -2486,28 +2463,28 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   }
 
   _buildMoreButtons() {
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig(
-          S.current.copyLink,
-          icon: const Icon(Icons.copy_rounded),
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem(
+          appLocalizations.copyLink,
+          iconData: Icons.copy_rounded,
           onPressed: () {
-            Utils.copy(
+            ChewieUtils.copy(
               context,
-              UriUtil.getPostUrlByPermalink(
+              LoftifyUriUtil.getPostUrlByPermalink(
                 _postDetailData!.post!.blogInfo!.blogName,
                 _postDetailData!.post!.permalink,
               ),
             );
           },
         ),
-        ContextMenuButtonConfig(
-          S.current.visitOriginalPost,
-          icon: const Icon(Icons.view_carousel_outlined),
+        FlutterContextMenuItem(
+          appLocalizations.visitOriginalPost,
+          iconData: Icons.view_carousel_outlined,
           onPressed: () {
             UriUtil.openInternal(
               context,
-              UriUtil.getPostUrlById(
+              LoftifyUriUtil.getPostUrlById(
                 blogName,
                 postId,
                 blogId,
@@ -2516,22 +2493,21 @@ class _PostDetailScreenState extends State<PostDetailScreen>
             );
           },
         ),
-        ContextMenuButtonConfig(S.current.openWithBrowser,
-            icon: const Icon(Icons.open_in_browser_rounded), onPressed: () {
+        FlutterContextMenuItem(appLocalizations.openWithBrowser,
+            iconData: Icons.open_in_browser_rounded, onPressed: () {
           UriUtil.openExternal(
-            UriUtil.getPostUrlByPermalink(
+            LoftifyUriUtil.getPostUrlByPermalink(
               _postDetailData!.post!.blogInfo!.blogName,
               _postDetailData!.post!.permalink,
             ),
           );
         }),
-        ContextMenuButtonConfig(
-          S.current.shareToOtherApps,
-          icon: const Icon(Icons.share_rounded),
+        FlutterContextMenuItem(
+          appLocalizations.shareToOtherApps,
+          iconData: Icons.share_rounded,
           onPressed: () {
             UriUtil.share(
-              context,
-              UriUtil.getPostUrlByPermalink(
+              LoftifyUriUtil.getPostUrlByPermalink(
                 _postDetailData!.post!.blogInfo!.blogName,
                 _postDetailData!.post!.permalink,
               ),

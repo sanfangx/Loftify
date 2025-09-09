@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loftify/Api/collection_api.dart';
@@ -12,29 +12,16 @@ import 'package:loftify/Screens/Post/collection_detail_screen.dart';
 import 'package:loftify/Screens/Post/grain_detail_screen.dart';
 import 'package:loftify/Screens/Post/post_detail_screen.dart';
 import 'package:loftify/Screens/Post/tag_detail_screen.dart';
-import 'package:loftify/Screens/refresh_interface.dart';
 import 'package:loftify/Utils/asset_util.dart';
 import 'package:loftify/Utils/enums.dart';
-import 'package:loftify/Utils/route_util.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Api/tag_api.dart';
 import '../../Models/grain_response.dart';
-import '../../Resources/colors.dart';
-import '../../Resources/theme.dart';
 import '../../Utils/app_provider.dart';
-import '../../Utils/constant.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/utils.dart';
-import '../../Widgets/Custom/custom_tab_indicator.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Hidable/scroll_to_hide.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
 import '../../Widgets/PostItem/grain_post_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'home_screen.dart';
 
 class DynamicScreen extends StatefulWidget {
@@ -51,7 +38,7 @@ class DynamicScreen extends StatefulWidget {
   State<DynamicScreen> createState() => DynamicScreenState();
 }
 
-class DynamicScreenState extends State<DynamicScreen>
+class DynamicScreenState extends BaseDynamicState<DynamicScreen>
     with
         TickerProviderStateMixin,
         AutomaticKeepAliveClientMixin,
@@ -62,10 +49,10 @@ class DynamicScreenState extends State<DynamicScreen>
   late TabController _tabController;
   int _currentTabIndex = 0;
   final List<String> _tabLabelList = [
-    S.current.follow,
-    S.current.tag,
-    S.current.collection,
-    S.current.grain
+    appLocalizations.follow,
+    appLocalizations.tag,
+    appLocalizations.collection,
+    appLocalizations.grain
   ];
   int lastRefreshTime = 0;
   final GlobalKey _tagTabKey = GlobalKey();
@@ -183,7 +170,7 @@ class DynamicScreenState extends State<DynamicScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: appProvider.token.isNotEmpty ? _buildAppBar() : null,
       body: appProvider.token.isNotEmpty
           ? Stack(
@@ -210,12 +197,12 @@ class DynamicScreenState extends State<DynamicScreen>
                   ],
                 ),
                 Positioned(
-                  right: ResponsiveUtil.isLandscape() ? 16 : 12,
-                  bottom: ResponsiveUtil.isLandscape() ? 16 : 76,
-                  child: ScrollToHide(
+                  right: ResponsiveUtil.isLandscapeLayout() ? 16 : 12,
+                  bottom: ResponsiveUtil.isLandscapeLayout() ? 16 : 76,
+                  child: ScrollToHide.multi(
                     controller: _scrollToHideController,
                     scrollControllers: getScrollControllers(),
-                    hideDirection: AxisDirection.down,
+                    hideDirection: Axis.vertical,
                     child: _buildFloatingButtons(),
                   ),
                 ),
@@ -226,11 +213,10 @@ class DynamicScreenState extends State<DynamicScreen>
   }
 
   _buildFloatingButtons() {
-    return ResponsiveUtil.isLandscape()
+    return ResponsiveUtil.isLandscapeLayout()
         ? Column(
             children: [
-              ItemBuilder.buildShadowIconButton(
-                context: context,
+              ShadowIconButton(
                 icon: RotationTransition(
                   turns: Tween(begin: 0.0, end: 1.0)
                       .animate(_refreshRotationController),
@@ -241,8 +227,7 @@ class DynamicScreenState extends State<DynamicScreen>
                 },
               ),
               const SizedBox(height: 10),
-              ItemBuilder.buildShadowIconButton(
-                context: context,
+              ShadowIconButton(
                 icon: const Icon(Icons.arrow_upward_rounded),
                 onTap: () {
                   scrollToTop();
@@ -266,8 +251,7 @@ class DynamicScreenState extends State<DynamicScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       titleLeftMargin: 15,
       titleWidget: TabBar(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -286,7 +270,7 @@ class DynamicScreenState extends State<DynamicScreen>
         tabAlignment: TabAlignment.start,
         physics: const BouncingScrollPhysics(),
         indicator:
-            CustomTabIndicator(borderColor: Theme.of(context).primaryColor),
+            UnderlinedTabIndicator(borderColor: Theme.of(context).primaryColor),
         onTap: (index) {
           if (_currentTabIndex == index) {
             return;
@@ -312,7 +296,7 @@ class FollowTab extends StatefulWidget {
   State<StatefulWidget> createState() => FollowTabState();
 }
 
-class FollowTabState extends State<FollowTab>
+class FollowTabState extends BaseDynamicState<FollowTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -385,7 +369,7 @@ class FollowTabState extends State<FollowTab>
           }
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load tag dynamic", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -424,23 +408,21 @@ class FollowTabState extends State<FollowTab>
                 if (_timelineBlogList.isNotEmpty) ...[
                   ItemBuilder.buildTitle(
                     context,
-                    title: S.current.updateRecently,
+                    title: appLocalizations.updateRecently,
                     topMargin: 10,
                     bottomMargin: 10,
                   ),
                   _buildTimelineBlog(),
-                  ItemBuilder.buildDivider(
-                    context,
-                    margin: const EdgeInsets.only(top: 16),
+                  const MyDivider(
+                    margin: EdgeInsets.only(top: 16),
                   ),
                 ],
                 if (_postList.isEmpty)
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 16),
                     height: 160,
-                    child: ItemBuilder.buildEmptyPlaceholder(
-                      context: context,
-                      text: S.current.noDynamic,
+                    child: EmptyPlaceholder(
+                      text: appLocalizations.noDynamic,
                     ),
                   ),
               ],
@@ -460,8 +442,8 @@ class FollowTabState extends State<FollowTab>
         scrollDirection: Axis.horizontal,
         itemCount: _timelineBlogList.length,
         itemBuilder: (context, index) {
-          return ItemBuilder.buildClickable(
-              _buildTimelineBlogItem(_timelineBlogList[index]));
+          return ClickableWrapper(
+              child: _buildTimelineBlogItem(_timelineBlogList[index]));
         },
       ),
     );
@@ -484,7 +466,7 @@ class FollowTabState extends State<FollowTab>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             ClipOval(
-              child: ItemBuilder.buildCachedImage(
+              child: ChewieItemBuilder.buildCachedImage(
                 imageUrl: item.blogInfo.bigAvaImg,
                 context: context,
                 width: 60,
@@ -528,11 +510,11 @@ class FollowTabState extends State<FollowTab>
       children: List.generate(
         _postList.length,
         (int index) {
-          return ItemBuilder.buildClickable(
-            GrainPostItemBuilder.buildTilePostItem(
+          return ClickableWrapper(
+            child: GrainPostItemBuilder.buildTilePostItem(
               context,
               _postList[index],
-              isFirst: ResponsiveUtil.isLandscape() && index == 0,
+              isFirst: ResponsiveUtil.isLandscapeLayout() && index == 0,
             ),
           );
         },
@@ -553,7 +535,7 @@ class SubscribeTagTab extends StatefulWidget {
   State<StatefulWidget> createState() => SubscribeTagTabState();
 }
 
-class SubscribeTagTabState extends State<SubscribeTagTab>
+class SubscribeTagTabState extends BaseDynamicState<SubscribeTagTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -622,7 +604,7 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
           }
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load tag dynamic", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -667,25 +649,20 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
                 if (_recentVisitList.isNotEmpty)
                   ItemBuilder.buildTitle(
                     context,
-                    title: S.current.visitFrequently,
+                    title: appLocalizations.visitFrequently,
                     topMargin: 10,
                     bottomMargin: 10,
                   ),
                 if (_recentVisitList.isNotEmpty) _buildRecentVisitTagList(),
                 if (_recentVisitList.isNotEmpty)
-                  ItemBuilder.buildDivider(
-                    context,
-                    horizontal: 0,
-                    vertical: 16,
-                  ),
+                  const MyDivider(horizontal: 0, vertical: 16),
                 if (_recentVisitList.isEmpty) const SizedBox(height: 10),
                 if (_subscribeList.isEmpty)
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 16),
                     height: 160,
-                    child: ItemBuilder.buildEmptyPlaceholder(
-                      context: context,
-                      text: S.current.noSubscribedTag,
+                    child: EmptyPlaceholder(
+                      text: appLocalizations.noSubscribedTag,
                     ),
                   ),
               ],
@@ -705,8 +682,8 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
         scrollDirection: Axis.horizontal,
         itemCount: _recentVisitList.length,
         itemBuilder: (context, index) {
-          return ItemBuilder.buildClickable(
-              _buildRecentVisitTagItem(_recentVisitList[index]));
+          return ClickableWrapper(
+              child: _buildRecentVisitTagItem(_recentVisitList[index]));
         },
       ),
     );
@@ -729,7 +706,7 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
               clipBehavior: Clip.none,
               children: [
                 ClipOval(
-                  child: ItemBuilder.buildCachedImage(
+                  child: ChewieItemBuilder.buildCachedImage(
                     imageUrl: item.image ?? "",
                     context: context,
                     width: 60,
@@ -774,8 +751,8 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
       mainAxisSpacing: 12,
       crossAxisSpacing: 6,
       children: List.generate(_subscribeList.length, (int index) {
-        return ItemBuilder.buildClickable(
-            _buildSubscribeTagItem(_subscribeList[index]));
+        return ClickableWrapper(
+            child: _buildSubscribeTagItem(_subscribeList[index]));
       }),
     );
   }
@@ -813,16 +790,16 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
                         fontWeightDelta: 2,
                       ),
                 ),
-                if (Utils.isNotEmpty(item.tagRankName))
+                if (StringUtil.isNotEmpty(item.tagRankName))
                   const SizedBox(width: 8),
-                if (Utils.isNotEmpty(item.tagRankName))
+                if (StringUtil.isNotEmpty(item.tagRankName))
                   ItemBuilder.buildTagItem(
                     context,
                     item.tagRankName,
                     TagType.normal,
                     backgroundColor:
                         Theme.of(context).primaryColor.withAlpha(30),
-                    color: MyColors.likeButtonColor,
+                    color: ChewieColors.likeButtonColor,
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     showTagLabel: false,
@@ -894,11 +871,7 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
               },
               child: _buildInfo(item),
             ),
-            ItemBuilder.buildDivider(
-              context,
-              horizontal: 0,
-              vertical: 12,
-            ),
+            const MyDivider(horizontal: 0, vertical: 12),
           ],
         ),
       ),
@@ -907,9 +880,10 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
 
   _buildInfo(FullSubscribeTagItem item) {
     if (item.cardInfo != null && item.cardInfo!.type == 0) {
-      String title = Utils.clearBlank(item.cardInfo!.postCard!.postInfo.title);
-      String digest = Utils.clearBlank(
-          Utils.extractTextFromHtml(item.cardInfo!.postCard!.postInfo.digest));
+      String title =
+          StringUtil.clearBlank(item.cardInfo!.postCard!.postInfo.title);
+      String digest = StringUtil.clearBlank(HtmlUtil.extractTextFromHtml(
+          item.cardInfo!.postCard!.postInfo.digest));
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -923,14 +897,14 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (Utils.isNotEmpty(title))
+                  if (StringUtil.isNotEmpty(title))
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.apply(
                             fontSizeDelta: -1,
                           ),
                     ),
-                  if (Utils.isNotEmpty(digest))
+                  if (StringUtil.isNotEmpty(digest))
                     Text(
                       digest,
                       style: Theme.of(context).textTheme.labelMedium?.apply(
@@ -958,7 +932,7 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
-                          "${Utils.formatCount(item.cardInfo!.postCard!.postHot)}${S.current.hotCount}",
+                          "${StringUtil.formatCount(item.cardInfo!.postCard!.postHot)}${appLocalizations.hotCount}",
                           style: Theme.of(context).textTheme.labelMedium,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -969,10 +943,10 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
                 ],
               ),
             ),
-            if (Utils.isNotEmpty(item.cardInfo!.postCard!.postInfo.image))
+            if (StringUtil.isNotEmpty(item.cardInfo!.postCard!.postInfo.image))
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: ItemBuilder.buildCachedImage(
+                child: ChewieItemBuilder.buildCachedImage(
                   context: context,
                   imageUrl: item.cardInfo!.postCard!.postInfo.image,
                   width: 50,
@@ -1022,7 +996,7 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        "${Utils.formatCount(item.cardInfo!.collectionCard!.collectionInfo.subscribedCount)}${S.current.subscribe} ${Utils.formatCount(item.cardInfo!.collectionCard!.collectionInfo.viewCount)}${S.current.viewCount}",
+                        "${StringUtil.formatCount(item.cardInfo!.collectionCard!.collectionInfo.subscribedCount)}${appLocalizations.subscribe} ${StringUtil.formatCount(item.cardInfo!.collectionCard!.collectionInfo.viewCount)}${appLocalizations.viewCount}",
                         style: Theme.of(context).textTheme.labelMedium,
                       ),
                     ],
@@ -1032,7 +1006,7 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
             ),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: ItemBuilder.buildCachedImage(
+              child: ChewieItemBuilder.buildCachedImage(
                 context: context,
                 imageUrl:
                     item.cardInfo!.collectionCard!.collectionInfo.coverUrl,
@@ -1085,7 +1059,7 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        "${S.current.circleWorks}${(Utils.formatCount(item.cardInfo!.blogCard!.circleHot))}${S.current.hotCount}",
+                        "${appLocalizations.circleWorks}${(StringUtil.formatCount(item.cardInfo!.blogCard!.circleHot))}${appLocalizations.hotCount}",
                         style: Theme.of(context).textTheme.labelMedium,
                       ),
                     ],
@@ -1095,7 +1069,7 @@ class SubscribeTagTabState extends State<SubscribeTagTab>
             ),
             ClipRRect(
               borderRadius: BorderRadius.circular(50),
-              child: ItemBuilder.buildCachedImage(
+              child: ChewieItemBuilder.buildCachedImage(
                 context: context,
                 imageUrl: item.cardInfo!.blogCard!.blogInfo.bigAvaImg,
                 width: 50,
@@ -1124,7 +1098,8 @@ class SubscribeCollectionTab extends StatefulWidget {
   State<StatefulWidget> createState() => SubscribeCollectionTabState();
 }
 
-class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
+class SubscribeCollectionTabState
+    extends BaseDynamicState<SubscribeCollectionTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -1228,7 +1203,7 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
           }
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load collection dynamic", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -1262,9 +1237,8 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 16),
                     height: 160,
-                    child: ItemBuilder.buildEmptyPlaceholder(
-                      context: context,
-                      text: S.current.noSubscribedCollection,
+                    child: EmptyPlaceholder(
+                      text: appLocalizations.noSubscribedCollection,
                     ),
                   ),
               ],
@@ -1275,15 +1249,11 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
             delegate: SliverChildListDelegate(
               [
                 if (_guessLikeList.isNotEmpty)
-                  ItemBuilder.buildDivider(
-                    context,
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  const MyDivider(horizontal: 16, vertical: 8),
                 if (_guessLikeList.isNotEmpty)
                   ItemBuilder.buildTitle(
                     context,
-                    title: S.current.guessYouLike,
+                    title: appLocalizations.guessYouLike,
                     topMargin: 10,
                     bottomMargin: 4,
                   ),
@@ -1300,8 +1270,8 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
     return SliverWaterfallFlow.extent(
       maxCrossAxisExtent: 560,
       children: List.generate(_subscribeList.length, (index) {
-        return ItemBuilder.buildClickable(
-            _buildSubscribeCollectionItem(_subscribeList[index]));
+        return ClickableWrapper(
+            child: _buildSubscribeCollectionItem(_subscribeList[index]));
       }),
     );
   }
@@ -1338,7 +1308,7 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: ItemBuilder.buildCachedImage(
+                    child: ChewieItemBuilder.buildCachedImage(
                       imageUrl: item.coverUrl,
                       context: context,
                       width: 100,
@@ -1354,7 +1324,7 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
                     left: 4,
                     child: ItemBuilder.buildTranslucentTag(
                       context,
-                      text: S.current.viewRecently,
+                      text: appLocalizations.viewRecently,
                       fontSizeDelta: -2,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 6,
@@ -1388,7 +1358,7 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
                       if (item.unreadCount > 0)
                         ItemBuilder.buildTagItem(
                           context,
-                          S.current.updateCount(
+                          appLocalizations.updateCount(
                               item.unreadCount > 100 ? 99 : item.unreadCount),
                           showTagLabel: false,
                           jumpToTag: false,
@@ -1420,8 +1390,8 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
                       ItemBuilder.buildIconTextButton(
                         context,
                         text: hasLastRead
-                            ? S.current.continueRead
-                            : S.current.startRead,
+                            ? appLocalizations.continueRead
+                            : appLocalizations.startRead,
                         color: Theme.of(context).primaryColor,
                         fontWeightDelta: 2,
                         onTap: !hasLastRead
@@ -1431,10 +1401,10 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
                                   context,
                                   PostDetailScreen(
                                     meta: {
-                                      "postId":
-                                          Utils.intToHex(item.lastReadPostId),
-                                      "blogId":
-                                          Utils.intToHex(item.lastReadBlogId),
+                                      "postId": NumberUtil.intToHex(
+                                          item.lastReadPostId),
+                                      "blogId": NumberUtil.intToHex(
+                                          item.lastReadBlogId),
                                       "blogName": "",
                                     },
                                     isArticle: false,
@@ -1457,8 +1427,8 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
     return SliverWaterfallFlow.extent(
       maxCrossAxisExtent: 560,
       children: List.generate(_guessLikeList.length, (index) {
-        return ItemBuilder.buildClickable(
-            _buildGuessLikeCollectionItem(_guessLikeList[index]));
+        return ClickableWrapper(
+            child: _buildGuessLikeCollectionItem(_guessLikeList[index]));
       }),
     );
   }
@@ -1496,7 +1466,7 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: ItemBuilder.buildCachedImage(
+                    child: ChewieItemBuilder.buildCachedImage(
                       imageUrl: item.coverUrl,
                       context: context,
                       width: 100,
@@ -1531,14 +1501,13 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
                       Row(
                         children: [
                           const SizedBox(width: 3),
-                          if (Utils.isNotEmpty(item.reason))
-                            ItemBuilder.buildRoundButton(
-                              context,
+                          if (StringUtil.isNotEmpty(item.reason))
+                            RoundIconTextButton(
                               text: item.reason,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 3, vertical: 2),
                               radius: 3,
-                              color: MyColors.likeButtonColor,
+                              color: ChewieColors.likeButtonColor,
                               fontSizeDelta: -2,
                             ),
                         ],
@@ -1583,7 +1552,7 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        "${item.postCount}${S.current.chapter} · ${Utils.formatCount(item.subscribeCount)}${S.current.subscribe}",
+                        "${item.postCount}${appLocalizations.chapter} · ${StringUtil.formatCount(item.subscribeCount)}${appLocalizations.subscribe}",
                         style: Theme.of(context)
                             .textTheme
                             .titleSmall
@@ -1595,8 +1564,8 @@ class SubscribeCollectionTabState extends State<SubscribeCollectionTab>
                       ItemBuilder.buildIconTextButton(
                         context,
                         text: item.subscribed
-                            ? S.current.unsubscribe
-                            : S.current.subscribe,
+                            ? appLocalizations.unsubscribe
+                            : appLocalizations.subscribe,
                         icon: Icon(
                           item.subscribed
                               ? Icons.bookmark_added_rounded
@@ -1646,7 +1615,7 @@ class SubscribeGrainTab extends StatefulWidget {
   State<StatefulWidget> createState() => SubscribeGrainTabState();
 }
 
-class SubscribeGrainTabState extends State<SubscribeGrainTab>
+class SubscribeGrainTabState extends BaseDynamicState<SubscribeGrainTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -1721,7 +1690,7 @@ class SubscribeGrainTabState extends State<SubscribeGrainTab>
           }
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load grain dynamic", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -1755,9 +1724,8 @@ class SubscribeGrainTabState extends State<SubscribeGrainTab>
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 16),
                     height: 160,
-                    child: ItemBuilder.buildEmptyPlaceholder(
-                      context: context,
-                      text: S.current.noSubscribedGrain,
+                    child: EmptyPlaceholder(
+                      text: appLocalizations.noSubscribedGrain,
                     ),
                   ),
               ],
@@ -1773,8 +1741,8 @@ class SubscribeGrainTabState extends State<SubscribeGrainTab>
     return SliverWaterfallFlow.extent(
       maxCrossAxisExtent: 560,
       children: List.generate(_subscribeList.length, (index) {
-        return ItemBuilder.buildClickable(
-            _buildSubscribeGrainItem(_subscribeList[index]));
+        return ClickableWrapper(
+            child: _buildSubscribeGrainItem(_subscribeList[index]));
       }),
     );
   }
@@ -1807,7 +1775,7 @@ class SubscribeGrainTabState extends State<SubscribeGrainTab>
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: ItemBuilder.buildCachedImage(
+                child: ChewieItemBuilder.buildCachedImage(
                   imageUrl: item.grain.coverUrl,
                   context: context,
                   width: 100,
@@ -1834,7 +1802,7 @@ class SubscribeGrainTabState extends State<SubscribeGrainTab>
                   const SizedBox(height: 6),
                   Flexible(
                     child: Text(
-                      Utils.isNotEmpty(item.latestPost.title)
+                      StringUtil.isNotEmpty(item.latestPost.title)
                           ? item.latestPost.title
                           : item.latestPost.digest,
                       style: Theme.of(context).textTheme.labelMedium,

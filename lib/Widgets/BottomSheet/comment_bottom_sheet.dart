@@ -1,14 +1,10 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loftify/Models/post_detail_response.dart';
 
 import '../../Api/post_api.dart';
-import '../../Resources/theme.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../generated/l10n.dart';
-import '../Custom/sliver_appbar_delegate.dart';
+import '../../l10n/l10n.dart';
 import '../Item/item_builder.dart';
 import '../Item/loftify_item_builder.dart';
 
@@ -38,7 +34,7 @@ class CommentBottomSheetState extends State<CommentBottomSheet> {
   List<Comment> newComments = [];
   bool loading = false;
   final EasyRefreshController _refreshController = EasyRefreshController();
-  bool _noMore = false;
+  final bool _noMore = false;
 
   @override
   void initState() {
@@ -75,7 +71,7 @@ class CommentBottomSheetState extends State<CommentBottomSheet> {
         }
       } catch (e, t) {
         ILogger.error("Failed to load newest comments", e, t);
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         loading = false;
@@ -109,7 +105,7 @@ class CommentBottomSheetState extends State<CommentBottomSheet> {
         }
       } catch (e, t) {
         ILogger.error("Failed to load comment reply", e, t);
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         currentComment.l2CommentLoading = false;
@@ -135,7 +131,7 @@ class CommentBottomSheetState extends State<CommentBottomSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: MyTheme.getBackground(context),
+        color: ChewieTheme.getBackground(context),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
       ),
       height: MediaQuery.sizeOf(context).height * 0.8,
@@ -181,18 +177,16 @@ class CommentBottomSheetState extends State<CommentBottomSheet> {
             child: !isInited
                 ? Container(
                     alignment: Alignment.center,
-                    child: ItemBuilder.buildLoadingWidget(
-                      context,
+                    child: LoadingWidget(
                       text: "",
-                      background: MyTheme.getBackground(context),
+                      background: ChewieTheme.getBackground(context),
                       size: 40,
                       topPadding: 40,
                     ),
                   )
                 : Container(
                     margin: const EdgeInsets.symmetric(vertical: 24),
-                    child: ItemBuilder.buildEmptyPlaceholder(
-                        context: context, text: S.current.noComment),
+                    child: EmptyPlaceholder(text: appLocalizations.noComment),
                   ),
           ),
         if (newComments.isNotEmpty)
@@ -202,10 +196,10 @@ class CommentBottomSheetState extends State<CommentBottomSheet> {
               maxHeight: 50,
               minHeight: 50,
               child: Container(
-                color: MyTheme.getBackground(context),
+                color: ChewieTheme.getBackground(context),
                 child: ItemBuilder.buildTitle(
                   context,
-                  title: S.current.latestComment,
+                  title: appLocalizations.latestComment,
                   left: 8,
                   bottomMargin: 0,
                   topMargin: 0,
@@ -226,7 +220,7 @@ class CommentBottomSheetState extends State<CommentBottomSheet> {
     return SliverList(
       delegate: SliverChildListDelegate(
         [
-          ItemBuilder.buildLoadMoreNotification(
+          LoadMoreNotification(
             child: ListView.builder(
               shrinkWrap: true,
               itemCount: comments.length,

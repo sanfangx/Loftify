@@ -1,16 +1,12 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/tag_api.dart';
 import 'package:loftify/Models/recommend_response.dart';
-import 'package:loftify/Resources/theme.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/PostItem/recommend_flow_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class TagRelatedScreen extends StatefulWidget {
   const TagRelatedScreen({super.key, required this.tag});
@@ -23,7 +19,7 @@ class TagRelatedScreen extends StatefulWidget {
   State<TagRelatedScreen> createState() => _TagRelatedScreenState();
 }
 
-class _TagRelatedScreenState extends State<TagRelatedScreen>
+class _TagRelatedScreenState extends BaseDynamicState<TagRelatedScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -39,7 +35,7 @@ class _TagRelatedScreenState extends State<TagRelatedScreen>
     super.build(context);
     return Scaffold(
       appBar: _buildAppBar(),
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       body: _buildMainBody(),
     );
   }
@@ -84,7 +80,7 @@ class _TagRelatedScreenState extends State<TagRelatedScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load tag related tag post result list", e, t);
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -104,7 +100,7 @@ class _TagRelatedScreenState extends State<TagRelatedScreen>
         return await _fetchResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         noMore: _noMore,
         onLoad: () async {
           return await _fetchResult();
@@ -134,16 +130,15 @@ class _TagRelatedScreenState extends State<TagRelatedScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
-      backgroundColor: MyTheme.getBackground(context),
+    return ResponsiveAppBar(
+      backgroundColor: ChewieTheme.getBackground(context),
       showBack: true,
-      titleWidget: ItemBuilder.buildClickable(
+      titleWidget: ClickableWrapper(child:
         ItemBuilder.buildTagItem(
           context,
           widget.tag,
           TagType.normal,
-          shownTag: S.current.tagRelatedTags(widget.tag),
+          shownTag: appLocalizations.tagRelatedTags(widget.tag),
           backgroundColor: Theme.of(context).primaryColor.withAlpha(30),
           color: Theme.of(context).primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -152,7 +147,7 @@ class _TagRelatedScreenState extends State<TagRelatedScreen>
         ),
       ),
       centerTitle: true,
-      actions: [ItemBuilder.buildBlankIconButton(context)],
+      actions: const [BlankIconButton()],
     );
   }
 }

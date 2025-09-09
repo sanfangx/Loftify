@@ -1,16 +1,10 @@
-import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Api/gift_api.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Models/dress_response.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class DressSuitListScreen extends StatefulWidget {
   const DressSuitListScreen({super.key});
@@ -21,7 +15,7 @@ class DressSuitListScreen extends StatefulWidget {
   State<DressSuitListScreen> createState() => DressSuitListScreenState();
 }
 
-class DressSuitListScreenState extends State<DressSuitListScreen>
+class DressSuitListScreenState extends BaseDynamicState<DressSuitListScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -64,7 +58,7 @@ class DressSuitListScreenState extends State<DressSuitListScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load dress list", e, t);
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -97,7 +91,7 @@ class DressSuitListScreenState extends State<DressSuitListScreen>
   }
 
   Widget _buildBody(ScrollPhysics physics) {
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       child: WaterfallFlow.builder(
         physics: physics,
         cacheExtent: 9999,
@@ -118,7 +112,7 @@ class DressSuitListScreenState extends State<DressSuitListScreen>
   }
 
   _buildDressItem(DressingItem item) {
-    return ItemBuilder.buildClickable(
+    return ClickableWrapper(child:
       GestureDetector(
         onTap: () {},
         child: Stack(
@@ -126,7 +120,7 @@ class DressSuitListScreenState extends State<DressSuitListScreen>
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: ItemBuilder.buildCachedImage(
+              child: ChewieItemBuilder.buildCachedImage(
                 imageUrl: item.img,
                 context: context,
                 height: 400,
@@ -159,11 +153,11 @@ class DressSuitListScreenState extends State<DressSuitListScreen>
                   // Row(
                   //   children: [
                   //     Expanded(
-                  //       child: ItemBuilder.buildRoundButton(
+                  //       child: RoundIconTextButton(
                   //         context,
                   //         background: Colors.white24,
                   //         color: Colors.white,
-                  //         text: S.current.viewDetail,
+                  //         text: appLocalizations.viewDetail,
                   //         onTap: () {},
                   //       ),
                   //     ),

@@ -1,13 +1,9 @@
-import 'dart:io';
 
-import 'package:custom_sliding_segmented_control/custom_sliding_segmented_control.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Suit/custom_bg_avatar_list_screen.dart';
 
-import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'custom_dress_list_screen.dart';
 
 class UserMarketScreen extends StatefulWidget {
@@ -21,7 +17,7 @@ class UserMarketScreen extends StatefulWidget {
   State<UserMarketScreen> createState() => _UserMarketScreenState();
 }
 
-class _UserMarketScreenState extends State<UserMarketScreen>
+class _UserMarketScreenState extends BaseDynamicState<UserMarketScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -56,7 +52,7 @@ class _UserMarketScreenState extends State<UserMarketScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: PageView(
         physics: const ClampingScrollPhysics(),
@@ -67,11 +63,10 @@ class _UserMarketScreenState extends State<UserMarketScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: S.current.shop,
-      actions: [ItemBuilder.buildBlankIconButton(context)],
+      title: appLocalizations.shop,
+      actions: const [BlankIconButton()],
       bottomHeight: 56,
       bottomWidget: _buildCustomBottomBar(),
     );
@@ -82,7 +77,7 @@ class _UserMarketScreenState extends State<UserMarketScreen>
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: MyTheme.getBackground(context),
+        color: ChewieTheme.getBackground(context),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -102,9 +97,9 @@ class _UserMarketScreenState extends State<UserMarketScreen>
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
               children: <int, Widget>{
-                0: Text(S.current.bgAvatar),
-                1: Text(S.current.dress),
-                2: Text(S.current.emotePackage),
+                0: Text(appLocalizations.bgAvatar),
+                1: Text(appLocalizations.dress),
+                2: Text(appLocalizations.emotePackage),
               },
               initialValue: _currentCustomBottomBarIndex,
               onValueChanged: (index) {

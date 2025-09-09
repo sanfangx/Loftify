@@ -1,3 +1,4 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:loftify/Models/recommend_response.dart';
 
 import '../Utils/utils.dart';
@@ -487,7 +488,7 @@ class Blogsetting {
       hideCommentLike: json['hideCommentLike'],
       interestDomainIds: json['interestDomainIds'] ?? "",
       interestDomainIdSet: (json['interestDomainIdSet'] as List)
-          .map((e) => Utils.parseToInt(e))
+          .map((e) => NumberUtil.parseToInt(e))
           .toList(),
       interests: json['interests'] ?? "",
       locationFlag: json['locationFlag'] ?? 0,

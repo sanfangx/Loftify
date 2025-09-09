@@ -2,17 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/login_api.dart';
-import 'package:loftify/Utils/crypt_util.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:loftify/Widgets/Item/item_builder.dart';
 
-import '../../Resources/theme.dart';
 import '../../Utils/app_provider.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class SlideCaptchaBottomSheet extends StatefulWidget {
   const SlideCaptchaBottomSheet({
@@ -60,7 +55,7 @@ class SlideCaptchaBottomSheetState extends State<SlideCaptchaBottomSheet> {
         }
       } catch (e, t) {
         ILogger.error("Failed to load captcha", e, t);
-        IToast.showTop(S.current.getSlideCaptchaFailed);
+        IToast.showTop(appLocalizations.getSlideCaptchaFailed);
       } finally {
         if (mounted) setState(() {});
       }
@@ -87,12 +82,11 @@ class SlideCaptchaBottomSheetState extends State<SlideCaptchaBottomSheet> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildHeader(),
-            ItemBuilder.buildDivider(context, horizontal: 12, vertical: 0),
+            const MyDivider(horizontal: 12, vertical: 0),
             Stack(
               children: [
-                ItemBuilder.buildLoadingWidget(
-                  context,
-                  text: S.current.loading,
+                LoadingWidget(
+                  text: appLocalizations.loading,
                   background: Colors.transparent,
                   size: 40,
                   topPadding: 77,
@@ -120,12 +114,11 @@ class SlideCaptchaBottomSheetState extends State<SlideCaptchaBottomSheet> {
         children: [
           Expanded(
             child: Text(
-              S.current.pleaseFinishSlideCaptcha,
+              appLocalizations.pleaseFinishSlideCaptcha,
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
-          ItemBuilder.buildIconButton(
-            context: context,
+          CircleIconButton(
             icon: Icon(
               Icons.close_rounded,
               color: Theme.of(context).textTheme.labelSmall?.color,
@@ -143,7 +136,7 @@ class SlideCaptchaBottomSheetState extends State<SlideCaptchaBottomSheet> {
   updateState(bool success) {
     if (success) {
       statusBackground = Colors.green;
-      status = S.current.validSuccess;
+      status = appLocalizations.validSuccess;
       showStatus = true;
       setState(() {});
       Future.delayed(const Duration(milliseconds: 500), () {
@@ -151,7 +144,7 @@ class SlideCaptchaBottomSheetState extends State<SlideCaptchaBottomSheet> {
       });
     } else {
       statusBackground = Colors.redAccent;
-      status = S.current.validFailed;
+      status = appLocalizations.validFailed;
       showStatus = true;
       setState(() {});
       Future.delayed(const Duration(milliseconds: 1000), () {
@@ -242,7 +235,7 @@ class SlideCaptchaBottomSheetState extends State<SlideCaptchaBottomSheet> {
             ),
             alignment: Alignment.center,
             child: Text(
-              S.current.slideToComplete,
+              appLocalizations.slideToComplete,
               style: Theme.of(context).textTheme.labelLarge,
             ),
           ),
@@ -268,8 +261,8 @@ class SlideCaptchaBottomSheetState extends State<SlideCaptchaBottomSheet> {
                 });
               },
               onHorizontalDragEnd: (details) {
-                String rawKey = Utils.getRandomString(length: 16);
-                String rawIv = Utils.getRandomString(length: 16);
+                String rawKey = StringUtil.getRandomString(length: 16);
+                String rawIv = StringUtil.getRandomString(length: 16);
                 LoginApi.verifySlideCaptcha(
                   id: id!,
                   offset: frontLeftOffset * scale,
@@ -277,7 +270,7 @@ class SlideCaptchaBottomSheetState extends State<SlideCaptchaBottomSheet> {
                   rawIv: rawIv,
                 ).then((value) {
                   if (value == null) {
-                    IToast.showTop(S.current.sendValidationFailed);
+                    IToast.showTop(appLocalizations.sendValidationFailed);
                   } else {
                     var res = CryptUtil.decryptDataByAES(value, rawKey, rawIv);
                     res = json.decode(res);
@@ -295,12 +288,12 @@ class SlideCaptchaBottomSheetState extends State<SlideCaptchaBottomSheet> {
                   }
                 });
               },
-              child: ItemBuilder.buildClickable(
-                Container(
+              child: ClickableWrapper(
+                child: Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: MyTheme.getBackground(context),
+                    color: ChewieTheme.getBackground(context),
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(

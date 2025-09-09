@@ -1,17 +1,12 @@
-import 'dart:io';
 
-import 'package:custom_sliding_segmented_control/custom_sliding_segmented_control.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Suit/custom_bg_avatar_list_screen.dart';
 import 'package:loftify/Screens/Suit/dress_suit_list_screen.dart';
-import 'package:loftify/Utils/ilogger.dart';
-import 'package:loftify/Utils/responsive_util.dart';
 
 import '../../Api/gift_api.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'custom_dress_list_screen.dart';
 
 class SuitScreen extends StatefulWidget {
@@ -23,7 +18,7 @@ class SuitScreen extends StatefulWidget {
   State<SuitScreen> createState() => _SuitScreenState();
 }
 
-class _SuitScreenState extends State<SuitScreen>
+class _SuitScreenState extends BaseDynamicState<SuitScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -118,19 +113,18 @@ class _SuitScreenState extends State<SuitScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: _buildTabView(),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
       centerTitle: true,
       titleWidget: _buildTabBar(),
-      actions: [ItemBuilder.buildBlankIconButton(context)],
+      actions: const [BlankIconButton()],
       bottomHeight: 56,
       bottomWidget: _currentTabIndex == 0
           ? _buildOfficialBottomBar()
@@ -139,10 +133,9 @@ class _SuitScreenState extends State<SuitScreen>
   }
 
   _buildTabBar() {
-    return ItemBuilder.buildTabBar(
-      context,
-      _tabController,
-      _tabLabelList
+    return TabBarWrapper(
+      tabController: _tabController,
+     tabs: _tabLabelList
           .asMap()
           .entries
           .map(
@@ -158,10 +151,10 @@ class _SuitScreenState extends State<SuitScreen>
           _currentTabIndex = index;
         });
       },
-      background: ResponsiveUtil.isLandscape()
+      background: ResponsiveUtil.isLandscapeLayout()
           ? Colors.transparent
-          : MyTheme.getBackground(context),
-      showBorder: ResponsiveUtil.isLandscape(),
+          : ChewieTheme.getBackground(context),
+      showBorder: ResponsiveUtil.isLandscapeLayout(),
     );
   }
 
@@ -178,7 +171,7 @@ class _SuitScreenState extends State<SuitScreen>
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: MyTheme.getBackground(context),
+        color: ChewieTheme.getBackground(context),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -198,8 +191,8 @@ class _SuitScreenState extends State<SuitScreen>
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
               children: <int, Widget>{
-                0: Text(S.current.dressTheme),
-                // 1: Text(S.current.avatarBox),
+                0: Text(appLocalizations.dressTheme),
+                // 1: Text(appLocalizations.avatarBox),
               },
               initialValue: _currentOfficialBottomBarIndex,
               onValueChanged: (index) {
@@ -223,7 +216,7 @@ class _SuitScreenState extends State<SuitScreen>
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: MyTheme.getBackground(context),
+        color: ChewieTheme.getBackground(context),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -243,9 +236,9 @@ class _SuitScreenState extends State<SuitScreen>
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
               children: <int, Widget>{
-                0: Text(S.current.bgAvatar),
-                1: Text(S.current.dress),
-                2: Text(S.current.emotePackage),
+                0: Text(appLocalizations.bgAvatar),
+                1: Text(appLocalizations.dress),
+                2: Text(appLocalizations.emotePackage),
               },
               initialValue: _currentCustomBottomBarIndex,
               onValueChanged: (index) {

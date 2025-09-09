@@ -1,29 +1,21 @@
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/search_api.dart';
 import 'package:loftify/Models/collection_response.dart';
 import 'package:loftify/Models/recommend_response.dart';
 import 'package:loftify/Models/search_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Info/user_detail_screen.dart';
 import 'package:loftify/Screens/Post/grain_detail_screen.dart';
 import 'package:loftify/Screens/Post/tag_detail_screen.dart';
-import 'package:loftify/Utils/itoast.dart';
 import 'package:loftify/Widgets/PostItem/search_post_flow_item_builder.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
-import '../../Utils/constant.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
-import '../../Utils/uri_util.dart';
 import '../../Utils/utils.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
 import '../../Widgets/PostItem/recommend_flow_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'collection_detail_screen.dart';
 
 class SearchResultScreen extends StatefulWidget {
@@ -37,7 +29,7 @@ class SearchResultScreen extends StatefulWidget {
   State<SearchResultScreen> createState() => _SearchResultScreenState();
 }
 
-class _SearchResultScreenState extends State<SearchResultScreen>
+class _SearchResultScreenState extends BaseDynamicState<SearchResultScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -66,12 +58,12 @@ class _SearchResultScreenState extends State<SearchResultScreen>
       EasyRefreshController();
 
   final List<String> _tabLabelList = [
-    S.current.comprehensive,
-    S.current.tag,
-    S.current.collection,
-    S.current.grain,
-    S.current.article,
-    S.current.user
+    appLocalizations.comprehensive,
+    appLocalizations.tag,
+    appLocalizations.collection,
+    appLocalizations.grain,
+    appLocalizations.article,
+    appLocalizations.user
   ];
   int _allResultOffset = 0;
   int _tagResultOffset = 0;
@@ -103,17 +95,15 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
-      appBar: ItemBuilder.buildResponsiveAppBar(
-        context: context,
+      backgroundColor: ChewieTheme.getBackground(context),
+      appBar: ResponsiveAppBar(
         showBack: true,
         titleLeftMargin: 0,
         titleWidget: _buildSearchBar(),
         bottomHeight: 56,
-        bottomWidget: ItemBuilder.buildTabBar(
-          context,
-          _tabController,
-          _tabLabelList
+        bottomWidget: TabBarWrapper(
+          tabController: _tabController,
+         tabs:  _tabLabelList
               .asMap()
               .entries
               .map((entry) => ItemBuilder.buildAnimatedTab(context,
@@ -126,7 +116,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
               _currentTabIndex = index;
             });
           },
-          forceUnscrollable: !ResponsiveUtil.isLandscape(),
+          forceUnscrollable: !ResponsiveUtil.isLandscapeLayout(),
         ),
       ),
       body: Stack(
@@ -176,7 +166,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           return IndicatorResult.success;
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load all result", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -210,7 +200,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           return IndicatorResult.success;
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load all post result", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -260,7 +250,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           }
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load tag result", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -307,7 +297,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           }
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load collection result", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -354,7 +344,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           }
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load post result", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -401,7 +391,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           }
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load grain result", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -449,7 +439,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           }
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load user result", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -506,7 +496,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
   _buildSuggestList() {
     return Container(
-      color: MyTheme.getBackground(context),
+      color: ChewieTheme.getBackground(context),
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: ListView.builder(
         itemCount: _sugList.length,
@@ -585,7 +575,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
       },
       triggerAxis: Axis.vertical,
       childBuilder: (context, physics) => _allResult != null
-          ? ItemBuilder.buildLoadMoreNotification(
+          ? LoadMoreNotification(
               noMore: false,
               onLoad: _fetchAllPostResult,
               child: CustomScrollView(
@@ -602,9 +592,8 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                             height: 160,
                             margin: const EdgeInsets.symmetric(vertical: 16),
                             alignment: Alignment.center,
-                            child: ItemBuilder.buildEmptyPlaceholder(
-                              context: context,
-                              text: S.current.noSearchResult,
+                            child: EmptyPlaceholder(
+                              text: appLocalizations.noSearchResult,
                             ),
                           ),
                         if (_allResult!.tagRank != null)
@@ -620,8 +609,8 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                         if (_allResult!.tags.isNotEmpty)
                           ItemBuilder.buildTitle(
                             context,
-                            title: S.current.relatedTag,
-                            suffixText: S.current.viewAll,
+                            title: appLocalizations.relatedTag,
+                            suffixText: appLocalizations.viewAll,
                             topMargin: 16,
                             bottomMargin: 8,
                             onTap: () {
@@ -651,8 +640,8 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                         if (_allResult!.posts.isNotEmpty)
                           ItemBuilder.buildTitle(
                             context,
-                            title: S.current.relatedPost,
-                            suffixText: S.current.viewAll,
+                            title: appLocalizations.relatedPost,
+                            suffixText: appLocalizations.viewAll,
                             topMargin: 16,
                             bottomMargin: 8,
                             onTap: () {
@@ -690,9 +679,8 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                 ],
               ),
             )
-          : ItemBuilder.buildLoadingWidget(
-              context,
-              background: MyTheme.getBackground(context),
+          : LoadingWidget(
+              background: ChewieTheme.getBackground(context),
             ),
     );
   }
@@ -707,7 +695,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         return await _fetchTagResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         noMore: _tagResultNoMore,
         onLoad: _fetchTagResult,
         child: CustomScrollView(
@@ -721,9 +709,8 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 16),
                       height: 160,
-                      child: ItemBuilder.buildEmptyPlaceholder(
-                        context: context,
-                        text: S.current.noTag,
+                      child: EmptyPlaceholder(
+                        text: appLocalizations.noTag,
                       ),
                     ),
                   if (_tagRank != null)
@@ -771,7 +758,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         return await _fetchCollectionResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         noMore: _collectionResultNoMore,
         onLoad: _fetchCollectionResult,
         child: CustomScrollView(
@@ -785,9 +772,8 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 16),
                       height: 160,
-                      child: ItemBuilder.buildEmptyPlaceholder(
-                        context: context,
-                        text: S.current.noCollection,
+                      child: EmptyPlaceholder(
+                        text: appLocalizations.noCollection,
                       ),
                     ),
                 ],
@@ -835,7 +821,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         return await _fetchPostResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         noMore: _postResultNoMore,
         onLoad: _fetchPostResult,
         child: CustomScrollView(
@@ -849,9 +835,8 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 16),
                       height: 160,
-                      child: ItemBuilder.buildEmptyPlaceholder(
-                        context: context,
-                        text: S.current.noArticle,
+                      child: EmptyPlaceholder(
+                        text: appLocalizations.noArticle,
                       ),
                     ),
                 ],
@@ -897,7 +882,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         return await _fetchGrainResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         noMore: _grainResultNoMore,
         onLoad: _fetchGrainResult,
         child: CustomScrollView(
@@ -911,9 +896,8 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 16),
                       height: 160,
-                      child: ItemBuilder.buildEmptyPlaceholder(
-                        context: context,
-                        text: S.current.noGrain,
+                      child: EmptyPlaceholder(
+                        text: appLocalizations.noGrain,
                       ),
                     ),
                 ],
@@ -961,7 +945,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         return await _fetchUserResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         noMore: _userResultNoMore,
         onLoad: _fetchUserResult,
         child: CustomScrollView(
@@ -975,9 +959,8 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 16),
                       height: 160,
-                      child: ItemBuilder.buildEmptyPlaceholder(
-                        context: context,
-                        text: S.current.noUser,
+                      child: EmptyPlaceholder(
+                        text: appLocalizations.noUser,
                       ),
                     ),
                 ],
@@ -1016,7 +999,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   }
 
   Widget _buildSearchBar() {
-    double width = ResponsiveUtil.isLandscape()
+    double width = ResponsiveUtil.isLandscapeLayout()
         ? searchBarWidth - 100
         : min(MediaQuery.of(context).size.width, searchBarWidth);
     return Container(
@@ -1031,7 +1014,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         // focusNode: _focusNode,
         controller: _searchController,
         background: Colors.grey.withAlpha(40),
-        hintText: S.current.searchHint,
+        hintText: appLocalizations.searchHint,
         onSubmitted: (text) async {
           _performSearch(text);
         },

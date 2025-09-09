@@ -1,21 +1,13 @@
-import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Models/gift_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Suit/dress_detail_screen.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Api/dress_api.dart';
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
-import '../../Utils/utils.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class DressScreen extends StatefulWidget {
   const DressScreen({
@@ -31,7 +23,7 @@ class DressScreen extends StatefulWidget {
   State<DressScreen> createState() => _DressScreenState();
 }
 
-class _DressScreenState extends State<DressScreen>
+class _DressScreenState extends BaseDynamicState<DressScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -93,7 +85,7 @@ class _DressScreenState extends State<DressScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load dress list", e, t);
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -114,7 +106,7 @@ class _DressScreenState extends State<DressScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: EasyRefresh.builder(
         refreshOnStart: true,
@@ -130,7 +122,7 @@ class _DressScreenState extends State<DressScreen>
   }
 
   Widget _buildBody(ScrollPhysics physics) {
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       child: WaterfallFlow.builder(
         physics: physics,
         cacheExtent: 9999,
@@ -163,13 +155,13 @@ class _DressScreenState extends State<DressScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
-          color: MyTheme.getCardBackground(context),
+          color: ChewieTheme.canvasColor,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
           children: [
             const SizedBox(width: 15),
-            ItemBuilder.buildCachedImage(
+            ChewieItemBuilder.buildCachedImage(
               imageUrl: item.coverImg,
               context: context,
               showLoading: false,
@@ -183,15 +175,14 @@ class _DressScreenState extends State<DressScreen>
               style: Theme.of(context).textTheme.titleLarge,
             ),
             Text(
-              S.current.pendantCount(item.partCount),
+              appLocalizations.pendantCount(item.partCount),
               style: Theme.of(context).textTheme.labelMedium,
             ),
             const SizedBox(height: 10),
-            ItemBuilder.buildRoundButton(
-              context,
-              text: S.current.viewDetail,
+            RoundIconTextButton(
+              text: appLocalizations.viewDetail,
               background: Theme.of(context).primaryColor,
-              onTap: () {
+              onPressed: () {
                 RouteUtil.pushPanelCupertinoRoute(
                   context,
                   DressDetailScreen(
@@ -208,17 +199,16 @@ class _DressScreenState extends State<DressScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      centerTitle: Utils.isNotEmpty(widget.tag),
-      titleWidget: Utils.isNotEmpty(widget.tag)
-          ? ItemBuilder.buildClickable(
+      centerTitle: StringUtil.isNotEmpty(widget.tag),
+      titleWidget: StringUtil.isNotEmpty(widget.tag)
+          ? ClickableWrapper(child:
               ItemBuilder.buildTagItem(
                 context,
                 widget.tag!,
                 TagType.normal,
-                shownTag: S.current.relatedDress(widget.tag ?? ""),
+                shownTag: appLocalizations.relatedDress(widget.tag ?? ""),
                 backgroundColor: Theme.of(context).primaryColor.withAlpha(30),
                 color: Theme.of(context).primaryColor,
                 padding:
@@ -228,10 +218,10 @@ class _DressScreenState extends State<DressScreen>
               ),
             )
           : Text(
-              S.current.dressList,
+              appLocalizations.dressList,
               style: Theme.of(context).textTheme.titleLarge,
             ),
-      actions: [ItemBuilder.buildBlankIconButton(context)],
+      actions: const [BlankIconButton()],
     );
   }
 }

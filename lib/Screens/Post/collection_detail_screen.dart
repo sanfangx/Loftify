@@ -1,12 +1,10 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:blur/blur.dart';
-import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart' hide AnimatedSlide;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Info/user_detail_screen.dart';
 import 'package:loftify/Screens/Post/post_detail_screen.dart';
-import 'package:loftify/Widgets/Dialog/custom_dialog.dart';
 import 'package:loftify/Widgets/Item/item_builder.dart';
 
 import '../../Api/collection_api.dart';
@@ -15,17 +13,8 @@ import '../../Models/post_detail_response.dart';
 import '../../Models/recommend_response.dart';
 import '../../Utils/asset_util.dart';
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
-import '../../Utils/uri_util.dart';
-import '../../Utils/utils.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/Custom/sliver_appbar_delegate.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/PostItem/common_info_post_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class CollectionDetailScreen extends StatefulWidget {
   const CollectionDetailScreen({
@@ -47,7 +36,8 @@ class CollectionDetailScreen extends StatefulWidget {
   CollectionDetailScreenState createState() => CollectionDetailScreenState();
 }
 
-class CollectionDetailScreenState extends State<CollectionDetailScreen>
+class CollectionDetailScreenState
+    extends BaseDynamicState<CollectionDetailScreen>
     with TickerProviderStateMixin {
   final EasyRefreshController _refreshController = EasyRefreshController();
 
@@ -76,7 +66,7 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load collection url", e, t);
-        if (mounted) IToast.showTop(S.current.getLinkFailed);
+        if (mounted) IToast.showTop(appLocalizations.getLinkFailed);
         return IndicatorResult.fail;
       }
     });
@@ -85,7 +75,7 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
   _fetchData({bool refresh = false, bool showLoading = false}) async {
     if (loading) return;
     if (refresh) noMore = false;
-    if (showLoading) CustomLoadingDialog.showLoading(title: S.current.loading);
+    if (showLoading) CustomLoadingDialog.showLoading(title: appLocalizations.loading);
     loading = true;
     int offset = refresh ? 0 : posts.length;
     return await CollectionApi.getCollectionDetail(
@@ -122,7 +112,7 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
           posts.addAll(newPosts);
           Map<String, int> monthCount = {};
           for (var e in posts) {
-            String yearMonth = Utils.formatYearMonth(e.post!.publishTime);
+            String yearMonth = TimeUtil.formatYearMonth(e.post!.publishTime);
             monthCount.putIfAbsent(yearMonth, () => 0);
             monthCount[yearMonth] = monthCount[yearMonth]! + 1;
           }
@@ -145,7 +135,7 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load collection detail", e, t);
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (showLoading) CustomLoadingDialog.dismissLoading();
@@ -173,12 +163,9 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
-      appBar: ResponsiveUtil.isLandscape()
-          ? ItemBuilder.buildResponsiveAppBar(
-              context: context,
-              showBack: true,
-              title: S.current.collectionDetail)
+      backgroundColor: ChewieTheme.getBackground(context),
+      appBar: ResponsiveUtil.isLandscapeLayout()
+          ? ResponsiveAppBar(showBack: true, title: appLocalizations.collectionDetail)
           : null,
       bottomNavigationBar:
           blogInfo != null && postCollection != null ? _buildFooter() : null,
@@ -186,23 +173,19 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
           ? NestedScrollView(
               headerSliverBuilder: (_, __) => _buildHeaderSlivers(),
               body: _buildNineGridGroup())
-          : ItemBuilder.buildLoadingWidget(
-              context,
-              background: Colors.transparent,
-            ),
+          : const LoadingWidget(background: Colors.transparent),
     );
   }
 
   _buildHeaderSlivers() {
-    if (!ResponsiveUtil.isLandscape()) {
+    if (!ResponsiveUtil.isLandscapeLayout()) {
       return <Widget>[
-        ItemBuilder.buildSliverAppBar(
+        SliverAppBarWrapper(
           context: context,
           expandedHeight: 265,
           backgroundWidget: _buildBackground(),
           actions: [
-            ItemBuilder.buildIconButton(
-              context: context,
+            CircleIconButton(
               onTap: () {
                 BottomSheetBuilder.showContextMenu(
                     context, _buildMoreButtons());
@@ -213,9 +196,9 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
               ),
             ),
           ],
-          centerTitle: !ResponsiveUtil.isLandscape(),
+          centerTitle: !ResponsiveUtil.isLandscapeLayout(),
           title: Text(
-            S.current.collection,
+            appLocalizations.collection,
             style: Theme.of(context).textTheme.titleMedium?.apply(
                   color: Colors.white,
                   fontWeightDelta: 2,
@@ -257,11 +240,11 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
           ),
         ),
         SliverPersistentHeader(
-          key: ValueKey(Utils.getRandomString()),
+          key: ValueKey(StringUtil.getRandomString()),
           pinned: true,
           delegate: SliverAppBarDelegate(
             radius: 0,
-            background: MyTheme.getBackground(context),
+            background: ChewieTheme.getBackground(context),
             tabBar: _buildFixedBar(),
           ),
         ),
@@ -270,13 +253,13 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
   }
 
   PreferredSize _buildFixedBar([double height = 56]) {
-    bool hasDesc = Utils.isNotEmpty(postCollection!.description);
+    bool hasDesc = StringUtil.isNotEmpty(postCollection!.description);
     return PreferredSize(
       preferredSize: Size.fromHeight(height),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: MyTheme.getBackground(context),
+          color: ChewieTheme.getBackground(context),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),
@@ -296,7 +279,7 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
                   child: Text(
                     hasDesc
                         ? postCollection!.description
-                        : S.current.noDescription,
+                        : appLocalizations.noDescription,
                     style: Theme.of(context).textTheme.labelLarge?.apply(
                           color: Theme.of(context).textTheme.bodySmall?.color,
                         ),
@@ -307,7 +290,7 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
                 const SizedBox(width: 5),
                 ItemBuilder.buildIconTextButton(
                   context,
-                  text: isOldest ? S.current.order : S.current.reverseOrder,
+                  text: isOldest ? appLocalizations.order : appLocalizations.reverseOrder,
                   icon: AssetUtil.load(
                     isOldest
                         ? AssetUtil.orderDownDarkIcon
@@ -326,10 +309,9 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
                 ),
               ],
             ),
-            // if (Utils.isNotEmpty(postCollection!.tags)) _buildTagList(),
+            // if (StringUtil.isNotEmpty(postCollection!.tags)) _buildTagList(),
             const SizedBox(height: 8),
-            ItemBuilder.buildDivider(
-              context,
+            MyDivider(
               horizontal: 0,
               vertical: 0,
             ),
@@ -352,15 +334,14 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
         mainAxisSize: MainAxisSize.max,
         children: [
           Expanded(
-            child: ItemBuilder.buildRoundButton(
-              context,
+            child: RoundIconTextButton(
               text: subscribed
-                  ? S.current.unsubscribe
-                  : S.current.subscribeCollection,
+                  ? appLocalizations.unsubscribe
+                  : appLocalizations.subscribeCollection,
               background: Theme.of(context).primaryColor.withAlpha(40),
               padding: const EdgeInsets.symmetric(vertical: 15),
               color: Theme.of(context).primaryColor,
-              onTap: () {
+              onPressed: () {
                 HapticFeedback.mediumImpact();
                 CollectionApi.subscribeOrUnSubscribe(
                   collectionId: widget.collectionId,
@@ -380,12 +361,11 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: ItemBuilder.buildRoundButton(
-              context,
-              text: S.current.continueRead,
+            child: RoundIconTextButton(
+              text: appLocalizations.continueRead,
               background: Theme.of(context).primaryColor,
               padding: const EdgeInsets.symmetric(vertical: 15),
-              onTap: () {
+              onPressed: () {
                 if (posts.isNotEmpty) {
                   RouteUtil.pushPanelCupertinoRoute(
                     context,
@@ -396,7 +376,7 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
                     ),
                   );
                 } else {
-                  IToast.showTop(S.current.noPostInCollection);
+                  IToast.showTop(appLocalizations.noPostInCollection);
                 }
               },
               fontSizeDelta: 2,
@@ -415,13 +395,13 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: ItemBuilder.buildHeroCachedImage(
+            child: ChewieItemBuilder.buildHeroCachedImage(
               imageUrl: postCollection!.coverUrl,
               context: context,
               height: 80,
               width: 80,
-              tagPrefix: Utils.getRandomString(),
-              title: S.current.collectionCover,
+              tagPrefix: StringUtil.getRandomString(),
+              title: appLocalizations.collectionCover,
               showLoading: false,
             ),
           ),
@@ -440,8 +420,8 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
                       ),
                 ),
                 const SizedBox(height: 6),
-                ItemBuilder.buildClickable(
-                  GestureDetector(
+                ClickableWrapper(
+                  child: GestureDetector(
                     onTap: () {
                       RouteUtil.pushPanelCupertinoRoute(
                         context,
@@ -465,7 +445,7 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
                         ),
                         Expanded(
                           child: Text(
-                            "${blogInfo!.blogNickName} · ${S.current.updateAt}${Utils.formatTimestamp(postCollection!.lastPublishTime)}",
+                            "${blogInfo!.blogNickName} · ${appLocalizations.updateAt}${TimeUtil.formatTimestamp(postCollection!.lastPublishTime)}",
                             style: Theme.of(context)
                                 .textTheme
                                 .labelMedium
@@ -482,9 +462,8 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
               ],
             ),
           ),
-          if (ResponsiveUtil.isLandscape()) ...[
-            ItemBuilder.buildIconButton(
-              context: context,
+          if (ResponsiveUtil.isLandscapeLayout()) ...[
+            CircleIconButton(
               onTap: () {
                 BottomSheetBuilder.showContextMenu(
                     context, _buildMoreButtons());
@@ -507,28 +486,28 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
       children: [
         ItemBuilder.buildStatisticItem(
           context,
-          title: S.current.postCount,
+          title: appLocalizations.postCount,
           count: postCollection!.postCount,
           countColor: Colors.white,
           labelColor: Colors.white.withOpacity(0.6),
         ),
         ItemBuilder.buildStatisticItem(
           context,
-          title: S.current.subscribeCount,
+          title: appLocalizations.subscribeCount,
           count: postCollection!.subscribedCount,
           countColor: Colors.white,
           labelColor: Colors.white.withOpacity(0.6),
         ),
         ItemBuilder.buildStatisticItem(
           context,
-          title: S.current.totalHotCount,
+          title: appLocalizations.totalHotCount,
           count: postCollection!.postCollectionHot,
           countColor: Colors.white,
           labelColor: Colors.white.withOpacity(0.6),
         ),
         ItemBuilder.buildStatisticItem(
           context,
-          title: S.current.viewCountLong,
+          title: appLocalizations.viewCountLong,
           count: postCollection!.viewCount,
           countColor: Colors.white,
           labelColor: Colors.white.withOpacity(0.6),
@@ -551,7 +530,7 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
       }
       widgets.add(ItemBuilder.buildTitle(
         context,
-        title: S.current.descriptionWithPostCount(e.desc, e.count.toString()),
+        title: appLocalizations.descriptionWithPostCount(e.desc, e.count.toString()),
         topMargin: 16,
         bottomMargin: 0,
       ));
@@ -565,8 +544,8 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
       childBuilder: (context, physics) {
         return Container(
           height: MediaQuery.sizeOf(context).height,
-          color: MyTheme.getBackground(context),
-          child: ItemBuilder.buildLoadMoreNotification(
+          color: ChewieTheme.getBackground(context),
+          child: LoadMoreNotification(
             child: ListView(
               physics: physics,
               shrinkWrap: true,
@@ -602,22 +581,22 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
   }
 
   _buildMoreButtons() {
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig(
-          S.current.copyLink,
-          icon: const Icon(Icons.copy_rounded),
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem(
+          appLocalizations.copyLink,
+          iconData: Icons.copy_rounded,
           onPressed: () {
-            Utils.copy(context, collectionUrl);
+            ChewieUtils.copy(context, collectionUrl);
           },
         ),
-        ContextMenuButtonConfig(S.current.openWithBrowser,
-            icon: const Icon(Icons.open_in_browser_rounded), onPressed: () {
+        FlutterContextMenuItem(appLocalizations.openWithBrowser,
+            iconData: Icons.open_in_browser_rounded, onPressed: () {
           UriUtil.openExternal(collectionUrl);
         }),
-        ContextMenuButtonConfig(S.current.shareToOtherApps,
-            icon: const Icon(Icons.share_rounded), onPressed: () {
-          UriUtil.share(context, collectionUrl);
+        FlutterContextMenuItem(appLocalizations.shareToOtherApps,
+            iconData: Icons.share_rounded, onPressed: () {
+          UriUtil.share(collectionUrl);
         }),
       ],
     );
@@ -628,7 +607,7 @@ class CollectionDetailScreenState extends State<CollectionDetailScreen>
     return Blur(
       blur: 20,
       blurColor: Colors.black12,
-      child: ItemBuilder.buildCachedImage(
+      child: ChewieItemBuilder.buildCachedImage(
         context: context,
         imageUrl: backgroudUrl,
         showLoading: false,

@@ -1,3 +1,4 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/login_api.dart';
 import 'package:loftify/Models/login_response.dart';
@@ -6,16 +7,11 @@ import 'package:loftify/Screens/Login/login_by_lofterid_screen.dart';
 import 'package:loftify/Utils/constant.dart';
 import 'package:loftify/Utils/enums.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:loftify/Widgets/Custom/no_shadow_scroll_behavior.dart';
 
 import '../../Utils/app_provider.dart';
-import '../../Utils/ilogger.dart';
 import '../../Utils/request_util.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class LoginByPasswordScreen extends StatefulWidget {
   const LoginByPasswordScreen({super.key, this.initPhone, this.initPassword});
@@ -29,7 +25,7 @@ class LoginByPasswordScreen extends StatefulWidget {
   State<LoginByPasswordScreen> createState() => _LoginByPasswordScreenState();
 }
 
-class _LoginByPasswordScreenState extends State<LoginByPasswordScreen>
+class _LoginByPasswordScreenState extends BaseDynamicState<LoginByPasswordScreen>
     with TickerProviderStateMixin {
   late TextEditingController _mobileController;
   late TextEditingController _passwordController;
@@ -47,7 +43,7 @@ class _LoginByPasswordScreenState extends State<LoginByPasswordScreen>
     String mobile = _mobileController.text;
     String password = _passwordController.text;
     if (mobile.isEmpty || password.isEmpty) {
-      IToast.showTop(S.current.phoneOrPasswordCannotBeEmpty);
+      IToast.showTop(appLocalizations.phoneOrPasswordCannotBeEmpty);
       return;
     }
     LoginApi.loginByPassword(mobile, password).then((value) async {
@@ -56,13 +52,13 @@ class _LoginByPasswordScreenState extends State<LoginByPasswordScreen>
         if (loginResponse.result != 0) {
           IToast.showTop(loginResponse.desc);
         } else {
-          IToast.showTop(S.current.loginSuccess);
+          IToast.showTop(appLocalizations.loginSuccess);
           appProvider.token = loginResponse.token ?? "";
           await RequestUtil.clearCookie();
-          await HiveUtil.put(HiveUtil.userIdKey, loginResponse.userid);
-          await HiveUtil.put(HiveUtil.tokenKey, loginResponse.token);
-          await HiveUtil.put(HiveUtil.deviceIdKey, loginResponse.deviceid);
-          await HiveUtil.put(HiveUtil.tokenTypeKey, TokenType.password.index);
+          await ChewieHiveUtil.put(HiveUtil.userIdKey, loginResponse.userid);
+          await ChewieHiveUtil.put(HiveUtil.tokenKey, loginResponse.token);
+          await ChewieHiveUtil.put(HiveUtil.deviceIdKey, loginResponse.deviceid);
+          await ChewieHiveUtil.put(HiveUtil.tokenTypeKey, TokenType.password.index);
           mainScreenState?.login();
         }
       } catch (e, t) {
@@ -78,13 +74,9 @@ class _LoginByPasswordScreenState extends State<LoginByPasswordScreen>
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: ItemBuilder.buildSimpleAppBar(
-          title: S.current.loginByPassword,
-          context: context,
-          leadingIcon: Icons.close_rounded,
-          transparent: true,
-          titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
-          showLeading: !ResponsiveUtil.isLandscape(),
+        appBar: ResponsiveAppBar(
+          title: appLocalizations.loginByPassword,
+          titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
         ),
         body: Container(
           margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -95,31 +87,38 @@ class _LoginByPasswordScreenState extends State<LoginByPasswordScreen>
                 child: ListView(
                   children: [
                     const SizedBox(height: 50),
-                    ItemBuilder.buildInputItem(
-                      context: context,
-                      hint: S.current.inputPhone,
+                    InputItem(
+                      hint: appLocalizations.inputPhone,
                       textInputAction: TextInputAction.next,
                       controller: _mobileController,
-                      tailingType: TailingType.clear,
-                      leadingIcon: Icons.phone_android_rounded,
+                      leadingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.icon,
+                        icon: Icons.phone_android_rounded,
+                      ),
+                      tailingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.clear,
+                      ),
                       keyboardType: TextInputType.number,
                     ),
-                    ItemBuilder.buildInputItem(
-                      context: context,
-                      hint: S.current.inputPassword,
+                    InputItem(
+                      hint: appLocalizations.inputPassword,
                       textInputAction: TextInputAction.next,
-                      leadingIcon: Icons.verified_outlined,
+                      leadingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.icon,
+                        icon: Icons.verified_outlined,
+                      ),
                       controller: _passwordController,
-                      tailingType: TailingType.password,
+                      tailingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.password,
+                      ),
                     ),
                     const SizedBox(height: 30),
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 50),
-                      child: ItemBuilder.buildRoundButton(
-                        context,
-                        text: S.current.login,
+                      child: RoundIconTextButton(
+                        text: appLocalizations.login,
                         background: Theme.of(context).primaryColor,
-                        onTap: _login,
+                        onPressed: _login,
                         color: Colors.white,
                         fontSizeDelta: 2,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -136,17 +135,17 @@ class _LoginByPasswordScreenState extends State<LoginByPasswordScreen>
                   children: [
                     ItemBuilder.buildTextDivider(
                       context: context,
-                      text: S.current.otherLoginMethods,
+                      text: appLocalizations.otherLoginMethods,
                     ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        ItemBuilder.buildSmallIcon(
+                        ToolButton(
                             context: context,
                             icon: Icons.phone_android_rounded,
-                            onTap: () {
+                            onPressed: () {
                               RouteUtil.pushCupertinoRoute(
                                 context,
                                 LoginByCaptchaScreen(
@@ -154,10 +153,10 @@ class _LoginByPasswordScreenState extends State<LoginByPasswordScreen>
                               );
                             }),
                         const SizedBox(width: 30),
-                        ItemBuilder.buildSmallIcon(
+                        ToolButton(
                             context: context,
                             icon: Icons.card_membership_rounded,
-                            onTap: () {
+                            onPressed: () {
                               RouteUtil.pushCupertinoRoute(
                                 context,
                                 LoginByLofterIDScreen(
@@ -166,7 +165,7 @@ class _LoginByPasswordScreenState extends State<LoginByPasswordScreen>
                               );
                             }),
                         // const SizedBox(width: 30),
-                        // ItemBuilder.buildSmallIcon(
+                        // ToolButton(
                         //     context: context,
                         //     icon: Icons.mail_outline_rounded,
                         //     onTap: () {

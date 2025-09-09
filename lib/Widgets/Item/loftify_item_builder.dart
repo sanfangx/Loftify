@@ -1,6 +1,8 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:like_button/like_button.dart';
+import 'package:loftify/Utils/lottie_files.dart';
 
 import '../../Api/post_api.dart';
 import '../../Api/user_api.dart';
@@ -9,21 +11,21 @@ import '../../Models/post_detail_response.dart';
 import '../../Models/recommend_response.dart';
 import '../../Models/search_response.dart';
 import '../../Models/user_response.dart';
-import '../../Resources/colors.dart';
 import '../../Screens/Info/user_detail_screen.dart';
 import '../../Screens/Login/login_by_captcha_screen.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
-import '../../Utils/constant.dart';
 import '../../Utils/enums.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/lottie_util.dart';
-import '../../Utils/responsive_util.dart';
 import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
-import '../Dialog/dialog_builder.dart';
-import '../Window/window_caption.dart';
+import '../../l10n/l10n.dart';
 import 'item_builder.dart';
+
+const CircleColor shareButtonCircleColor =
+    CircleColor(start: Color(0xff00ddff), end: Color(0xff0099cc));
+const BubblesColor shareButtonBubblesColor = BubblesColor(
+  dotPrimaryColor: Color(0xff33b5e5),
+  dotSecondaryColor: Color(0xff0099cc),
+);
 
 class LoftifyItemBuilder {
   static Widget buildCommentRow(
@@ -49,20 +51,18 @@ class LoftifyItemBuilder {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ItemBuilder.buildClickable(
-              GestureDetector(
-                onTap: () {
-                  panelScreenState?.pushPage(
-                    UserDetailScreen(
-                        blogId: comment.publisherBlogInfo.blogId,
-                        blogName: comment.publisherBlogInfo.blogName),
-                  );
-                },
-                child: ItemBuilder.buildAvatar(
-                  context: context,
-                  imageUrl: comment.publisherBlogInfo.bigAvaImg,
-                  showBorder: true,
-                ),
+            ClickableGestureDetector(
+              onTap: () {
+                panelScreenState?.pushPage(
+                  UserDetailScreen(
+                      blogId: comment.publisherBlogInfo.blogId,
+                      blogName: comment.publisherBlogInfo.blogName),
+                );
+              },
+              child: ItemBuilder.buildAvatar(
+                context: context,
+                imageUrl: comment.publisherBlogInfo.bigAvaImg,
+                showBorder: true,
               ),
             ),
             const SizedBox(width: 8),
@@ -77,87 +77,79 @@ class LoftifyItemBuilder {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ItemBuilder.buildClickable(
-                              GestureDetector(
-                                onTap: () {
-                                  panelScreenState?.pushPage(
-                                    UserDetailScreen(
-                                        blogId:
-                                            comment.publisherBlogInfo.blogId,
-                                        blogName:
-                                            comment.publisherBlogInfo.blogName),
-                                  );
-                                },
-                                child: Row(
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        comment.publisherBlogInfo.blogNickName,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
-                                      ),
+                            ClickableGestureDetector(
+                              onTap: () {
+                                panelScreenState?.pushPage(
+                                  UserDetailScreen(
+                                      blogId: comment.publisherBlogInfo.blogId,
+                                      blogName:
+                                          comment.publisherBlogInfo.blogName),
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      comment.publisherBlogInfo.blogNickName,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
                                     ),
-                                    if (writerId ==
-                                        comment.publisherBlogInfo.blogId)
-                                      const SizedBox(width: 3),
-                                    if (writerId ==
-                                        comment.publisherBlogInfo.blogId)
-                                      ItemBuilder.buildRoundButton(
-                                        context,
-                                        text: S.current.author,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 3, vertical: 2),
-                                        radius: 3,
-                                        color: Theme.of(context).primaryColor,
-                                        fontSizeDelta: -2,
-                                      ),
-                                    if (comment.top == 1)
-                                      const SizedBox(width: 3),
-                                    if (comment.top == 1)
-                                      ItemBuilder.buildRoundButton(
-                                        context,
-                                        text: S.current.pin,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 3, vertical: 2),
-                                        radius: 3,
-                                        color: MyColors.likeButtonColor,
-                                        fontSizeDelta: -2,
-                                      ),
-                                  ],
-                                ),
+                                  ),
+                                  if (writerId ==
+                                      comment.publisherBlogInfo.blogId)
+                                    const SizedBox(width: 3),
+                                  if (writerId ==
+                                      comment.publisherBlogInfo.blogId)
+                                    RoundIconTextButton(
+                                      text: appLocalizations.author,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 3, vertical: 2),
+                                      radius: 3,
+                                      color: Theme.of(context).primaryColor,
+                                      fontSizeDelta: -2,
+                                    ),
+                                  if (comment.top == 1)
+                                    const SizedBox(width: 3),
+                                  if (comment.top == 1)
+                                    RoundIconTextButton(
+                                      text: appLocalizations.pin,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 3, vertical: 2),
+                                      radius: 3,
+                                      color: ChewieColors.likeButtonColor,
+                                      fontSizeDelta: -2,
+                                    ),
+                                ],
                               ),
                             ),
                             const SizedBox(height: 5),
                             ItemBuilder.buildCopyable(
                               context,
                               text: comment.content,
-                              toastText: S.current.haveCopiedComment(
+                              toastText: appLocalizations.haveCopiedComment(
                                   comment.publisherBlogInfo.blogNickName),
-                              child: ItemBuilder.buildHtmlWidget(
-                                context,
-                                richContent,
+                              child: CustomHtmlWidget(
+                                content: richContent,
                                 parseImage: false,
                                 showLoading: false,
-                                textStyle:
-                                    Theme.of(context).textTheme.bodyMedium,
+                                style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ),
                             const SizedBox(height: 5),
                             Row(
                               children: [
                                 Text(
-                                  Utils.formatTimestamp(comment.publishTime),
+                                  TimeUtil.formatTimestamp(comment.publishTime),
                                   style:
                                       Theme.of(context).textTheme.labelMedium,
                                 ),
-                                if (Utils.isNotEmpty(comment.ipLocation))
+                                if (StringUtil.isNotEmpty(comment.ipLocation))
                                   LoftifyItemBuilder.buildDot(
                                     context,
                                     style:
                                         Theme.of(context).textTheme.labelMedium,
                                   ),
-                                if (Utils.isNotEmpty(comment.ipLocation))
+                                if (StringUtil.isNotEmpty(comment.ipLocation))
                                   Text(
                                     comment.ipLocation,
                                     style:
@@ -232,7 +224,7 @@ class LoftifyItemBuilder {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          S.current.loading,
+                          appLocalizations.loading,
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                       ],
@@ -241,14 +233,14 @@ class LoftifyItemBuilder {
                       !comment.l2CommentLoading)
                     GestureDetector(
                       onTap: () => onL2CommentTap?.call(comment),
-                      child: ItemBuilder.buildClickable(
-                        Text.rich(
+                      child: ClickableWrapper(
+                        child: Text.rich(
                           style: Theme.of(context).textTheme.labelMedium,
                           TextSpan(
                             style: Theme.of(context).textTheme.labelMedium,
                             children: [
                               TextSpan(
-                                text: S.current.moreComments(comment.l2Count -
+                                text: appLocalizations.moreComments(comment.l2Count -
                                     comment.l2Comments.length),
                                 style: Theme.of(context).textTheme.labelMedium,
                               ),
@@ -300,7 +292,7 @@ class LoftifyItemBuilder {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ItemBuilder.buildClickableGestureDetector(
+                  ClickableGestureDetector(
                     onTap: () {
                       panelScreenState?.pushPage(
                         UserDetailScreen(
@@ -324,9 +316,8 @@ class LoftifyItemBuilder {
                         if (writerId == comment.publisherBlogInfo.blogId)
                           const SizedBox(width: 3),
                         if (writerId == comment.publisherBlogInfo.blogId)
-                          ItemBuilder.buildRoundButton(
-                            context,
-                            text: S.current.author,
+                          RoundIconTextButton(
+                            text: appLocalizations.author,
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 3, vertical: 2),
                             radius: 3,
@@ -335,13 +326,12 @@ class LoftifyItemBuilder {
                           ),
                         if (comment.top == 1) const SizedBox(width: 3),
                         if (comment.top == 1)
-                          ItemBuilder.buildRoundButton(
-                            context,
-                            text: S.current.pin,
+                          RoundIconTextButton(
+                            text: appLocalizations.pin,
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 3, vertical: 2),
                             radius: 3,
-                            color: MyColors.likeButtonColor,
+                            color: ChewieColors.likeButtonColor,
                             fontSizeDelta: -2,
                           ),
                       ],
@@ -351,29 +341,28 @@ class LoftifyItemBuilder {
                   ItemBuilder.buildCopyable(
                     context,
                     text: comment.content,
-                    toastText: S.current.haveCopiedComment(
+                    toastText: appLocalizations.haveCopiedComment(
                         comment.publisherBlogInfo.blogNickName),
-                    child: ItemBuilder.buildHtmlWidget(
-                      context,
-                      richContent,
+                    child: CustomHtmlWidget(
+                      content: richContent,
                       showLoading: false,
                       parseImage: false,
-                      textStyle: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   const SizedBox(height: 5),
                   Row(
                     children: [
                       Text(
-                        Utils.formatTimestamp(comment.publishTime),
+                        TimeUtil.formatTimestamp(comment.publishTime),
                         style: Theme.of(context).textTheme.labelMedium,
                       ),
-                      if (Utils.isNotEmpty(comment.ipLocation))
+                      if (StringUtil.isNotEmpty(comment.ipLocation))
                         LoftifyItemBuilder.buildDot(
                           context,
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
-                      if (Utils.isNotEmpty(comment.ipLocation))
+                      if (StringUtil.isNotEmpty(comment.ipLocation))
                         Text(
                           comment.ipLocation,
                           style: Theme.of(context).textTheme.labelMedium,
@@ -426,7 +415,7 @@ class LoftifyItemBuilder {
     FollowingUserItem item, {
     Function()? onFollowOrUnFollow,
   }) {
-    return ItemBuilder.buildClickableGestureDetector(
+    return ClickableGestureDetector(
       onTap: () {
         panelScreenState?.pushPage(
           UserDetailScreen(
@@ -474,14 +463,14 @@ class LoftifyItemBuilder {
                 child: Icon(
                   Icons.star_rate_rounded,
                   size: 22,
-                  color: MyColors.getHotTagTextColor(context),
+                  color: ChewieColors.getHotTagTextColor(context),
                 ),
               ),
             LoftifyItemBuilder.buildFramedDoubleButton(
               context: context,
               isFollowed: item.following,
               positiveText:
-                  item.follower ? S.current.followEach : S.current.followed,
+                  item.follower ? appLocalizations.followEach : appLocalizations.followed,
               onTap: () {
                 UserApi.followOrUnfollow(
                   isFollow: !item.following,
@@ -494,8 +483,8 @@ class LoftifyItemBuilder {
                   } else {
                     item.following = !item.following;
                     IToast.showTop(item.following
-                        ? S.current.followed
-                        : S.current.followEach);
+                        ? appLocalizations.followed
+                        : appLocalizations.followEach);
                     onFollowOrUnFollow?.call();
                   }
                 });
@@ -535,12 +524,12 @@ class LoftifyItemBuilder {
                 ? Icons.favorite_rounded
                 : Icons.favorite_border_rounded,
             color: isLiked
-                ? MyColors.likeButtonColor
+                ? ChewieColors.likeButtonColor
                 : defaultColor ?? Theme.of(context).iconTheme.color,
             size: iconSize,
           );
           // return LottieUtil.load(
-          //   Utils.isDark(context)
+          //   ColorUtil.isDark(context)
           //       ? LottieUtil.likeBigNormalDark
           //       : LottieUtil.likeBigNormalLight,
           //   size: iconSize,
@@ -564,7 +553,7 @@ class LoftifyItemBuilder {
         countBuilder: (int? count, bool isLiked, String text) {
           return showCount
               ? Text(
-                  count == 0 ? zeroPlaceHolder ?? S.current.like : text,
+                  count == 0 ? zeroPlaceHolder ?? appLocalizations.like : text,
                   style: countStyle ?? Theme.of(context).textTheme.labelSmall,
                 )
               : emptyWidget;
@@ -595,9 +584,9 @@ class LoftifyItemBuilder {
           clipBehavior: Clip.none,
           children: [
             LottieUtil.load(
-              Utils.isDark(context)
-                  ? LottieUtil.likeMediumDark
-                  : LottieUtil.likeMediumLight,
+              ColorUtil.isDark(context)
+                  ? LottieFiles.likeMediumDark
+                  : LottieFiles.likeMediumLight,
               size: iconSize,
               fit: BoxFit.cover,
               controller: animationController,
@@ -611,7 +600,7 @@ class LoftifyItemBuilder {
                 right: 0,
                 left: 0,
                 child: Text(
-                  likeCount == 0 ? S.current.like : "$likeCount",
+                  likeCount == 0 ? appLocalizations.like : "$likeCount",
                   style: countStyle ?? Theme.of(context).textTheme.labelMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -643,9 +632,9 @@ class LoftifyItemBuilder {
           clipBehavior: Clip.none,
           children: [
             LottieUtil.load(
-              Utils.isDark(context)
-                  ? LottieUtil.recommendMediumFocusDark
-                  : LottieUtil.recommendMediumFocusLight,
+              ColorUtil.isDark(context)
+                  ? LottieFiles.recommendMediumFocusDark
+                  : LottieFiles.recommendMediumFocusLight,
               size: iconSize,
               fit: BoxFit.fill,
               controller: animationController,
@@ -656,7 +645,7 @@ class LoftifyItemBuilder {
                 right: 0,
                 left: 0,
                 child: Text(
-                  shareCount == 0 ? S.current.recommend : "$shareCount",
+                  shareCount == 0 ? appLocalizations.recommend : "$shareCount",
                   style: countStyle ?? Theme.of(context).textTheme.labelMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -687,15 +676,15 @@ class LoftifyItemBuilder {
         onTap: onTap,
         size: size,
         isLiked: isShared,
-        circleColor: MyColors.shareButtonCircleColor,
-        bubblesColor: MyColors.shareButtonBubblesColor,
+        circleColor: shareButtonCircleColor,
+        bubblesColor: shareButtonBubblesColor,
         likeBuilder: (bool isShared) {
           return Icon(
             isShared || filled
                 ? Icons.thumb_up_rounded
                 : Icons.thumb_up_outlined,
             color: isShared
-                ? MyColors.shareButtonColor
+                ? ChewieColors.shareButtonColor
                 : defaultColor ?? Theme.of(context).iconTheme.color,
             size: iconSize,
           );
@@ -710,7 +699,7 @@ class LoftifyItemBuilder {
               ? Container(
                   margin: const EdgeInsets.only(top: 5),
                   child: Text(
-                    count == 0 ? S.current.recommend : text,
+                    count == 0 ? appLocalizations.recommend : text,
                     style: countStyle ?? Theme.of(context).textTheme.labelSmall,
                   ),
                 )
@@ -746,8 +735,8 @@ class LoftifyItemBuilder {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(radius),
-        child: ItemBuilder.buildClickable(
-          Container(
+        child: ClickableWrapper(
+          child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(radius),
@@ -762,8 +751,8 @@ class LoftifyItemBuilder {
               children: [
                 Text(
                   isFollowed
-                      ? positiveText ?? S.current.followed
-                      : negtiveText ?? S.current.follow,
+                      ? positiveText ?? appLocalizations.followed
+                      : negtiveText ?? appLocalizations.follow,
                   style: TextStyle(
                     color: isFollowed
                         ? Theme.of(context).textTheme.labelSmall?.color
@@ -785,7 +774,7 @@ class LoftifyItemBuilder {
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
-          ResponsiveUtil.buildDesktopWidget(desktop: const WindowMoveHandle()),
+          ResponsiveUtil.selectByPlatform(desktop: const WindowMoveHandle()),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 10),
             child: Column(
@@ -800,14 +789,13 @@ class LoftifyItemBuilder {
                   imageUrl: '',
                 ),
                 const SizedBox(height: 24),
-                ItemBuilder.buildRoundButton(
-                  context,
+                RoundIconTextButton(
                   width: 230,
-                  text: S.current.loginToGetPersonalizedService,
+                  text: appLocalizations.loginToGetPersonalizedService,
                   background: Theme.of(context).primaryColor,
                   fontSizeDelta: 2,
-                  onTap: () {
-                    if (ResponsiveUtil.isLandscape()) {
+                  onPressed: () {
+                    if (ResponsiveUtil.isLandscapeLayout()) {
                       DialogBuilder.showPageDialog(
                         context,
                         child: const LoginByCaptchaScreen(),
@@ -831,110 +819,104 @@ class LoftifyItemBuilder {
     Function()? onTap,
     bool useBackground = false,
   }) {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            image: useBackground
-                ? DecorationImage(
-                    image: AssetImage(Utils.isDark(context)
-                        ? AssetUtil.tagRowBgDarkMess
-                        : AssetUtil.tagRowBgMess),
-                    fit: BoxFit.cover,
-                  )
-                : null,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                  image: DecorationImage(
-                    image: AssetImage(AssetUtil.tagIconBgMess),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Text(
-                  textAlign: TextAlign.center,
-                  tag.tagName,
-                  style: Theme.of(context).textTheme.titleSmall?.apply(
-                        color: Colors.white,
-                      ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+    return ClickableGestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          image: useBackground
+              ? DecorationImage(
+                  image: AssetImage(ColorUtil.isDark(context)
+                      ? AssetUtil.tagRowBgDarkMess
+                      : AssetUtil.tagRowBgMess),
+                  fit: BoxFit.cover,
+                )
+              : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+                image: DecorationImage(
+                  image: AssetImage(AssetUtil.tagIconBgMess),
+                  fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            "#${tag.tagName}",
-                            style: Theme.of(context).textTheme.titleMedium,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+              child: Text(
+                textAlign: TextAlign.center,
+                tag.tagName,
+                style: Theme.of(context).textTheme.titleSmall?.apply(
+                      color: Colors.white,
+                    ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          "#${tag.tagName}",
+                          style: Theme.of(context).textTheme.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(width: 5),
-                        if (Utils.isNotEmpty(tag.rankName))
-                          ItemBuilder.buildRoundButton(
-                            context,
-                            text: tag.rankName!,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 3,
-                              vertical: 2,
-                            ),
-                            radius: 3,
-                            color: MyColors.likeButtonColor,
-                            fontSizeDelta: -2,
+                      ),
+                      const SizedBox(width: 5),
+                      if (StringUtil.isNotEmpty(tag.rankName))
+                        RoundIconTextButton(
+                          text: tag.rankName!,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 3,
+                            vertical: 2,
                           ),
-                        if (tag.subscribed) const SizedBox(width: 5),
-                        if (tag.subscribed)
-                          ItemBuilder.buildRoundButton(
-                            context,
-                            text: S.current.subscribed,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 3, vertical: 2),
-                            radius: 3,
-                            color: Theme.of(context).primaryColor,
-                            fontSizeDelta: -2,
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      S.current.joinCount(tag.joinCount.toString()),
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.apply(fontWeightDelta: 1),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+                          radius: 3,
+                          color: ChewieColors.likeButtonColor,
+                          fontSizeDelta: -2,
+                        ),
+                      if (tag.subscribed) const SizedBox(width: 5),
+                      if (tag.subscribed)
+                        RoundIconTextButton(
+                          text: appLocalizations.subscribed,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 3, vertical: 2),
+                          radius: 3,
+                          color: Theme.of(context).primaryColor,
+                          fontSizeDelta: -2,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    appLocalizations.joinCount(tag.joinCount.toString()),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.apply(fontWeightDelta: 1),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              ItemBuilder.buildRoundButton(
-                context,
-                text: S.current.enter,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                color: Theme.of(context).primaryColor,
-                onTap: onTap,
-              ),
-            ],
-          ),
+            ),
+            RoundIconTextButton(
+              text: appLocalizations.enter,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              color: Theme.of(context).primaryColor,
+              onPressed: onTap,
+            ),
+          ],
         ),
       ),
     );
@@ -968,7 +950,7 @@ class LoftifyItemBuilder {
             ),
             if (tag.joinCount != -1)
               Text(
-                S.current.joinCount(tag.joinCount.toString()),
+                appLocalizations.joinCount(tag.joinCount.toString()),
                 style: Theme.of(context).textTheme.labelMedium,
               ),
           ],
@@ -995,7 +977,7 @@ class LoftifyItemBuilder {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: ItemBuilder.buildCachedImage(
+                  child: ChewieItemBuilder.buildCachedImage(
                     context: context,
                     imageUrl: collection.coverUrl,
                     width: 80,
@@ -1023,7 +1005,7 @@ class LoftifyItemBuilder {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          "${collection.postCount}${S.current.chapter} · ${S.current.updateAt}${Utils.formatTimestamp(collection.lastPublishTime)}",
+                          "${collection.postCount}${appLocalizations.chapter} · ${appLocalizations.updateAt}${TimeUtil.formatTimestamp(collection.lastPublishTime)}",
                           style: Theme.of(context).textTheme.labelMedium,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1077,7 +1059,7 @@ class LoftifyItemBuilder {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: ItemBuilder.buildCachedImage(
+                  child: ChewieItemBuilder.buildCachedImage(
                     context: context,
                     imageUrl: grain.coverUrl,
                     width: 80,
@@ -1105,7 +1087,7 @@ class LoftifyItemBuilder {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          "${grain.postCount}${S.current.chapter} · ${S.current.updateAt}${Utils.formatTimestamp(grain.updateTime)}",
+                          "${grain.postCount}${appLocalizations.chapter} · ${appLocalizations.updateAt}${TimeUtil.formatTimestamp(grain.updateTime)}",
                           style: Theme.of(context).textTheme.labelMedium,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1167,7 +1149,7 @@ class LoftifyItemBuilder {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   Text(
-                    "ID: ${blog.blogInfo.blogName}${blog.blogCount != null && blog.blogCount!.publicPostCount > 0 ? "   ${S.current.article}: ${blog.blogCount!.publicPostCount}" : ""}${blog.blogCount != null && blog.blogCount!.followerCount > 0 ? "   ${S.current.follower}: ${blog.blogCount!.followerCount}" : ""}",
+                    "ID: ${blog.blogInfo.blogName}${blog.blogCount != null && blog.blogCount!.publicPostCount > 0 ? "   ${appLocalizations.article}: ${blog.blogCount!.publicPostCount}" : ""}${blog.blogCount != null && blog.blogCount!.followerCount > 0 ? "   ${appLocalizations.follower}: ${blog.blogCount!.followerCount}" : ""}",
                     style: Theme.of(context).textTheme.bodySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

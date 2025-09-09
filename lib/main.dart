@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -11,10 +12,10 @@ import 'package:local_notifier/local_notifier.dart';
 import 'package:loftify/Database/database_manager.dart';
 import 'package:loftify/Utils/app_provider.dart';
 import 'package:loftify/Utils/cloud_control_provider.dart';
-import 'package:loftify/Utils/file_util.dart';
 import 'package:loftify/Utils/hive_util.dart';
 import 'package:loftify/Utils/request_header_util.dart';
 import 'package:loftify/Utils/request_util.dart';
+import 'package:loftify/Utils/uri_util.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart';
 import 'package:protocol_handler/protocol_handler.dart';
@@ -24,10 +25,8 @@ import 'package:window_manager/window_manager.dart';
 import 'Screens/Lock/pin_verify_screen.dart';
 import 'Screens/main_screen.dart';
 import 'Utils/constant.dart';
-import 'Utils/ilogger.dart';
-import 'Utils/notification_util.dart';
-import 'Utils/responsive_util.dart';
 import 'Widgets/Item/item_builder.dart';
+import 'generated/app_localizations.dart';
 import 'generated/l10n.dart';
 
 const List<String> kWindowsSchemes = ["lofter"];
@@ -55,7 +54,7 @@ Future<void> runMyApp(List<String> args) async {
       appName: packageInfo.appName,
       shortcutPolicy: ShortcutPolicy.requireCreate,
     );
-    HiveUtil.put(HiveUtil.launchAtStartupKey,
+    ChewieHiveUtil.put(HiveUtil.launchAtStartupKey,
         await LaunchAtStartup.instance.isEnabled());
     for (String scheme in kWindowsSchemes) {
       await protocolHandler.register(scheme);
@@ -86,16 +85,16 @@ Future<void> initApp() async {
   await DatabaseManager.getDataBase();
   // Hive.defaultDirectory = await FileUtil.getApplicationDir();
   await HiveUtil.initBox();
-  NotificationUtil.init();
   await ResponsiveUtil.init();
   await RequestUtil.init();
+  UriUtil.processUrl = LoftifyUriUtil.processUrl;
 }
 
 Future<void> initWindow() async {
   await windowManager.ensureInitialized();
-  Offset position = HiveUtil.getWindowPosition();
+  Offset position = ChewieHiveUtil.getWindowPosition();
   WindowOptions windowOptions = WindowOptions(
-    size: HiveUtil.getWindowSize(),
+    size: ChewieHiveUtil.getWindowSize(),
     minimumSize: minimumSize,
     center: position == Offset.zero,
     backgroundColor: Colors.transparent,
@@ -116,7 +115,7 @@ Future<void> initDisplayMode() async {
     ILogger.info(
         "Current active display mode: ${await FlutterDisplayMode.active}\nCurrent preferred display mode: ${await FlutterDisplayMode.preferred}");
     int refreshRate =
-        HiveUtil.getInt(HiveUtil.refreshRateKey, defaultValue: -1);
+        ChewieHiveUtil.getInt(HiveUtil.refreshRateKey, defaultValue: -1);
     if (refreshRate == -1) {
       await FlutterDisplayMode.setHighRefreshRate();
       ILogger.info("Config display mode: high refresh rate");
@@ -162,30 +161,27 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: appProvider),
+        ChangeNotifierProvider.value(value: chewieProvider),
         ChangeNotifierProvider.value(value: controlProvider),
       ],
       child: Consumer<AppProvider>(
         builder: (context, globalProvider, child) => MaterialApp(
-          navigatorKey: globalNavigatorKey,
-          navigatorObservers: [routeObserver],
+          navigatorKey: chewieProvider.globalNavigatorKey,
+          navigatorObservers: [chewieProvider.routeObserver],
           title: title,
-          theme: globalProvider.getBrightness() == null ||
-                  globalProvider.getBrightness() == Brightness.light
-              ? globalProvider.lightTheme.toThemeData()
-              : globalProvider.darkTheme.toThemeData(),
-          darkTheme: globalProvider.getBrightness() == null ||
-                  globalProvider.getBrightness() == Brightness.dark
-              ? globalProvider.darkTheme.toThemeData()
-              : globalProvider.lightTheme.toThemeData(),
+          themeMode: appProvider.themeMode.themeMode,
+          theme: appProvider.lightTheme.toThemeData(),
+          darkTheme: appProvider.darkTheme.toThemeData(),
           debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
-            S.delegate,
+            AppLocalizations.delegate,
+            ChewieLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          locale: globalProvider.locale,
-          supportedLocales: S.delegate.supportedLocales,
+          locale: context.watch<AppProvider>().locale,
+          supportedLocales: AppLocalizations.supportedLocales,
           localeResolutionCallback: (locale, supportedLocales) {
             try {
               if (globalProvider.locale != null) {
@@ -200,7 +196,7 @@ class MyApp extends StatelessWidget {
               return const Locale("zh", "CN");
             }
           },
-          home: ItemBuilder.buildContextMenuOverlay(home),
+          home: CustomMouseRegion(child: home),
           builder: (context, widget) {
             return Overlay(
               initialEntries: [

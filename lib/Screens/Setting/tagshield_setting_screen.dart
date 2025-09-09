@@ -11,7 +11,7 @@ import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class TagShieldSettingScreen extends StatefulWidget {
   const TagShieldSettingScreen({super.key});
@@ -22,7 +22,7 @@ class TagShieldSettingScreen extends StatefulWidget {
   State<TagShieldSettingScreen> createState() => _TagShieldSettingScreenState();
 }
 
-class _TagShieldSettingScreenState extends State<TagShieldSettingScreen>
+class _TagShieldSettingScreenState extends BaseDynamicState<TagShieldSettingScreen>
     with TickerProviderStateMixin {
   bool loading = false;
   final EasyRefreshController _refreshController = EasyRefreshController();
@@ -45,7 +45,7 @@ class _TagShieldSettingScreenState extends State<TagShieldSettingScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load tag shield list", e, t);
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         loading = false;
@@ -57,14 +57,14 @@ class _TagShieldSettingScreenState extends State<TagShieldSettingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
-      appBar: ItemBuilder.buildResponsiveAppBar(
+      backgroundColor: ChewieTheme.getBackground(context),
+      appBar: ResponsiveAppBar(
         showBack: true,
         showBorder: true,
-        title: "${S.current.tagShieldSetting}(${tags.length})",
+        title: "${appLocalizations.tagShieldSetting}(${tags.length})",
         context: context,
         actions: [
-          ItemBuilder.buildIconButton(
+          CircleIconButton(
             context: context,
             icon: Icon(Icons.add_rounded,
                 color: Theme.of(context).iconTheme.color),
@@ -72,8 +72,8 @@ class _TagShieldSettingScreenState extends State<TagShieldSettingScreen>
               BottomSheetBuilder.showBottomSheet(
                 context,
                 (sheetContext) => InputBottomSheet(
-                  buttonText: S.current.confirm,
-                  title: S.current.addShieldTag,
+                  buttonText: appLocalizations.confirm,
+                  title: appLocalizations.addShieldTag,
                   text: "",
                   onConfirm: (text) {
                     SettingApi.shieldOrUnshieldTag(tag: text, isShield: true)
@@ -129,14 +129,14 @@ class _TagShieldSettingScreenState extends State<TagShieldSettingScreen>
           LoftifyItemBuilder.buildFramedDoubleButton(
             context: context,
             isFollowed: false,
-            positiveText: S.current.unblockShieldTag,
-            negtiveText: S.current.unblockShieldTag,
+            positiveText: appLocalizations.unblockShieldTag,
+            negtiveText: appLocalizations.unblockShieldTag,
             onTap: () {
               DialogBuilder.showConfirmDialog(
                 context,
-                title: S.current.unblockShieldTag,
-                message: S.current.unblockShieldTagMessage(tag),
-                confirmButtonText: S.current.unlock,
+                title: appLocalizations.unblockShieldTag,
+                message: appLocalizations.unblockShieldTagMessage(tag),
+                confirmButtonText: appLocalizations.unlock,
                 onTapConfirm: () {
                   SettingApi.shieldOrUnshieldTag(tag: tag, isShield: false)
                       .then((value) {

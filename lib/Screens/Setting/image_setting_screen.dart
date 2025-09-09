@@ -12,7 +12,7 @@ import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/BottomSheet/list_bottom_sheet.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class ImageSettingScreen extends StatefulWidget {
   const ImageSettingScreen({super.key});
@@ -23,7 +23,7 @@ class ImageSettingScreen extends StatefulWidget {
   State<ImageSettingScreen> createState() => _ImageSettingScreenState();
 }
 
-class _ImageSettingScreenState extends State<ImageSettingScreen>
+class _ImageSettingScreenState extends BaseDynamicState<ImageSettingScreen>
     with TickerProviderStateMixin {
   ImageQuality waterfallFlowImageQuality =
       HiveUtil.getImageQuality(HiveUtil.waterfallFlowImageQualityKey);
@@ -35,9 +35,9 @@ class _ImageSettingScreenState extends State<ImageSettingScreen>
       HiveUtil.getImageQuality(HiveUtil.tapLinkButtonImageQualityKey);
   ImageQuality longPressLinkButtonImageQuality =
       HiveUtil.getImageQuality(HiveUtil.longPressLinkButtonImageQualityKey);
-  bool followMainColor = HiveUtil.getBool(HiveUtil.followMainColorKey);
-  String? savePath = HiveUtil.getString(HiveUtil.savePathKey);
-  String _filenameFormat = HiveUtil.getString(HiveUtil.filenameFormatKey,
+  bool followMainColor = ChewieHiveUtil.getBool(HiveUtil.followMainColorKey);
+  String? savePath = ChewieHiveUtil.getString(HiveUtil.savePathKey);
+  String _filenameFormat = ChewieHiveUtil.getString(HiveUtil.filenameFormatKey,
           defaultValue: defaultFilenameFormat) ??
       defaultFilenameFormat;
 
@@ -82,9 +82,9 @@ class _ImageSettingScreenState extends State<ImageSettingScreen>
       color: Colors.transparent,
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: ItemBuilder.buildResponsiveAppBar(
+        appBar: ResponsiveAppBar(
           showBack: true,
-          title: S.current.imageSetting,
+          title: appLocalizations.imageSetting,
           context: context,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         ),
@@ -92,38 +92,38 @@ class _ImageSettingScreenState extends State<ImageSettingScreen>
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
-              if (ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
+              if (ResponsiveUtil.isLandscapeLayout()) const SizedBox(height: 10),
               if (showImageQualitySettings) ..._imageQualitySettings(),
               if (showImageQualitySettings) const SizedBox(height: 10),
               if (showBigImageSettings) ..._bigImageSettings(),
               if (showImageQualitySettings || showBigImageSettings)
                 const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.downloadImageSetting),
-              ItemBuilder.buildEntryItem(
+              CaptionItem(
+                  context: context, title: appLocalizations.downloadImageSetting),
+              EntryItem(
                 context: context,
-                title: S.current.downloadImagePath,
+                title: appLocalizations.downloadImagePath,
                 description: savePath ?? "",
-                tip: S.current.edit,
+                tip: appLocalizations.edit,
                 onTap: () async {
                   String? selectedDirectory =
                       await FilePicker.platform.getDirectoryPath(
-                    dialogTitle: S.current.chooseDownloadImagePath,
+                    dialogTitle: appLocalizations.chooseDownloadImagePath,
                     lockParentWindow: true,
                   );
                   if (selectedDirectory != null) {
                     setState(() {
                       savePath = selectedDirectory;
-                      HiveUtil.put(HiveUtil.savePathKey, selectedDirectory);
+                      ChewieHiveUtil.put(HiveUtil.savePathKey, selectedDirectory);
                     });
                   }
                 },
               ),
-              ItemBuilder.buildEntryItem(
+              EntryItem(
                 context: context,
-                title: S.current.filenameFormat,
+                title: appLocalizations.filenameFormat,
                 description: _filenameFormat,
-                tip: S.current.edit,
+                tip: appLocalizations.edit,
                 roundBottom: true,
                 onTap: () {
                   var page = FilenameSettingScreen(
@@ -146,46 +146,46 @@ class _ImageSettingScreenState extends State<ImageSettingScreen>
 
   _imageQualitySettings() {
     return [
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.imageQuality),
-      ItemBuilder.buildEntryItem(
+      CaptionItem(
+          context: context, title: appLocalizations.imageQuality),
+      EntryItem(
         context: context,
-        title: S.current.waterfallFlowImageQuality,
+        title: appLocalizations.waterfallFlowImageQuality,
         tip: EnumsLabelGetter.getImageQualityLabel(waterfallFlowImageQuality),
         onTap: () {
           showImageQualitySelect(
             onSelected: (quality) {
               setState(() {
                 waterfallFlowImageQuality = quality;
-                HiveUtil.put(
+                ChewieHiveUtil.put(
                     HiveUtil.waterfallFlowImageQualityKey, quality.index);
               });
             },
             selected: waterfallFlowImageQuality,
-            title: S.current.chooseWaterfallFlowImageQuality,
+            title: appLocalizations.chooseWaterfallFlowImageQuality,
           );
         },
       ),
-      ItemBuilder.buildEntryItem(
+      EntryItem(
         context: context,
-        title: S.current.postDetailImageQuality,
+        title: appLocalizations.postDetailImageQuality,
         tip: EnumsLabelGetter.getImageQualityLabel(postDetailImageQuality),
         onTap: () {
           showImageQualitySelect(
             onSelected: (quality) {
               setState(() {
                 postDetailImageQuality = quality;
-                HiveUtil.put(HiveUtil.postDetailImageQualityKey, quality.index);
+                ChewieHiveUtil.put(HiveUtil.postDetailImageQualityKey, quality.index);
               });
             },
             selected: postDetailImageQuality,
-            title: S.current.choosePostDetailImageQuality,
+            title: appLocalizations.choosePostDetailImageQuality,
           );
         },
       ),
-      ItemBuilder.buildEntryItem(
+      EntryItem(
         context: context,
-        title: S.current.bigImageQuality,
+        title: appLocalizations.bigImageQuality,
         tip: EnumsLabelGetter.getImageQualityLabel(imageDetailImageQuality),
         roundBottom: true,
         onTap: () {
@@ -193,12 +193,12 @@ class _ImageSettingScreenState extends State<ImageSettingScreen>
             onSelected: (quality) {
               setState(() {
                 imageDetailImageQuality = quality;
-                HiveUtil.put(
+                ChewieHiveUtil.put(
                     HiveUtil.imageDetailImageQualityKey, quality.index);
               });
             },
             selected: imageDetailImageQuality,
-            title: S.current.chooseBigImageQuality,
+            title: appLocalizations.chooseBigImageQuality,
           );
         },
       ),
@@ -207,59 +207,59 @@ class _ImageSettingScreenState extends State<ImageSettingScreen>
 
   _bigImageSettings() {
     return [
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.bigImageSetting),
-      ItemBuilder.buildRadioItem(
+      CaptionItem(
+          context: context, title: appLocalizations.bigImageSetting),
+      CheckboxItem(
         value: followMainColor,
         context: context,
-        title: S.current.backgroundColorFollowMainColor,
+        title: appLocalizations.backgroundColorFollowMainColor,
         onTap: () {
           setState(() {
             followMainColor = !followMainColor;
-            HiveUtil.put(
+            ChewieHiveUtil.put(
               HiveUtil.followMainColorKey,
               followMainColor,
             );
           });
         },
       ),
-      ItemBuilder.buildEntryItem(
+      EntryItem(
         context: context,
-        title: S.current.tapLinkButton,
+        title: appLocalizations.tapLinkButton,
         tip: EnumsLabelGetter.getImageQualityLabel(tapLinkButtonImageQuality),
-        description: S.current.tapLinkButtonDescription,
+        description: appLocalizations.tapLinkButtonDescription,
         onTap: () {
           showImageQualitySelect(
             onSelected: (quality) {
               setState(() {
                 tapLinkButtonImageQuality = quality;
-                HiveUtil.put(
+                ChewieHiveUtil.put(
                     HiveUtil.tapLinkButtonImageQualityKey, quality.index);
               });
             },
             selected: tapLinkButtonImageQuality,
-            title: S.current.chooseTapLinkButton,
+            title: appLocalizations.chooseTapLinkButton,
           );
         },
       ),
-      ItemBuilder.buildEntryItem(
+      EntryItem(
         context: context,
-        title: S.current.longPressLinkButton,
+        title: appLocalizations.longPressLinkButton,
         tip: EnumsLabelGetter.getImageQualityLabel(
             longPressLinkButtonImageQuality),
-        description: S.current.longPressLinkButtonDescription,
+        description: appLocalizations.longPressLinkButtonDescription,
         roundBottom: true,
         onTap: () {
           showImageQualitySelect(
             onSelected: (quality) {
               setState(() {
                 longPressLinkButtonImageQuality = quality;
-                HiveUtil.put(
+                ChewieHiveUtil.put(
                     HiveUtil.longPressLinkButtonImageQualityKey, quality.index);
               });
             },
             selected: longPressLinkButtonImageQuality,
-            title: S.current.chooseLongPressLinkButton,
+            title: appLocalizations.chooseLongPressLinkButton,
           );
         },
       ),

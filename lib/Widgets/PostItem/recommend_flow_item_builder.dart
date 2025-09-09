@@ -22,7 +22,7 @@ class RecommendFlowItemBuilder {
     switch (type) {
       case PostType.video:
         String cover = "";
-        if (Utils.isNotEmpty(item.postData!.postView.previewUrl)) {
+        if (StringUtil.isNotEmpty(item.postData!.postView.previewUrl)) {
           cover = item.postData!.postView.previewUrl!;
         } else {
           cover = item.postData!.postView.firstImage!.orign;
@@ -76,8 +76,8 @@ class RecommendFlowItemBuilder {
       photoCount: item.postData!.postView.photoCount,
       tags: item.postData!.postView.tagList,
       bigAvaImg: item.blogInfo!.bigAvaImg,
-      showArticle: HiveUtil.getBool(HiveUtil.showRecommendArticleKey),
-      showVideo: HiveUtil.getBool(HiveUtil.showRecommendVideoKey),
+      showArticle: ChewieHiveUtil.getBool(HiveUtil.showRecommendArticleKey),
+      showVideo: ChewieHiveUtil.getBool(HiveUtil.showRecommendVideoKey),
       excludeTag: excludeTag,
       showMoreButton: showMoreButton,
       onShieldUser: onShieldUser,

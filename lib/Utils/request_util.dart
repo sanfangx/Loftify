@@ -1,13 +1,11 @@
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
-import 'package:loftify/Utils/file_util.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/ilogger.dart';
-import 'package:loftify/Utils/iprint.dart';
 import 'package:loftify/Utils/request_header_util.dart';
 
 enum DomainType { api, www, da, short, image, captcha, passport }
@@ -190,7 +188,7 @@ class RequestUtil {
     list["Cookie"] =
         response.requestOptions.headers['cookie'] != null ? "有" : "无";
     if (response.requestOptions.headers['cookie'] != null) {
-      HiveUtil.put(
+      ChewieHiveUtil.put(
           HiveUtil.cookieKey, response.requestOptions.headers['cookie']);
     }
     list["Content-Length"] = response.requestOptions.headers['Content-Length'];

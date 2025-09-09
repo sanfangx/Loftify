@@ -1,7 +1,7 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/user_api.dart';
 import 'package:loftify/Models/account_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Info/collection_screen.dart';
 import 'package:loftify/Screens/Info/favorite_folder_list_screen.dart';
 import 'package:loftify/Screens/Info/grain_screen.dart';
@@ -12,30 +12,22 @@ import 'package:loftify/Screens/Info/share_screen.dart';
 import 'package:loftify/Screens/Info/user_detail_screen.dart';
 import 'package:loftify/Screens/Login/login_by_captcha_screen.dart';
 import 'package:loftify/Utils/asset_util.dart';
-import 'package:loftify/Utils/constant.dart';
 import 'package:loftify/Utils/enums.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:loftify/Utils/lottie_util.dart';
+import 'package:loftify/Utils/lottie_files.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
 import '../../Models/user_response.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/cloud_control_provider.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
-import '../../Utils/utils.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../Info/following_follower_screen.dart';
 import '../Info/system_notice_screen.dart';
 import '../Setting/setting_screen.dart';
 import '../Suit/suit_screen.dart';
-import '../refresh_interface.dart';
 
 class MineScreen extends StatefulWidget {
   const MineScreen({super.key});
@@ -46,7 +38,7 @@ class MineScreen extends StatefulWidget {
   State<MineScreen> createState() => _MineScreenState();
 }
 
-class _MineScreenState extends State<MineScreen>
+class _MineScreenState extends BaseDynamicState<MineScreen>
     with
         TickerProviderStateMixin,
         AutomaticKeepAliveClientMixin,
@@ -76,9 +68,9 @@ class _MineScreenState extends State<MineScreen>
     darkModeController = AnimationController(vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       darkModeWidget = LottieUtil.load(
-        LottieUtil.sunLight,
+        LottieFiles.sunLight,
         size: 25,
-        autoForward: !Utils.isDark(context),
+        autoForward: !ColorUtil.isDark(context),
         controller: darkModeController,
       );
       panelScreenState?.refreshScrollControllers();
@@ -117,14 +109,14 @@ class _MineScreenState extends State<MineScreen>
                   return IndicatorResult.success;
                 }
               } catch (e, t) {
-                IToast.showTop(S.current.loadFailed);
+                IToast.showTop(appLocalizations.loadFailed);
                 ILogger.error("Failed to load me info", e, t);
                 return IndicatorResult.fail;
               }
             });
           }
         } catch (e, t) {
-          IToast.showTop(S.current.loadFailed);
+          IToast.showTop(appLocalizations.loadFailed);
           ILogger.error("Failed to load user info", e, t);
           return IndicatorResult.fail;
         }
@@ -143,13 +135,12 @@ class _MineScreenState extends State<MineScreen>
     return Scaffold(
       backgroundColor: appProvider.token.isNotEmpty
           ? Theme.of(context).scaffoldBackgroundColor
-          : MyTheme.getBackground(context),
-      appBar: ResponsiveUtil.isLandscape()
+          : ChewieTheme.getBackground(context),
+      appBar: ResponsiveUtil.isLandscapeLayout()
           ? appProvider.token.isNotEmpty
-              ? ItemBuilder.buildResponsiveAppBar(
-                  context: context,
-                  title: S.current.mine,
-                  titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 10,
+              ? ResponsiveAppBar(
+                  title: appLocalizations.mine,
+                  titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 10,
                 )
               : null
           : PreferredSize(
@@ -290,7 +281,7 @@ class _MineScreenState extends State<MineScreen>
         return IndicatorResult.success;
       }
     } catch (e, t) {
-      IToast.showTop(S.current.loadFailed);
+      IToast.showTop(appLocalizations.loadFailed);
       ILogger.error("Failed to load $followingMode result", e, t);
       return IndicatorResult.fail;
     } finally {
@@ -316,16 +307,13 @@ class _MineScreenState extends State<MineScreen>
   }
 
   Widget _buildFollowingCard() {
-    return ItemBuilder.buildContainerItem(
-      context: context,
+    return ContainerItem(
       backgroundColor: Theme.of(context).canvasColor,
-      bottomRadius: true,
-      topRadius: true,
       child: Column(
         children: [
           ItemBuilder.buildTitle(
             context,
-            title: S.current
+            title: appLocalizations
                 .myFollowingWithCount(meInfoData!.blogInfo.attentionCount),
             icon: Icons.keyboard_arrow_right_rounded,
             onTap: () {
@@ -363,16 +351,13 @@ class _MineScreenState extends State<MineScreen>
   }
 
   Widget _buildFollowerCard() {
-    return ItemBuilder.buildContainerItem(
-      context: context,
+    return ContainerItem(
       backgroundColor: Theme.of(context).canvasColor,
-      bottomRadius: true,
-      topRadius: true,
       child: Column(
         children: [
           ItemBuilder.buildTitle(
             context,
-            title: S.current
+            title: appLocalizations
                 .myFollowerWithCount(meInfoData!.blogInfo.followerCount),
             icon: Icons.keyboard_arrow_right_rounded,
             onTap: () {
@@ -409,13 +394,13 @@ class _MineScreenState extends State<MineScreen>
   }
 
   getAvatarBoxImage() {
-    String url = HiveUtil.getString(HiveUtil.customAvatarBoxKey) ?? "";
+    String url = ChewieHiveUtil.getString(HiveUtil.customAvatarBoxKey) ?? "";
     return url.isNotEmpty ? url : blogInfo?.avatarBoxImage ?? "";
   }
 
   Widget _buildUserCard() {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
+    return ClickableWrapper(
+      child: GestureDetector(
         onTap: () {
           if (blogInfo == null) {
             RouteUtil.pushPanelCupertinoRoute(
@@ -449,13 +434,13 @@ class _MineScreenState extends State<MineScreen>
                 children: [
                   ItemBuilder.buildCopyable(
                     context,
-                    toastText: S.current.haveCopiedNickName,
+                    toastText: appLocalizations.haveCopiedNickName,
                     text: blogInfo != null ? blogInfo!.blogNickName : "",
                     copyable: blogInfo != null,
                     child: Text(
                       blogInfo != null
                           ? blogInfo!.blogNickName
-                          : S.current.login,
+                          : appLocalizations.login,
                       style: Theme.of(context).textTheme.titleLarge?.apply(
                             fontSizeDelta: 2,
                           ),
@@ -464,13 +449,13 @@ class _MineScreenState extends State<MineScreen>
                   const SizedBox(height: 5),
                   ItemBuilder.buildCopyable(
                     context,
-                    toastText: S.current.haveCopiedLofterID,
+                    toastText: appLocalizations.haveCopiedLofterID,
                     text: blogInfo != null ? blogInfo!.blogName : "",
                     copyable: blogInfo != null,
                     child: Text(
                       blogInfo != null
-                          ? S.current.lofterId(blogInfo!.blogName)
-                          : S.current.loginToGetPersonalizedService,
+                          ? appLocalizations.lofterId(blogInfo!.blogName)
+                          : appLocalizations.loginToGetPersonalizedService,
                       style: Theme.of(context).textTheme.titleSmall?.apply(
                             color:
                                 Theme.of(context).textTheme.labelSmall?.color,
@@ -482,10 +467,10 @@ class _MineScreenState extends State<MineScreen>
                   const SizedBox(height: 5),
                   Text(
                     meInfoData != null
-                        ? S.current.userMeta(
+                        ? appLocalizations.userMeta(
                             "${meInfoData!.blogInfo.postCount}",
                             "${meInfoData!.collectionCount}")
-                        : S.current.userMeta("-", "-"),
+                        : appLocalizations.userMeta("-", "-"),
                     style: Theme.of(context).textTheme.titleSmall?.apply(
                           color: Theme.of(context).textTheme.bodySmall?.color,
                           fontSizeDelta: 0,
@@ -514,7 +499,7 @@ class _MineScreenState extends State<MineScreen>
         children: [
           ItemBuilder.buildStatisticItem(
             context,
-            title: S.current.hotCount,
+            title: appLocalizations.hotCount,
             count: meInfoData?.blogInfo.hot.hotCount,
             onTap: () {},
             labelFontWeightDelta: 2,
@@ -523,7 +508,7 @@ class _MineScreenState extends State<MineScreen>
           ),
           ItemBuilder.buildStatisticItem(
             context,
-            title: S.current.follower,
+            title: appLocalizations.follower,
             count: meInfoData?.blogInfo.followerCount,
             onTap: () {
               if (blogInfo != null && meInfoData != null) {
@@ -545,7 +530,7 @@ class _MineScreenState extends State<MineScreen>
           ),
           ItemBuilder.buildStatisticItem(
             context,
-            title: S.current.following,
+            title: appLocalizations.following,
             count: meInfoData?.blogInfo.attentionCount,
             countColor: Theme.of(context).textTheme.titleLarge?.color,
             labelColor: Theme.of(context).textTheme.labelSmall?.color,
@@ -573,60 +558,55 @@ class _MineScreenState extends State<MineScreen>
   List<Widget> _buildContent() {
     return [
       const SizedBox(height: 10),
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.contentCenter),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.myLikes,
-        padding: 15,
-        showLeading: true,
-        onTap: () {
-          RouteUtil.pushPanelCupertinoRoute(
-            context,
-            LikeScreen(),
-          );
-        },
-        leading: Icons.favorite_border_rounded,
-      ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.myRecommends,
-        padding: 15,
-        showLeading: true,
-        onTap: () {
-          RouteUtil.pushPanelCupertinoRoute(
-            context,
-            ShareScreen(),
-          );
-        },
-        leading: Icons.thumb_up_off_alt,
-      ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.myFavorites,
-        padding: 15,
-        showLeading: true,
-        onTap: () {
-          RouteUtil.pushPanelCupertinoRoute(
-            context,
-            const FavoriteFolderListScreen(),
-          );
-        },
-        leading: Icons.bookmark_outline_rounded,
-      ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.myHistory,
-        padding: 15,
-        showLeading: true,
-        onTap: () {
-          RouteUtil.pushPanelCupertinoRoute(
-            context,
-            const HistoryScreen(),
-          );
-        },
-        roundBottom: true,
-        leading: Icons.history_rounded,
+      CaptionItem(
+        title: appLocalizations.contentCenter,
+        children: [
+          EntryItem(
+            title: appLocalizations.myLikes,
+            showLeading: true,
+            onTap: () {
+              RouteUtil.pushPanelCupertinoRoute(
+                context,
+                LikeScreen(),
+              );
+            },
+            leading: Icons.favorite_border_rounded,
+          ),
+          EntryItem(
+            title: appLocalizations.myRecommends,
+            showLeading: true,
+            onTap: () {
+              RouteUtil.pushPanelCupertinoRoute(
+                context,
+                ShareScreen(),
+              );
+            },
+            leading: Icons.thumb_up_off_alt,
+          ),
+          EntryItem(
+            title: appLocalizations.myFavorites,
+            showLeading: true,
+            onTap: () {
+              RouteUtil.pushPanelCupertinoRoute(
+                context,
+                const FavoriteFolderListScreen(),
+              );
+            },
+            leading: Icons.bookmark_outline_rounded,
+          ),
+          EntryItem(
+            title: appLocalizations.myHistory,
+            showLeading: true,
+            onTap: () {
+              RouteUtil.pushPanelCupertinoRoute(
+                context,
+                const HistoryScreen(),
+              );
+            },
+            roundBottom: true,
+            leading: Icons.history_rounded,
+          ),
+        ],
       ),
     ];
   }
@@ -634,53 +614,50 @@ class _MineScreenState extends State<MineScreen>
   List<Widget> _buildCreation() {
     return [
       const SizedBox(height: 10),
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.myCreative),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.myPosts,
-        padding: 15,
-        showLeading: true,
-        onTap: () {
-          RouteUtil.pushPanelCupertinoRoute(
-            context,
-            PostScreen(),
-          );
-        },
-        leading: Icons.article_outlined,
-      ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.myCollections,
-        padding: 15,
-        showLeading: true,
-        onTap: () {
-          RouteUtil.pushPanelCupertinoRoute(
-            context,
-            CollectionScreen(),
-          );
-        },
-        leading: Icons.bookmarks_outlined,
-      ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.myGrains,
-        padding: 15,
-        showLeading: true,
-        roundBottom: true,
-        onTap: () {
-          RouteUtil.pushPanelCupertinoRoute(
-            context,
-            GrainScreen(),
-          );
-        },
-        leading: Icons.grain_rounded,
+      CaptionItem(
+        title: appLocalizations.myCreative,
+        children: [
+          EntryItem(
+            title: appLocalizations.myPosts,
+            showLeading: true,
+            onTap: () {
+              RouteUtil.pushPanelCupertinoRoute(
+                context,
+                PostScreen(),
+              );
+            },
+            leading: Icons.article_outlined,
+          ),
+          EntryItem(
+            title: appLocalizations.myCollections,
+            showLeading: true,
+            onTap: () {
+              RouteUtil.pushPanelCupertinoRoute(
+                context,
+                CollectionScreen(),
+              );
+            },
+            leading: Icons.bookmarks_outlined,
+          ),
+          EntryItem(
+            title: appLocalizations.myGrains,
+            showLeading: true,
+            roundBottom: true,
+            onTap: () {
+              RouteUtil.pushPanelCupertinoRoute(
+                context,
+                GrainScreen(),
+              );
+            },
+            leading: Icons.grain_rounded,
+          ),
+        ],
       ),
     ];
   }
 
   changeMode() {
-    if (Utils.isDark(context)) {
+    if (ColorUtil.isDark(context)) {
       appProvider.themeMode = ActiveThemeMode.light;
       darkModeController.forward();
     } else {
@@ -690,13 +667,11 @@ class _MineScreenState extends State<MineScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildAppBar(
-      context: context,
+    return ResponsiveAppBar(
       backgroundColor: Colors.transparent,
       actions: [
         if (appProvider.token.isNotEmpty)
-          ItemBuilder.buildIconButton(
-            context: context,
+          CircleIconButton(
             icon: Icon(
               Icons.exit_to_app_rounded,
               size: 23,
@@ -718,7 +693,7 @@ class _MineScreenState extends State<MineScreen>
                 } else if (themeMode == ActiveThemeMode.dark) {
                   darkModeController.reverse();
                 } else {
-                  if (Utils.isDark(context)) {
+                  if (ColorUtil.isDark(context)) {
                     darkModeController.reverse();
                   } else {
                     darkModeController.forward();
@@ -732,8 +707,7 @@ class _MineScreenState extends State<MineScreen>
               cloudControlProvider.globalControl.showDress
                   ? Row(
                       children: [
-                        ItemBuilder.buildIconButton(
-                            context: context,
+                        CircleIconButton(
                             icon: AssetUtil.loadDouble(
                               context,
                               AssetUtil.dressLightIcon,
@@ -750,8 +724,7 @@ class _MineScreenState extends State<MineScreen>
                     )
                   : emptyWidget,
         ),
-        ItemBuilder.buildIconButton(
-          context: context,
+        CircleIconButton(
           icon: Icon(
             Icons.notifications_on_outlined,
             size: 23,

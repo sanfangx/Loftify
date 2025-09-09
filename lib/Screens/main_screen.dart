@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
-import 'package:context_menus/context_menus.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
@@ -10,34 +10,20 @@ import 'package:loftify/Screens/Login/login_by_captcha_screen.dart';
 import 'package:loftify/Screens/panel_screen.dart';
 import 'package:loftify/Utils/asset_util.dart';
 import 'package:loftify/Utils/cloud_control_provider.dart';
-import 'package:loftify/Utils/constant.dart';
-import 'package:loftify/Utils/responsive_util.dart';
-import 'package:loftify/Utils/uri_util.dart';
+import 'package:loftify/Utils/lottie_files.dart';
 import 'package:loftify/Widgets/Item/item_builder.dart';
-import 'package:loftify/Widgets/Window/window_caption.dart';
 import 'package:provider/provider.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../Api/login_api.dart';
 import '../Api/user_api.dart';
 import '../Models/account_response.dart';
-import '../Resources/fonts.dart';
-import '../Resources/theme.dart';
 import '../Utils/app_provider.dart';
 import '../Utils/enums.dart';
 import '../Utils/hive_util.dart';
-import '../Utils/ilogger.dart';
-import '../Utils/itoast.dart';
-import '../Utils/lottie_util.dart';
-import '../Utils/route_util.dart';
 import '../Utils/utils.dart';
-import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../Widgets/Dialog/dialog_builder.dart';
-import '../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../Widgets/General/LottieCupertinoRefresh/lottie_cupertino_refresh.dart';
-import '../Widgets/Window/window_button.dart';
 import 'Info/system_notice_screen.dart';
 import 'Info/user_detail_screen.dart';
 import 'Lock/pin_verify_screen.dart';
@@ -53,19 +39,16 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => MainScreenState();
 }
 
-class MainScreenState extends State<MainScreen>
+class MainScreenState extends BaseWindowState<MainScreen>
     with
         WidgetsBindingObserver,
         TickerProviderStateMixin,
         TrayListener,
-        WindowListener,
         AutomaticKeepAliveClientMixin {
   Timer? _timer;
   late AnimationController darkModeController;
   Widget? darkModeWidget;
   FullBlogInfo? blogInfo;
-  bool _isMaximized = false;
-  bool _isStayOnTop = false;
   bool _hasJumpedToPinVerify = false;
   Orientation? _oldOrientation;
 
@@ -88,38 +71,11 @@ class MainScreenState extends State<MainScreen>
   }
 
   @override
-  Future<void> onWindowResized() async {
-    super.onWindowResized();
-    appProvider.windowSize = await windowManager.getSize();
-    HiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowMoved() async {
-    super.onWindowMoved();
-    HiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
   void onWindowEvent(String eventName) {
     super.onWindowEvent(eventName);
     if (eventName == "hide") {
       setTimer();
     }
-  }
-
-  @override
-  void onWindowMaximize() {
-    setState(() {
-      _isMaximized = true;
-    });
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    setState(() {
-      _isMaximized = false;
-    });
   }
 
   _fetchUserInfo() async {
@@ -133,7 +89,7 @@ class MainScreenState extends State<MainScreen>
             AccountResponse accountResponse =
                 AccountResponse.fromJson(value['response']);
             await HiveUtil.setUserInfo(accountResponse.blogs[0].blogInfo);
-            await HiveUtil.put(
+            await ChewieHiveUtil.put(
                 HiveUtil.userIdKey, accountResponse.blogs[0].blogInfo?.blogId);
             setState(() {
               blogInfo = accountResponse.blogs[0].blogInfo;
@@ -142,7 +98,7 @@ class MainScreenState extends State<MainScreen>
           }
         } catch (e, t) {
           ILogger.error("Failed to load user info", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {}
       });
@@ -184,12 +140,12 @@ class MainScreenState extends State<MainScreen>
       showQQGroupDialog();
       jumpToLogin();
       darkModeWidget = LottieUtil.load(
-        LottieUtil.sunLight,
+        LottieFiles.sunLight,
         size: 25,
-        autoForward: !Utils.isDark(context),
+        autoForward: !ColorUtil.isDark(context),
         controller: darkModeController,
       );
-      ResponsiveUtil.doInDesktop(desktop: () async {
+      ResponsiveUtil.runByPlatform(desktop: () async {
         await Utils.initTray();
         trayManager.addListener(this);
         keyboardHandlerState?.focus();
@@ -204,8 +160,8 @@ class MainScreenState extends State<MainScreen>
     ServerApi.getCloudControl();
     CustomFont.downloadFont(showToast: false);
     _fetchUserInfo();
-    if (HiveUtil.getBool(HiveUtil.autoCheckUpdateKey)) {
-      Utils.getReleases(
+    if (ChewieHiveUtil.getBool(HiveUtil.autoCheckUpdateKey)) {
+      ChewieUtils.getReleases(
         context: context,
         showLoading: false,
         showUpdateDialog: true,
@@ -223,19 +179,19 @@ class MainScreenState extends State<MainScreen>
 
   initConfig() {
     ResponsiveUtil.checkSizeCondition();
-    ResponsiveUtil.doInDesktop(
+    ResponsiveUtil.runByPlatform(
       desktop: () {
         initHotKey();
         windowManager
             .isAlwaysOnTop()
-            .then((value) => setState(() => _isStayOnTop = value));
+            .then((value) => setState(() => isStayOnTop = value));
         windowManager
             .isMaximized()
-            .then((value) => setState(() => _isMaximized = value));
+            .then((value) => setState(() => isMaximized = value));
       },
       mobile: () {
-        Utils.setSafeMode(
-            HiveUtil.getBool(HiveUtil.enableSafeModeKey, defaultValue: false));
+        ChewieUtils.setSafeMode(
+            ChewieHiveUtil.getBool(HiveUtil.enableSafeModeKey, defaultValue: false));
       },
     );
     initDeepLinks();
@@ -268,23 +224,23 @@ class MainScreenState extends State<MainScreen>
           color: Theme.of(context).primaryColor,
         );
     EasyRefresh.defaultFooterBuilder = () => LottieCupertinoFooter(
-          indicator: LottieUtil.load(LottieUtil.getLoadingPath(context)),
+          indicator: LottieUtil.load(LottieFiles.getLoadingPath(context)),
         );
   }
 
   showQQGroupDialog() {
-    bool haveShownQQGroupDialog = HiveUtil.getBool(
+    bool haveShownQQGroupDialog = ChewieHiveUtil.getBool(
         HiveUtil.haveShownQQGroupDialogKey,
         defaultValue: false);
     if (!haveShownQQGroupDialog) {
-      HiveUtil.put(HiveUtil.haveShownQQGroupDialogKey, true);
+      ChewieHiveUtil.put(HiveUtil.haveShownQQGroupDialogKey, true);
       DialogBuilder.showConfirmDialog(
         context,
-        title: S.current.feedbackWelcome,
-        message: S.current.feedbackWelcomeMessage,
+        title: appLocalizations.feedbackWelcome,
+        message: appLocalizations.feedbackWelcomeMessage,
         messageTextAlign: TextAlign.center,
-        confirmButtonText: S.current.goToQQ,
-        cancelButtonText: S.current.joinLater,
+        confirmButtonText: appLocalizations.goToQQ,
+        cancelButtonText: appLocalizations.joinLater,
         onTapConfirm: () {
           UriUtil.openExternal(controlProvider.globalControl.qqGroupUrl);
         },
@@ -293,11 +249,11 @@ class MainScreenState extends State<MainScreen>
   }
 
   void jumpToLogin() {
-    if (HiveUtil.isFirstLogin() &&
-        HiveUtil.getString(HiveUtil.tokenKey, defaultValue: null) == null) {
+    if (ChewieHiveUtil.isFirstLogin() &&
+        ChewieHiveUtil.getString(HiveUtil.tokenKey, defaultValue: null) == null) {
       HiveUtil.initConfig();
-      HiveUtil.setFirstLogin();
-      if (ResponsiveUtil.isLandscape()) {
+      ChewieHiveUtil.setFirstLogin();
+      if (ResponsiveUtil.isLandscapeLayout()) {
         DialogBuilder.showPageDialog(context,
             child: const LoginByCaptchaScreen());
       } else {
@@ -330,10 +286,10 @@ class MainScreenState extends State<MainScreen>
         // ResponsiveUtil.returnToMainScreen(context);
       }
       _oldOrientation = orientation;
-      return ResponsiveUtil.buildGeneralWidget(
+      return ResponsiveUtil.selectByResponsive(
         landscape: Scaffold(
           resizeToAvoidBottomInset: false,
-          backgroundColor: MyTheme.canvasColor,
+          backgroundColor: ChewieTheme.canvasColor,
           body: SafeArea(child: _buildDesktopBody()),
         ),
         desktop: _buildDesktopBody(),
@@ -362,10 +318,10 @@ class MainScreenState extends State<MainScreen>
   }
 
   _buildAvatarContextMenuButtons() {
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig(
-          S.current.viewPersonalHomepage,
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem(
+          appLocalizations.viewPersonalHomepage,
           iconData: Icons.person_outline_rounded,
           onPressed: () async {
             panelScreenState?.pushPage(UserDetailScreen(
@@ -374,9 +330,10 @@ class MainScreenState extends State<MainScreen>
             ));
           },
         ),
-        ContextMenuButtonConfig.divider(),
-        ContextMenuButtonConfig.warning(
-          S.current.logout,
+        FlutterContextMenuItem.divider(),
+        FlutterContextMenuItem(
+          appLocalizations.logout,
+          status: MenuItemStatus.warning,
           iconData: Icons.logout_rounded,
           onPressed: () async {
             HiveUtil.confirmLogout(context);
@@ -387,25 +344,24 @@ class MainScreenState extends State<MainScreen>
   }
 
   _titleBar() {
-    return ResponsiveUtil.buildDesktopWidget(
-      desktop: ItemBuilder.buildWindowTitle(
-        context,
+    return ResponsiveUtil.selectByPlatform(
+      desktop: WindowTitleWrapper(
         backgroundColor: Colors.transparent,
-        isStayOnTop: _isStayOnTop,
-        isMaximized: _isMaximized,
+        isStayOnTop: isStayOnTop,
+        isMaximized: isMaximized,
         onStayOnTopTap: () {
           setState(() {
-            _isStayOnTop = !_isStayOnTop;
-            windowManager.setAlwaysOnTop(_isStayOnTop);
+            isStayOnTop = !isStayOnTop;
+            windowManager.setAlwaysOnTop(isStayOnTop);
           });
         },
-        rightButtons: [],
+        rightButtons: const [],
       ),
     );
   }
 
   changeMode() {
-    if (Utils.isDark(context)) {
+    if (ColorUtil.isDark(context)) {
       appProvider.themeMode = ActiveThemeMode.light;
       darkModeController.forward();
     } else {
@@ -433,7 +389,7 @@ class MainScreenState extends State<MainScreen>
       padding: EdgeInsets.only(left: leftPadding, right: rightPadding),
       child: Stack(
         children: [
-          ResponsiveUtil.buildDesktopWidget(desktop: const WindowMoveHandle()),
+          ResponsiveUtil.selectByPlatform(desktop: const WindowMoveHandle()),
           Consumer<LoftifyControlProvider>(
             builder: (_, cloudControlProvider, __) =>
                 Selector<AppProvider, SideBarChoice>(
@@ -446,9 +402,9 @@ class MainScreenState extends State<MainScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    ResponsiveUtil.buildDesktopWidget(
+                    ResponsiveUtil.selectByPlatform(
                         desktop: const SizedBox(height: 5)),
-                    ResponsiveUtil.buildDesktopWidget(desktop: _buildLogo()),
+                    ResponsiveUtil.selectByPlatform(desktop: _buildLogo()),
                     const SizedBox(height: 8),
                     ToolButton(
                       context: context,
@@ -456,7 +412,7 @@ class MainScreenState extends State<MainScreen>
                           hideNavigator && sidebarChoice == SideBarChoice.Home,
                       icon: Icons.explore_outlined,
                       selectedIcon: Icons.explore_rounded,
-                      onTap: () async {
+                      onPressed: () async {
                         appProvider.sidebarChoice = SideBarChoice.Home;
                         panelScreenState?.popAll(false);
                       },
@@ -469,7 +425,7 @@ class MainScreenState extends State<MainScreen>
                           sidebarChoice == SideBarChoice.Search,
                       icon: Icons.search_rounded,
                       selectedIcon: Icons.manage_search_rounded,
-                      onTap: () async {
+                      onPressed: () async {
                         appProvider.sidebarChoice = SideBarChoice.Search;
                         panelScreenState?.popAll(false);
                       },
@@ -481,7 +437,7 @@ class MainScreenState extends State<MainScreen>
                           sidebarChoice == SideBarChoice.Dynamic,
                       icon: Icons.favorite_border_rounded,
                       selectedIcon: Icons.favorite_rounded,
-                      onTap: () async {
+                      onPressed: () async {
                         appProvider.sidebarChoice = SideBarChoice.Dynamic;
                         panelScreenState?.popAll(false);
                       },
@@ -493,14 +449,14 @@ class MainScreenState extends State<MainScreen>
                           hideNavigator && sidebarChoice == SideBarChoice.Mine,
                       icon: Icons.person_outline_rounded,
                       selectedIcon: Icons.person_rounded,
-                      onTap: () async {
+                      onPressed: () async {
                         appProvider.sidebarChoice = SideBarChoice.Mine;
                         panelScreenState?.popAll(false);
                       },
                     ),
                     const Spacer(),
                     const SizedBox(height: 8),
-                    ItemBuilder.buildClickableGestureDetector(
+                    ClickableGestureDetector(
                       onTap: () async {
                         if (blogInfo == null) {
                           RouteUtil.pushDialogRoute(
@@ -530,7 +486,7 @@ class MainScreenState extends State<MainScreen>
                           } else if (themeMode == ActiveThemeMode.dark) {
                             darkModeController.reverse();
                           } else {
-                            if (Utils.isDark(context)) {
+                            if (ColorUtil.isDark(context)) {
                               darkModeController.reverse();
                             } else {
                               darkModeController.forward();
@@ -549,7 +505,7 @@ class MainScreenState extends State<MainScreen>
                           AssetUtil.dressDarkIcon,
                         ),
                         padding: const EdgeInsets.all(8),
-                        onTap: () {
+                        onPressed: () {
                           RouteUtil.pushPanelCupertinoRoute(
                               context, const SuitScreen());
                         },
@@ -563,7 +519,7 @@ class MainScreenState extends State<MainScreen>
                         color: Theme.of(context).iconTheme.color,
                         size: 20,
                       ),
-                      onTap: () {
+                      onPressed: () {
                         RouteUtil.pushPanelCupertinoRoute(
                             context, const SystemNoticeScreen());
                       },
@@ -577,7 +533,7 @@ class MainScreenState extends State<MainScreen>
                         AssetUtil.settingDarkIcon,
                       ),
                       padding: const EdgeInsets.all(8),
-                      onTap: () {
+                      onPressed: () {
                         RouteUtil.pushPanelCupertinoRoute(
                             context, const SettingScreen());
                       },
@@ -661,7 +617,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onTrayIconMouseDown() {
-    Utils.displayApp();
+    ChewieUtils.displayApp();
   }
 
   @override

@@ -1,8 +1,7 @@
 import 'package:tuple/tuple.dart';
 
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 
-enum ActiveThemeMode { system, light, dark }
 
 enum TokenType {
   none,
@@ -48,57 +47,57 @@ class EnumsLabelGetter {
   static String getTagPostTypeLabel(TagPostType type) {
     switch (type) {
       case TagPostType.noLimit:
-        return S.current.noLimit;
+        return appLocalizations.noLimit;
       case TagPostType.image:
-        return S.current.images;
+        return appLocalizations.images;
       case TagPostType.article:
-        return S.current.words;
+        return appLocalizations.words;
     }
   }
 
   static String getTagRecentDayTypeLabel(TagRecentDayType type) {
     switch (type) {
       case TagRecentDayType.noLimit:
-        return S.current.noLimit;
+        return appLocalizations.noLimit;
       case TagRecentDayType.oneDay:
-        return S.current.inOneDay;
+        return appLocalizations.inOneDay;
       case TagRecentDayType.oneWeek:
-        return S.current.inOneWeek;
+        return appLocalizations.inOneWeek;
       case TagRecentDayType.oneMonth:
-        return S.current.inOneMonth;
+        return appLocalizations.inOneMonth;
     }
   }
 
   static String getTagRangeTypeLabel(TagRangeType type) {
     switch (type) {
       case TagRangeType.noLimit:
-        return S.current.noLimit;
+        return appLocalizations.noLimit;
       case TagRangeType.follow:
-        return S.current.followingUser;
+        return appLocalizations.followingUser;
       case TagRangeType.notViewInPastSevenDays:
-        return S.current.haveNotVisitRecentSevenDays;
+        return appLocalizations.haveNotVisitRecentSevenDays;
     }
   }
 
   static List<Tuple2<String, ImageQuality>> getImageQualityLabels() {
     return [
-      Tuple2(S.current.lowImageQuality, ImageQuality.small),
-      Tuple2(S.current.middleImageQuality, ImageQuality.medium),
-      Tuple2(S.current.rawImageQuality, ImageQuality.origin),
-      Tuple2(S.current.originImageQuality, ImageQuality.raw),
+      Tuple2(appLocalizations.lowImageQuality, ImageQuality.small),
+      Tuple2(appLocalizations.middleImageQuality, ImageQuality.medium),
+      Tuple2(appLocalizations.rawImageQuality, ImageQuality.origin),
+      Tuple2(appLocalizations.originImageQuality, ImageQuality.raw),
     ];
   }
 
   static String getImageQualityLabel(ImageQuality quality) {
     switch (quality) {
       case ImageQuality.small:
-        return S.current.lowImageQuality;
+        return appLocalizations.lowImageQuality;
       case ImageQuality.medium:
-        return S.current.middleImageQuality;
+        return appLocalizations.middleImageQuality;
       case ImageQuality.origin:
-        return S.current.rawImageQuality;
+        return appLocalizations.rawImageQuality;
       case ImageQuality.raw:
-        return S.current.originImageQuality;
+        return appLocalizations.originImageQuality;
     }
   }
 }
@@ -133,17 +132,17 @@ enum DoubleTapAction {
   String get label {
     switch (this) {
       case none:
-        return S.current.noOperation;
+        return appLocalizations.noOperation;
       case like:
-        return S.current.like;
+        return appLocalizations.like;
       case recommend:
-        return S.current.recommend;
+        return appLocalizations.recommend;
       case download:
-        return S.current.downloadCurrentImage;
+        return appLocalizations.downloadCurrentImage;
       case downloadAll:
-        return S.current.downloadAllImages;
+        return appLocalizations.downloadAllImages;
       case copyLink:
-        return S.current.copyLink;
+        return appLocalizations.copyLink;
     }
   }
 }
@@ -160,11 +159,11 @@ enum DownloadSuccessAction {
   String get label {
     switch (this) {
       case none:
-        return S.current.noOperation;
+        return appLocalizations.noOperation;
       case unlike:
-        return S.current.unlike;
+        return appLocalizations.unlike;
       case unrecommend:
-        return S.current.unrecommend;
+        return appLocalizations.unrecommend;
     }
   }
 }
@@ -204,66 +203,62 @@ enum FilenameField {
   String get example {
     switch (this) {
       case originalName:
-        return S.current.fieldOriginalNameExample;
+        return appLocalizations.fieldOriginalNameExample;
       case blogId:
-        return S.current.fieldBlogIdExample;
+        return appLocalizations.fieldBlogIdExample;
       case blogLofterId:
-        return S.current.fieldBlogLofterIdExample;
+        return appLocalizations.fieldBlogLofterIdExample;
       case blogNickName:
-        return S.current.fieldBlogNickNameExample;
+        return appLocalizations.fieldBlogNickNameExample;
       case postId:
-        return S.current.fieldPostIdExample;
+        return appLocalizations.fieldPostIdExample;
       case postTitle:
-        return S.current.fieldPostTitleExample;
+        return appLocalizations.fieldPostTitleExample;
       case postTags:
-        return S.current.fieldPostTagsExample;
+        return appLocalizations.fieldPostTagsExample;
       case postPublishTime:
-        return S.current.fieldPostPublishTimeExample;
+        return appLocalizations.fieldPostPublishTimeExample;
       case part:
-        return S.current.fieldPartExample;
+        return appLocalizations.fieldPartExample;
       case timestamp:
-        return S.current.fieldTimestampExample;
+        return appLocalizations.fieldTimestampExample;
       case currentTime:
-        return S.current.fieldCurrentTimeExample;
+        return appLocalizations.fieldCurrentTimeExample;
       case underline:
-        return S.current.fieldUnderlineExample;
+        return appLocalizations.fieldUnderlineExample;
       case slack:
-        return S.current.fieldSlackExample;
-      default:
-        return "";
-    }
+        return appLocalizations.fieldSlackExample;
+      }
   }
 
   String get description {
     switch (this) {
       case originalName:
-        return S.current.fieldOriginalNameDescription;
+        return appLocalizations.fieldOriginalNameDescription;
       case blogId:
-        return S.current.fieldBlogIdDescription;
+        return appLocalizations.fieldBlogIdDescription;
       case blogLofterId:
-        return S.current.fieldBlogLofterIdDescription;
+        return appLocalizations.fieldBlogLofterIdDescription;
       case blogNickName:
-        return S.current.fieldBlogNickNameDescription;
+        return appLocalizations.fieldBlogNickNameDescription;
       case postId:
-        return S.current.fieldPostIdDescription;
+        return appLocalizations.fieldPostIdDescription;
       case postTitle:
-        return S.current.fieldPostTitleDescription;
+        return appLocalizations.fieldPostTitleDescription;
       case postTags:
-        return S.current.fieldPostTagsDescription;
+        return appLocalizations.fieldPostTagsDescription;
       case postPublishTime:
-        return S.current.fieldPostPublishTimeDescription;
+        return appLocalizations.fieldPostPublishTimeDescription;
       case part:
-        return S.current.fieldPartDescription;
+        return appLocalizations.fieldPartDescription;
       case timestamp:
-        return S.current.fieldTimestampDescription;
+        return appLocalizations.fieldTimestampDescription;
       case currentTime:
-        return S.current.fieldCurrentTimeDescription;
+        return appLocalizations.fieldCurrentTimeDescription;
       case underline:
-        return S.current.fieldUnderlineDescription;
+        return appLocalizations.fieldUnderlineDescription;
       case slack:
-        return S.current.fieldSlackDescription;
-      default:
-        return "";
+        return appLocalizations.fieldSlackDescription;
     }
   }
 }
@@ -308,21 +303,19 @@ enum Copyright {
   String get label {
     switch (this) {
       case none:
-        return S.current.noneCopyright;
+        return appLocalizations.noneCopyright;
       case by:
-        return S.current.byCopyright;
+        return appLocalizations.byCopyright;
       case byNd:
-        return S.current.byNdCopyright;
+        return appLocalizations.byNdCopyright;
       case byNc:
-        return S.current.byNcCopyright;
+        return appLocalizations.byNcCopyright;
       case bySa:
-        return S.current.bySaCopyright;
+        return appLocalizations.bySaCopyright;
       case byNcNd:
-        return S.current.byNcNdCopyright;
+        return appLocalizations.byNcNdCopyright;
       case byNcSa:
-        return S.current.byNcSaCopyright;
-      default:
-        return S.current.noneCopyright;
+        return appLocalizations.byNcSaCopyright;
     }
   }
 }

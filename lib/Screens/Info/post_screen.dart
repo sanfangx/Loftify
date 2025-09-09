@@ -1,21 +1,15 @@
-import 'dart:io';
-
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Api/user_api.dart';
 import 'package:loftify/Models/history_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Info/nested_mixin.dart';
 import 'package:loftify/Utils/hive_util.dart';
 
 import '../../Models/post_detail_response.dart';
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/PostItem/common_info_post_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class PostScreen extends StatefulWidgetForNested {
   PostScreen({
@@ -42,7 +36,7 @@ class PostScreen extends StatefulWidgetForNested {
   State<PostScreen> createState() => _PostScreenState();
 }
 
-class _PostScreenState extends State<PostScreen>
+class _PostScreenState extends BaseDynamicState<PostScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -111,7 +105,7 @@ class _PostScreenState extends State<PostScreen>
                   if (item > 0) {
                     int month = e.monthCount.indexOf(item);
                     _archiveDataList.add(ArchiveData(
-                      desc: S.current.yearAndMonth(e.year, month + 1),
+                      desc: appLocalizations.yearAndMonth(e.year, month + 1),
                       count: item,
                       endTime: 0,
                       startTime: 0,
@@ -137,7 +131,7 @@ class _PostScreenState extends State<PostScreen>
               _archiveDataList.insert(
                 0,
                 ArchiveData(
-                  desc: S.current.pin,
+                  desc: appLocalizations.pin,
                   count: 1,
                   endTime: 0,
                   startTime: 0,
@@ -162,7 +156,7 @@ class _PostScreenState extends State<PostScreen>
         } catch (e, t) {
           _initPhase = InitPhase.failed;
           ILogger.error("Failed to load post list", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {
           if (mounted) setState(() {});
@@ -185,7 +179,7 @@ class _PostScreenState extends State<PostScreen>
     super.build(context);
     return Scaffold(
       backgroundColor: widget.infoMode == InfoMode.me
-          ? MyTheme.getBackground(context)
+          ? ChewieTheme.getBackground(context)
           : Colors.transparent,
       appBar: widget.infoMode == InfoMode.me ? _buildAppBar() : null,
       body: _buildBody(),
@@ -195,11 +189,9 @@ class _PostScreenState extends State<PostScreen>
   _buildBody() {
     switch (_initPhase) {
       case InitPhase.connecting:
-        return ItemBuilder.buildLoadingWidget(context,
-            background: Colors.transparent);
+        return LoadingWidget(background: Colors.transparent);
       case InitPhase.failed:
-        return ItemBuilder.buildErrorWidget(
-          context: context,
+        return CustomErrorWidget(
           onTap: _onRefresh,
         );
       case InitPhase.successful:
@@ -212,10 +204,7 @@ class _PostScreenState extends State<PostScreen>
           childBuilder: (context, physics) {
             return _archiveDataList.isNotEmpty
                 ? _buildNineGridGroup(physics)
-                : ItemBuilder.buildEmptyPlaceholder(
-                    context: context,
-                    text: S.current.noArticle,
-                    physics: physics);
+                : EmptyPlaceholder(text: appLocalizations.noArticle, physics: physics);
           },
         );
       default:
@@ -237,14 +226,14 @@ class _PostScreenState extends State<PostScreen>
       }
       widgets.add(ItemBuilder.buildTitle(
         context,
-        title: S.current.descriptionWithPostCount(e.desc, e.count.toString()),
+        title: appLocalizations.descriptionWithPostCount(e.desc, e.count.toString()),
         topMargin: 16,
         bottomMargin: 0,
       ));
       widgets.add(_buildNineGrid(startIndex, count));
       startIndex += e.count;
     }
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       noMore: _noMore,
       onLoad: _onLoad,
       child: ListView(
@@ -273,10 +262,9 @@ class _PostScreenState extends State<PostScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: S.current.myPosts,
+      title: appLocalizations.myPosts,
     );
   }
 }

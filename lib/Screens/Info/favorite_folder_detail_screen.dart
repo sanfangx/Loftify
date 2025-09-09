@@ -1,3 +1,4 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Models/favorites_response.dart';
 import 'package:loftify/Models/recommend_response.dart';
@@ -5,17 +6,11 @@ import 'package:loftify/Models/recommend_response.dart';
 import '../../Api/user_api.dart';
 import '../../Models/history_response.dart';
 import '../../Models/post_detail_response.dart';
-import '../../Resources/theme.dart';
 import '../../Utils/enums.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
-import '../../Utils/utils.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/PostItem/favorite_folder_post_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../Post/post_detail_screen.dart';
 
 class FavoriteFolderDetailScreen extends StatefulWidget {
@@ -30,7 +25,7 @@ class FavoriteFolderDetailScreen extends StatefulWidget {
       _FavoriteFolderDetailScreenState();
 }
 
-class _FavoriteFolderDetailScreenState extends State<FavoriteFolderDetailScreen>
+class _FavoriteFolderDetailScreenState extends BaseDynamicState<FavoriteFolderDetailScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -77,7 +72,7 @@ class _FavoriteFolderDetailScreenState extends State<FavoriteFolderDetailScreen>
             }
             Map<String, int> monthCount = {};
             for (var e in _posts) {
-              String yearMonth = Utils.formatYearMonth(e.opTime ?? 0);
+              String yearMonth = TimeUtil.formatYearMonth(e.opTime ?? 0);
               monthCount.putIfAbsent(yearMonth, () => 0);
               monthCount[yearMonth] = monthCount[yearMonth]! + 1;
             }
@@ -102,7 +97,7 @@ class _FavoriteFolderDetailScreenState extends State<FavoriteFolderDetailScreen>
           }
         } catch (e, t) {
           ILogger.error("Failed to load folder detail", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {
           if (mounted) setState(() {});
@@ -124,7 +119,7 @@ class _FavoriteFolderDetailScreenState extends State<FavoriteFolderDetailScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: EasyRefresh.builder(
         refreshOnStart: true,
@@ -135,9 +130,8 @@ class _FavoriteFolderDetailScreenState extends State<FavoriteFolderDetailScreen>
         childBuilder: (context, physics) =>
             _archiveDataList.isNotEmpty && _posts.isNotEmpty
                 ? _buildNineGridGroup(physics)
-                : ItemBuilder.buildEmptyPlaceholder(
-                    context: context,
-                    text: S.current.noFavorite,
+                : EmptyPlaceholder(
+                    text: appLocalizations.noFavorite,
                     physics: physics,
                     shrinkWrap: false,
                   ),
@@ -159,7 +153,7 @@ class _FavoriteFolderDetailScreenState extends State<FavoriteFolderDetailScreen>
       }
       widgets.add(ItemBuilder.buildTitle(
         context,
-        title: S.current.descriptionWithPostCount(e.desc, e.count.toString()),
+        title: appLocalizations.descriptionWithPostCount(e.desc, e.count.toString()),
         topMargin: 16,
         bottomMargin: 0,
       ));
@@ -174,7 +168,9 @@ class _FavoriteFolderDetailScreenState extends State<FavoriteFolderDetailScreen>
   }
 
   Widget _buildNineGrid(int startIndex, int count) {
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
+      noMore: _noMore,
+      onLoad: _onLoad,
       child: GridView.extent(
         padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
         shrinkWrap: true,
@@ -190,7 +186,7 @@ class _FavoriteFolderDetailScreenState extends State<FavoriteFolderDetailScreen>
                 wh: 160),
             onTap: () {
               if (FavoriteFolderPostItemBuilder.isInvalid(_posts[trueIndex])) {
-                IToast.showTop(S.current.invalidContent);
+                IToast.showTop(appLocalizations.invalidContent);
               } else {
                 RouteUtil.pushPanelCupertinoRoute(
                   context,
@@ -206,16 +202,13 @@ class _FavoriteFolderDetailScreenState extends State<FavoriteFolderDetailScreen>
           );
         }),
       ),
-      noMore: _noMore,
-      onLoad: _onLoad,
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: _favoriteFolder?.name ?? S.current.favoriteFolderDetail,
+      title: _favoriteFolder?.name ?? appLocalizations.favoriteFolderDetail,
     );
   }
 }

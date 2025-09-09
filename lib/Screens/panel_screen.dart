@@ -13,29 +13,18 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loftify/Screens/Login/login_by_captcha_screen.dart';
 import 'package:loftify/Screens/Navigation/dynamic_screen.dart';
 import 'package:loftify/Screens/Navigation/mine_screen.dart';
-import 'package:loftify/Screens/refresh_interface.dart';
-import 'package:loftify/Utils/ilogger.dart';
 import 'package:provider/provider.dart';
 
-import '../Resources/theme.dart';
 import '../Utils/app_provider.dart';
-import '../Utils/constant.dart';
 import '../Utils/enums.dart';
-import '../Utils/lottie_util.dart';
-import '../Utils/responsive_util.dart';
-import '../Utils/route_util.dart';
-import '../Utils/utils.dart';
-import '../Widgets/Hidable/scroll_to_hide.dart';
-import '../Widgets/Item/item_builder.dart';
-import '../Widgets/Scaffold/my_bottom_navigation_bar.dart';
-import '../Widgets/Scaffold/my_scaffold.dart';
-import '../Widgets/Window/window_caption.dart';
-import '../generated/l10n.dart';
+import '../Utils/lottie_files.dart';
+import '../l10n/l10n.dart';
 import 'Navigation/home_screen.dart';
 import 'Navigation/search_screen.dart';
 
@@ -50,7 +39,7 @@ class PanelScreen extends StatefulWidget {
   State<PanelScreen> createState() => PanelScreenState();
 }
 
-class PanelScreenState extends State<PanelScreen>
+class PanelScreenState extends BaseDynamicState<PanelScreen>
     with
         TickerProviderStateMixin,
         AutomaticKeepAliveClientMixin,
@@ -79,9 +68,9 @@ class PanelScreenState extends State<PanelScreen>
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       initPage();
       darkModeWidget = LottieUtil.load(
-        LottieUtil.sunLight,
+        LottieFiles.sunLight,
         size: 25,
-        autoForward: !Utils.isDark(context),
+        autoForward: !ColorUtil.isDark(context),
         controller: darkModeController,
       );
     });
@@ -110,7 +99,7 @@ class PanelScreenState extends State<PanelScreen>
   }
 
   pushPage(Widget page) {
-    ResponsiveUtil.doInLandscape(
+    ResponsiveUtil.runByOrientation(
       landscape: () {
         appProvider.showPanelNavigator = true;
         panelNavigatorState?.push(RouteUtil.getFadeRoute(page));
@@ -208,11 +197,10 @@ class PanelScreenState extends State<PanelScreen>
               ? Stack(
                   children: [
                     Center(
-                      child: ItemBuilder.buildRoundButton(
-                        context,
-                        text: S.current.goToLogin,
-                        background: MyTheme.primaryColor,
-                        onTap: () {
+                      child: RoundIconTextButton(
+                        text: appLocalizations.goToLogin,
+                        background: ChewieTheme.primaryColor,
+                        onPressed: () {
                           RouteUtil.pushDialogRoute(
                             rootContext,
                             const LoginByCaptchaScreen(),
@@ -221,7 +209,7 @@ class PanelScreenState extends State<PanelScreen>
                         },
                       ),
                     ),
-                    ResponsiveUtil.buildDesktopWidget(
+                    ResponsiveUtil.selectByPlatform(
                         andCondition: unlogin,
                         desktop: const WindowMoveHandle()),
                   ],
@@ -232,7 +220,7 @@ class PanelScreenState extends State<PanelScreen>
                   children: _pageList,
                 ),
           extendBody: true,
-          bottomNavigationBar: ResponsiveUtil.buildLandscapeWidgetNullable(
+          bottomNavigationBar: ResponsiveUtil.selectByOrientationNullable(
             orCondition: unlogin,
             landscape: null,
             portrait: _buildBottomNavigationBar(),
@@ -260,10 +248,10 @@ class PanelScreenState extends State<PanelScreen>
   }
 
   _buildBottomNavigationBar() {
-    return ScrollToHide(
+    return ScrollToHide.multi(
       controller: _scrollToHideController,
       scrollControllers: getScrollControllers(),
-      hideDirection: AxisDirection.down,
+      hideDirection: Axis.vertical,
       child: Container(
         decoration: BoxDecoration(
           border: Border(
@@ -285,22 +273,22 @@ class PanelScreenState extends State<PanelScreen>
             BottomNavigationBarItem(
               icon: const Icon(Icons.explore_outlined, size: 28),
               activeIcon: const Icon(Icons.explore_rounded, size: 28),
-              label: S.current.home,
+              label: appLocalizations.home,
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.search_rounded, size: 28),
               activeIcon: const Icon(Icons.manage_search_rounded, size: 28),
-              label: S.current.search,
+              label: appLocalizations.search,
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.favorite_border_rounded, size: 28),
               activeIcon: const Icon(Icons.favorite_rounded, size: 28),
-              label: S.current.dynamic,
+              label: appLocalizations.dynamic,
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.person_outline_rounded, size: 28),
               activeIcon: const Icon(Icons.person_rounded, size: 28),
-              label: S.current.mine,
+              label: appLocalizations.mine,
             ),
           ],
           onTap: (index) {
@@ -315,7 +303,7 @@ class PanelScreenState extends State<PanelScreen>
   }
 
   changeMode() {
-    if (Utils.isDark(context)) {
+    if (ColorUtil.isDark(context)) {
       appProvider.themeMode = ActiveThemeMode.light;
       darkModeController.forward();
     } else {

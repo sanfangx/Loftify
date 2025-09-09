@@ -1,22 +1,23 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/user_api.dart';
 import 'package:loftify/Models/user_response.dart';
 import 'package:loftify/Screens/Info/user_detail_screen.dart';
-import 'package:loftify/Utils/route_util.dart';
 
 import '../../Api/setting_api.dart';
-import '../../Resources/theme.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/Dialog/custom_dialog.dart';
-import '../../Widgets/Dialog/dialog_builder.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
+import 'base_setting_screen.dart';
 
-class BlacklistSettingScreen extends StatefulWidget {
-  const BlacklistSettingScreen({super.key});
+class BlacklistSettingScreen extends BaseSettingScreen {
+  const BlacklistSettingScreen({
+    super.key,
+    super.padding,
+    super.showTitleBar,
+    super.searchConfig,
+    super.searchText,
+  });
 
   static const String routeName = "/setting/blacklist";
 
@@ -24,7 +25,8 @@ class BlacklistSettingScreen extends StatefulWidget {
   State<BlacklistSettingScreen> createState() => _BlacklistSettingScreenState();
 }
 
-class _BlacklistSettingScreenState extends State<BlacklistSettingScreen>
+class _BlacklistSettingScreenState
+    extends BaseDynamicState<BlacklistSettingScreen>
     with TickerProviderStateMixin {
   bool loading = false;
   final EasyRefreshController _refreshController = EasyRefreshController();
@@ -56,7 +58,7 @@ class _BlacklistSettingScreenState extends State<BlacklistSettingScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load blacklist", e, t);
-        IToast.showTop(S.current.loadBlacklistFailed);
+        IToast.showTop(appLocalizations.loadBlacklistFailed);
         return IndicatorResult.fail;
       } finally {
         loading = false;
@@ -68,13 +70,13 @@ class _BlacklistSettingScreenState extends State<BlacklistSettingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
-      appBar: ItemBuilder.buildResponsiveAppBar(
-        showBack: true,
-        showBorder: true,
-        title: S.current.blacklistSetting,
-        context: context,
-      ),
+      backgroundColor: ChewieTheme.getBackground(context),
+      appBar: widget.showTitleBar
+          ? ResponsiveAppBar(
+              showBack: !ResponsiveUtil.isLandscapeLayout(),
+              title: appLocalizations.blacklistSetting,
+            )
+          : null,
       body: EasyRefresh(
         controller: _refreshController,
         refreshOnStart: true,
@@ -85,15 +87,15 @@ class _BlacklistSettingScreenState extends State<BlacklistSettingScreen>
           return await _fetchBlacklist();
         },
         triggerAxis: Axis.vertical,
-        child: ItemBuilder.buildLoadMoreNotification(
+        child: LoadMoreNotification(
+          noMore: _noMore,
+          onLoad: _fetchBlacklist,
           child: ListView.builder(
             itemCount: blacklist.length,
             padding: EdgeInsets.zero,
             itemBuilder: (context, index) =>
                 _buildBlacklistRow(blacklist[index]),
           ),
-          noMore: _noMore,
-          onLoad: _fetchBlacklist,
         ),
       ),
     );
@@ -135,15 +137,15 @@ class _BlacklistSettingScreenState extends State<BlacklistSettingScreen>
             LoftifyItemBuilder.buildFramedDoubleButton(
               context: context,
               isFollowed: false,
-              positiveText: S.current.unlockBlacklist,
-              negtiveText: S.current.unlockBlacklist,
+              positiveText: appLocalizations.unlockBlacklist,
+              negtiveText: appLocalizations.unlockBlacklist,
               onTap: () {
                 DialogBuilder.showConfirmDialog(
                   context,
-                  title: S.current.unlockBlacklist,
-                  message: S.current.unlockBlacklistMessage(
+                  title: appLocalizations.unlockBlacklist,
+                  message: appLocalizations.unlockBlacklistMessage(
                       blacklistItem.blogInfo.blogNickName),
-                  confirmButtonText: S.current.unlock,
+                  confirmButtonText: appLocalizations.unlock,
                   onTapConfirm: () {
                     UserApi.blockOrUnBlock(
                       blogId: blacklistItem.blogInfo.blogId,

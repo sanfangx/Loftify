@@ -1,15 +1,10 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Models/favorites_response.dart';
-import 'package:loftify/Widgets/Item/item_builder.dart';
 
 import '../../Api/user_api.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
 import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
-import '../General/EasyRefresh/easy_refresh.dart';
-import 'bottom_sheet_builder.dart';
-import 'input_bottom_sheet.dart';
+import '../../l10n/l10n.dart';
 
 class SubscribePostBottomSheet extends StatefulWidget {
   const SubscribePostBottomSheet({
@@ -29,8 +24,8 @@ class SubscribePostBottomSheet extends StatefulWidget {
 }
 
 class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
-  List<FavoriteFolder> _subscribeFolderList = [];
-  List<FavoriteFolder> _favoriteFolderList = [];
+  final List<FavoriteFolder> _subscribeFolderList = [];
+  final List<FavoriteFolder> _favoriteFolderList = [];
   int _createCount = 0;
   bool _loading = false;
 
@@ -63,7 +58,7 @@ class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
         }
       } catch (e, t) {
         ILogger.error("Failed to load folder list", e, t);
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -94,7 +89,7 @@ class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
         }
       } catch (e, t) {
         ILogger.error("Failed to load folder list", e, t);
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -124,9 +119,9 @@ class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildHeader(),
-          ItemBuilder.buildDivider(context, horizontal: 0, vertical: 0),
+          const MyDivider(horizontal: 0, vertical: 0),
           Expanded(child: _buildButtons()),
-          ItemBuilder.buildDivider(context, horizontal: 0, vertical: 0),
+          const MyDivider(horizontal: 0, vertical: 0),
           _buildFooter(),
         ],
       ),
@@ -142,23 +137,21 @@ class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
         children: [
           Container(),
           Text(
-            S.current.selectFolder,
+            appLocalizations.selectFolder,
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          ItemBuilder.buildClickable(
-            GestureDetector(
+          ClickableGestureDetector(
               onTap: () {
                 BottomSheetBuilder.showBottomSheet(
                   context,
                   (sheetContext) => InputBottomSheet(
-                    buttonText: S.current.confirm,
-                    title: S.current.newFolder,
-                    hint: S.current.inputFolderTitle,
+                    title: appLocalizations.newFolder,
+                    hint: appLocalizations.inputFolderTitle,
                     text: "",
                     onConfirm: (text) {
                       UserApi.createFolder(name: text).then((value) {
                         if (value['code'] == 0) {
-                          IToast.showTop(S.current.createSuccess);
+                          IToast.showTop(appLocalizations.createSuccess);
                           _fetchFavoriteFolderList();
                         } else {
                           IToast.showTop(value['msg']);
@@ -171,14 +164,13 @@ class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
                 );
               },
               child: Text(
-                S.current.newOp,
+                appLocalizations.newOp,
                 style: Theme.of(context).textTheme.titleLarge?.apply(
                       fontSizeDelta: -2,
                       color: Theme.of(context).primaryColor,
                     ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -204,8 +196,7 @@ class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
                 },
               ),
             )
-          : ItemBuilder.buildEmptyPlaceholder(
-              context: context, text: S.current.noFavoriteFolder),
+          : EmptyPlaceholder(text: appLocalizations.noFavoriteFolder),
     );
   }
 
@@ -233,7 +224,7 @@ class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
                   child: SizedBox(
                     height: 80,
                     width: 80,
-                    child: ItemBuilder.buildCachedImage(
+                    child: ChewieItemBuilder.buildCachedImage(
                       context: context,
                       fit: BoxFit.cover,
                       showLoading: false,
@@ -264,15 +255,14 @@ class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        "${item.postCount}${S.current.chapter}",
+                        "${item.postCount}${appLocalizations.chapter}",
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                     ],
                   ),
                 ),
               ),
-              ItemBuilder.buildIconButton(
-                context: context,
+              CircleIconButton(
                 icon: item.postSubscribed == 1
                     ? Icon(
                         Icons.check_circle_outline_rounded,
@@ -300,22 +290,20 @@ class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
-            child: ItemBuilder.buildRoundButton(
-              context,
-              text: S.current.cancel,
-              onTap: () {
+            child: RoundIconTextButton(
+              text: appLocalizations.cancel,
+              onPressed: () {
                 Navigator.pop(context);
               },
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: ItemBuilder.buildRoundButton(
-              context,
-              text: S.current.confirm,
+            child: RoundIconTextButton(
+              text: appLocalizations.confirm,
               background: Theme.of(context).primaryColor,
               color: Colors.white,
-              onTap: () {
+              onPressed: () {
                 widget.onConfirm?.call(_favoriteFolderList
                     .where((e) => e.postSubscribed == 1)
                     .map((e) => e.id.toString())

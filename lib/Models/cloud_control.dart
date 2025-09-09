@@ -36,6 +36,7 @@
 // }
 
 import 'package:loftify/Utils/constant.dart' as Constant;
+import 'package:awesome_chewie/awesome_chewie.dart' as GlobalConstant;
 
 class LoftifyControl {
   final bool? enableApp;
@@ -98,18 +99,18 @@ class LoftifyControl {
   String get feedbackBody => contacts?.feedbackBody ?? Constant.feedbackBody;
 
   String get officialWebsite =>
-      contacts?.officialWebsite ?? Constant.officialWebsite;
+      contacts?.officialWebsite ?? GlobalConstant.officialWebsite;
 
   String get shareText => contacts?.shareText ?? Constant.shareText;
 
   String get downloadPkgsUrl =>
-      contacts?.downloadPkgsUrl ?? Constant.downloadPkgsUrl;
+      contacts?.downloadPkgsUrl ?? GlobalConstant.downloadPkgsUrl;
 
-  String get repoUrl => contacts?.repoUrl ?? Constant.repoUrl;
+  String get repoUrl => contacts?.repoUrl ?? GlobalConstant.repoUrl;
 
-  String get releaseUrl => contacts?.releaseUrl ?? Constant.releaseUrl;
+  String get releaseUrl => contacts?.releaseUrl ?? GlobalConstant.releaseUrl;
 
-  String get issueUrl => contacts?.issueUrl ?? Constant.issueUrl;
+  String get issueUrl => contacts?.issueUrl ?? GlobalConstant.issueUrl;
 
   factory LoftifyControl.fromJson(Map<String, dynamic> json) {
     return LoftifyControl(
@@ -151,12 +152,12 @@ class LoftifyControl {
       feedbackEmail: Constant.feedbackEmail,
       feedbackBody: Constant.feedbackBody,
       feedbackSubject: Constant.feedbackSubject,
-      issueUrl: Constant.issueUrl,
-      repoUrl: Constant.repoUrl,
-      officialWebsite: Constant.officialWebsite,
+      issueUrl: GlobalConstant.issueUrl,
+      repoUrl: GlobalConstant.repoUrl,
+      officialWebsite: GlobalConstant.officialWebsite,
       shareText: Constant.shareText,
-      downloadPkgsUrl: Constant.downloadPkgsUrl,
-      releaseUrl: Constant.releaseUrl,
+      downloadPkgsUrl: GlobalConstant.downloadPkgsUrl,
+      releaseUrl: GlobalConstant.releaseUrl,
     ),
     features: Features(
       showDress: true,

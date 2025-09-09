@@ -1,20 +1,12 @@
-import 'dart:io';
-
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Api/user_api.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Models/user_response.dart';
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class FollowingFollowerScreen extends StatefulWidget {
   FollowingFollowerScreen({
@@ -43,7 +35,8 @@ class FollowingFollowerScreen extends StatefulWidget {
       _FollowingFollowerScreenState();
 }
 
-class _FollowingFollowerScreenState extends State<FollowingFollowerScreen>
+class _FollowingFollowerScreenState
+    extends BaseDynamicState<FollowingFollowerScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -89,7 +82,7 @@ class _FollowingFollowerScreenState extends State<FollowingFollowerScreen>
       }
     } catch (e, t) {
       ILogger.error("Failed to load following or follower", e, t);
-      if (mounted) IToast.showTop(S.current.loadFailed);
+      if (mounted) IToast.showTop(appLocalizations.loadFailed);
       return IndicatorResult.fail;
     } finally {
       if (mounted) setState(() {});
@@ -138,7 +131,7 @@ class _FollowingFollowerScreenState extends State<FollowingFollowerScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: EasyRefresh.builder(
         refreshOnStart: true,
@@ -154,7 +147,7 @@ class _FollowingFollowerScreenState extends State<FollowingFollowerScreen>
   }
 
   Widget _buildBody(ScrollPhysics physics) {
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       noMore: _noMore,
       onLoad: _onLoad,
       child: WaterfallFlow.extent(
@@ -172,11 +165,10 @@ class _FollowingFollowerScreenState extends State<FollowingFollowerScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
       title:
-          "${widget.followingMode == FollowingMode.follower ? S.current.followerList : S.current.followingList}（$total）",
+          "${widget.followingMode == FollowingMode.follower ? appLocalizations.followerList : appLocalizations.followingList}（$total）",
     );
   }
 }

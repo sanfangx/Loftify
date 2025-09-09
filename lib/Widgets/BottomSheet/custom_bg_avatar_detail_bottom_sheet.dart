@@ -1,19 +1,14 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/gift_api.dart';
 import 'package:loftify/Models/recommend_response.dart';
 import 'package:loftify/Models/suit_response.dart';
 import 'package:loftify/Screens/Info/user_detail_screen.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:loftify/Utils/responsive_util.dart';
-import 'package:loftify/Utils/route_util.dart';
-import 'package:loftify/Widgets/Dialog/custom_dialog.dart';
 import 'package:loftify/Widgets/Item/item_builder.dart';
 
 import '../../Screens/Suit/custom_bg_avatar_list_screen.dart';
-import '../../Utils/file_util.dart';
-import '../../Utils/ilogger.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class CustomBgAvatarDetailBottomSheet extends StatefulWidget {
   const CustomBgAvatarDetailBottomSheet({super.key, required this.item});
@@ -71,7 +66,7 @@ class CustomBgAvatarDetailBottomSheetState
     } catch (e, t) {
       ILogger.error(
           "Failed to load custom bg avatar detail:${item.toJson()}", e, t);
-      if (mounted) IToast.showTop(S.current.loadFailed);
+      if (mounted) IToast.showTop(appLocalizations.loadFailed);
     }
   }
 
@@ -96,7 +91,7 @@ class CustomBgAvatarDetailBottomSheetState
             color: Theme.of(context).canvasColor,
             borderRadius: BorderRadius.vertical(
                 top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isWideLandscape()
+                bottom: ResponsiveUtil.isWideDevice()
                     ? const Radius.circular(20)
                     : Radius.zero),
           ),
@@ -106,10 +101,10 @@ class CustomBgAvatarDetailBottomSheetState
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildHeader(),
-              ItemBuilder.buildDivider(context, horizontal: 12, vertical: 0),
+              MyDivider( horizontal: 12, vertical: 0),
               _buildContent(),
               _buildDesc(),
-              ItemBuilder.buildDivider(context, horizontal: 12, vertical: 0),
+              MyDivider( horizontal: 12, vertical: 0),
               _buildFooter(),
             ],
           ),
@@ -123,7 +118,7 @@ class CustomBgAvatarDetailBottomSheetState
       padding: const EdgeInsets.symmetric(vertical: 20),
       alignment: Alignment.center,
       child: Text(
-        S.current.dressDetail,
+        appLocalizations.dressDetail,
         style: Theme.of(context).textTheme.titleLarge,
       ),
     );
@@ -234,9 +229,9 @@ class CustomBgAvatarDetailBottomSheetState
                       onTap: () {
                         _swiperController.previous();
                       },
-                      child: ItemBuilder.buildClickable(
+                      child: ClickableWrapper(
                         clickable: _currentIndex != 0,
-                        const Icon(
+                        child: const Icon(
                           Icons.keyboard_arrow_left_rounded,
                           size: 30,
                           color: Colors.white,
@@ -262,9 +257,9 @@ class CustomBgAvatarDetailBottomSheetState
                       onTap: () {
                         _swiperController.next();
                       },
-                      child: ItemBuilder.buildClickable(
+                      child: ClickableWrapper(
                         clickable: _currentIndex != count - 1,
-                        const Icon(
+                       child: const Icon(
                           Icons.keyboard_arrow_right_rounded,
                           size: 30,
                           color: Colors.white,
@@ -287,10 +282,9 @@ class CustomBgAvatarDetailBottomSheetState
                 Positioned(
                   top: 6,
                   right: 15,
-                  child: ItemBuilder.buildClickable(
-                    GestureDetector(
+                  child: ClickableGestureDetector(
                       onTap: () {
-                        if (ResponsiveUtil.isLandscape()) {
+                        if (ResponsiveUtil.isLandscapeLayout()) {
                           Navigator.pop(context);
                         }
                         try {
@@ -316,7 +310,7 @@ class CustomBgAvatarDetailBottomSheetState
                           }
                         } catch (e, t) {
                           ILogger.error("Failed to open user detail", e, t);
-                          IToast.showTop(S.current.jumpFailed);
+                          IToast.showTop(appLocalizations.jumpFailed);
                         }
                       },
                       child: ItemBuilder.buildTranslucentTag(
@@ -324,7 +318,6 @@ class CustomBgAvatarDetailBottomSheetState
                         text: currentUserNickName,
                         opacity: 0.5,
                       ),
-                    ),
                   ),
                 ),
             ],
@@ -371,10 +364,10 @@ class CustomBgAvatarDetailBottomSheetState
               context,
               icon: const Icon(Icons.download_done_rounded, size: 24),
               direction: Axis.vertical,
-              text: S.current.singleImage,
+              text: appLocalizations.singleImage,
               fontSizeDelta: -2,
               onTap: () async {
-                CustomLoadingDialog.showLoading(title: S.current.downloading);
+                CustomLoadingDialog.showLoading(title: appLocalizations.downloading);
                 String url = getUrlByIndex(_currentIndex);
                 await FileUtil.saveImage(context, url);
                 CustomLoadingDialog.dismissLoading();
@@ -388,10 +381,10 @@ class CustomBgAvatarDetailBottomSheetState
                 context,
                 icon: const Icon(Icons.done_all_rounded, size: 24),
                 direction: Axis.vertical,
-                text: S.current.all,
+                text: appLocalizations.all,
                 fontSizeDelta: -2,
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.downloading);
+                  CustomLoadingDialog.showLoading(title: appLocalizations.downloading);
                   List<String> urls = [];
                   if (isLootBox) {
                     for (var item in item.lootBox!.productItems) {
@@ -414,11 +407,10 @@ class CustomBgAvatarDetailBottomSheetState
           Expanded(
             child: SizedBox(
               height: 50,
-              child: ItemBuilder.buildRoundButton(
-                context,
+              child: RoundIconTextButton(
                 background: Theme.of(context).primaryColor,
-                text: S.current.confirm,
-                onTap: () async {
+                text: appLocalizations.confirm,
+                onPressed: () async {
                   Navigator.of(context).pop();
                 },
                 fontSizeDelta: 2,

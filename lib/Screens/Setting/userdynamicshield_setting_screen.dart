@@ -11,7 +11,7 @@ import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../Info/user_detail_screen.dart';
 
 class UserDynamicShieldSettingScreen extends StatefulWidget {
@@ -25,7 +25,7 @@ class UserDynamicShieldSettingScreen extends StatefulWidget {
 }
 
 class _UserDynamicShieldSettingScreenState
-    extends State<UserDynamicShieldSettingScreen>
+    extends BaseDynamicState<UserDynamicShieldSettingScreen>
     with TickerProviderStateMixin {
   bool loading = false;
   final EasyRefreshController _refreshController = EasyRefreshController();
@@ -50,7 +50,7 @@ class _UserDynamicShieldSettingScreenState
         }
       } catch (e, t) {
         ILogger.error("Failed to load user dynamic shield list", e, t);
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         loading = false;
@@ -62,11 +62,11 @@ class _UserDynamicShieldSettingScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
-      appBar: ItemBuilder.buildResponsiveAppBar(
+      backgroundColor: ChewieTheme.getBackground(context),
+      appBar: ResponsiveAppBar(
         showBack: true,
         showBorder: true,
-        title: S.current.userDynamicShieldSetting,
+        title: appLocalizations.userDynamicShieldSetting,
         context: context,
       ),
       body: EasyRefresh(
@@ -121,14 +121,14 @@ class _UserDynamicShieldSettingScreenState
             LoftifyItemBuilder.buildFramedDoubleButton(
               context: context,
               isFollowed: false,
-              positiveText: S.current.resumeView,
-              negtiveText: S.current.resumeView,
+              positiveText: appLocalizations.resumeView,
+              negtiveText: appLocalizations.resumeView,
               onTap: () {
                 DialogBuilder.showConfirmDialog(
                   context,
-                  title: S.current.resumeViewDynamic,
+                  title: appLocalizations.resumeViewDynamic,
                   message:
-                      S.current.resumeViewDynamicMessage(blogInfo.blogNickName),
+                      appLocalizations.resumeViewDynamicMessage(blogInfo.blogNickName),
                   onTapConfirm: () {
                     UserApi.shieldBlogOrUnShield(
                       blogId: blogInfo.blogId,

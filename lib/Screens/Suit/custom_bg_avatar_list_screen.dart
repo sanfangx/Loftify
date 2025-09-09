@@ -1,23 +1,13 @@
-import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:blur/blur.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Api/gift_api.dart';
 import 'package:loftify/Models/suit_response.dart';
-import 'package:loftify/Resources/theme.dart';
-import 'package:loftify/Utils/responsive_util.dart';
-import 'package:loftify/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:loftify/Widgets/BottomSheet/custom_bg_avatar_detail_bottom_sheet.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
-import '../../Widgets/Custom/hero_photo_view_screen.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class CustomBgAvatarListScreen extends StatefulWidget {
   const CustomBgAvatarListScreen({
@@ -37,7 +27,7 @@ class CustomBgAvatarListScreen extends StatefulWidget {
       CustomBgAvatarListScreenState();
 }
 
-class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
+class CustomBgAvatarListScreenState extends BaseDynamicState<CustomBgAvatarListScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -74,13 +64,12 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
           }
           Color bg = check
               ? Theme.of(context).primaryColor
-              : MyTheme.getCardBackground(context);
+              : ChewieTheme.canvasColor;
           Color? textColor = check ? Colors.white : null;
           return Container(
             margin: const EdgeInsets.only(right: 10),
-            child: ItemBuilder.buildRoundButton(
-              context,
-              text: index == 0 ? S.current.all : "#${tags[index - 1]}",
+            child: RoundIconTextButton(
+              text: index == 0 ? appLocalizations.all : "#${tags[index - 1]}",
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
               radius: 20,
               background: bg,
@@ -88,7 +77,7 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
                   fontSizeDelta: 1,
                   color: textColor,
                   fontWeightDelta: check ? 2 : 0),
-              onTap: () {
+              onPressed: () {
                 onSelectedTag(index == 0 ? null : tags[index - 1]);
               },
             ),
@@ -108,36 +97,34 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
         spacing: 10,
         runSpacing: 5,
         children: [
-          ItemBuilder.buildRoundButton(
-            context,
-            text: S.current.all,
+          RoundIconTextButton(
+            text: appLocalizations.all,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             radius: 20,
             background: selected == null
                 ? Theme.of(context).primaryColor
-                : MyTheme.getCardBackground(context),
+                : ChewieTheme.canvasColor,
             textStyle: Theme.of(context).textTheme.titleSmall?.apply(
                 fontSizeDelta: 1,
                 fontWeightDelta: selected == null ? 2 : 0,
                 color: selected == null ? Colors.white : null),
-            onTap: () {
+            onPressed: () {
               onSelectedTag(null);
             },
           ),
-          ...tags.map((e) => ItemBuilder.buildRoundButton(
-                context,
+          ...tags.map((e) => RoundIconTextButton(
                 text: "#$e",
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 radius: 20,
                 background: selected == e
                     ? Theme.of(context).primaryColor
-                    : MyTheme.getCardBackground(context),
+                    : ChewieTheme.canvasColor,
                 textStyle: Theme.of(context).textTheme.titleSmall?.apply(
                     fontSizeDelta: 1,
                     fontWeightDelta: selected == e ? 2 : 0,
                     color: selected == e ? Colors.white : null),
-                onTap: () {
+                onPressed: () {
                   onSelectedTag(e);
                 },
               )),
@@ -197,7 +184,7 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
       }
     } catch (e, t) {
       ILogger.error("Failed to load dress list", e, t);
-      if (mounted) IToast.showTop(S.current.loadFailed);
+      if (mounted) IToast.showTop(appLocalizations.loadFailed);
       return IndicatorResult.fail;
     } finally {
       if (mounted) setState(() {});
@@ -235,9 +222,8 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
             childBuilder: (context, physics) {
               return _productList.isNotEmpty
                   ? _buildBody(physics)
-                  : ItemBuilder.buildEmptyPlaceholder(
-                      context: context,
-                      text: S.current.noBgAvatar,
+                  : EmptyPlaceholder(
+                      text: appLocalizations.noBgAvatar,
                       physics: physics);
             },
           ),
@@ -247,7 +233,9 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
   }
 
   Widget _buildBody(ScrollPhysics physics) {
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
+      noMore: _noMore,
+      onLoad: _onLoad,
       child: WaterfallFlow.builder(
         physics: physics,
         cacheExtent: 9999,
@@ -262,25 +250,22 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
           return _buildProductItem(_productList[index]);
         },
       ),
-      noMore: _noMore,
-      onLoad: _onLoad,
     );
   }
 
   _buildProductItem(ProductItem item) {
-    return ItemBuilder.buildClickable(
+    return ClickableWrapper(child:
       GestureDetector(
         onTap: () {
           BottomSheetBuilder.showBottomSheet(
             context,
             (_) => CustomBgAvatarDetailBottomSheet(item: item),
             responsive: true,
-            useVerticalMargin: true,
           );
         },
         child: Container(
           decoration: BoxDecoration(
-            color: MyTheme.getCardBackground(context),
+            color: ChewieTheme.canvasColor,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Column(
@@ -310,8 +295,7 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   itemBuilder: (context, index) => Container(
                     margin: const EdgeInsets.only(right: 5),
-                    child: ItemBuilder.buildRoundButton(
-                      context,
+                    child: RoundIconTextButton(
                       text: "#${item.tags[index].tag}",
                       padding: const EdgeInsets.symmetric(
                           horizontal: 4, vertical: 0),
@@ -347,7 +331,7 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
       }
     }
     return buildProductBg(context, bgUrl, isAvatar,
-        tag: item.type == 0 ? S.current.singleSuit : S.current.cardPool,
+        tag: item.type == 0 ? appLocalizations.singleSuit : appLocalizations.cardPool,
         isHero: false);
   }
 
@@ -373,7 +357,7 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
             colorOpacity: 0.25,
             child: Container(
               padding: const EdgeInsets.all(2),
-              child: ItemBuilder.buildCachedImage(
+              child: ChewieItemBuilder.buildCachedImage(
                 imageUrl: url,
                 context: context,
                 showLoading: false,
@@ -434,7 +418,7 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
     List<String>? urls,
     Function(int)? onIndexChanged,
   }) {
-    Widget image = ItemBuilder.buildCachedImage(
+    Widget image = ChewieItemBuilder.buildCachedImage(
       imageUrl: url,
       context: context,
       showLoading: false,
@@ -444,7 +428,7 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
       height: height,
     );
     image = isHero
-        ? ItemBuilder.buildClickable(GestureDetector(
+        ? ClickableWrapper(child:GestureDetector(
             onTap: () {
               RouteUtil.pushDialogRoute(
                 context,
@@ -514,7 +498,7 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
     List<String>? urls,
     Function(int)? onIndexChanged,
   }) {
-    Widget image = ItemBuilder.buildCachedImage(
+    Widget image = ChewieItemBuilder.buildCachedImage(
       imageUrl: url,
       context: context,
       showLoading: false,
@@ -524,7 +508,7 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
       height: height,
     );
     image = isHero
-        ? ItemBuilder.buildClickable(GestureDetector(
+        ? ClickableWrapper(child:GestureDetector(
             onTap: () {
               RouteUtil.pushDialogRoute(
                 context,

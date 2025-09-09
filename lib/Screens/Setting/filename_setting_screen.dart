@@ -7,7 +7,7 @@ import '../../Utils/constant.dart';
 import '../../Utils/enums.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class FilenameSettingScreen extends StatefulWidget {
   const FilenameSettingScreen({super.key, this.onSaved});
@@ -20,11 +20,11 @@ class FilenameSettingScreen extends StatefulWidget {
   State<FilenameSettingScreen> createState() => _FilenameSettingScreenState();
 }
 
-class _FilenameSettingScreenState extends State<FilenameSettingScreen>
+class _FilenameSettingScreenState extends BaseDynamicState<FilenameSettingScreen>
     with TickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  String filenameFormat = HiveUtil.getString(HiveUtil.filenameFormatKey,
+  String filenameFormat = ChewieHiveUtil.getString(HiveUtil.filenameFormatKey,
           defaultValue: defaultFilenameFormat) ??
       defaultFilenameFormat;
 
@@ -36,30 +36,30 @@ class _FilenameSettingScreenState extends State<FilenameSettingScreen>
   }
 
   _save() {
-    HiveUtil.put(
+    ChewieHiveUtil.put(
       HiveUtil.filenameFormatKey,
       _controller.text,
     );
     widget.onSaved?.call(_controller.text);
-    IToast.showTop(S.current.saveSuccess);
+    IToast.showTop(appLocalizations.saveSuccess);
   }
 
   _reset() {
     _controller.text = defaultFilenameFormat;
-    HiveUtil.put(
+    ChewieHiveUtil.put(
       HiveUtil.filenameFormatKey,
       defaultFilenameFormat,
     );
     widget.onSaved?.call(defaultFilenameFormat);
-    IToast.showTop(S.current.resetSuccess);
+    IToast.showTop(appLocalizations.resetSuccess);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: ItemBuilder.buildResponsiveAppBar(
+      appBar: ResponsiveAppBar(
         showBack: true,
-        title: S.current.filenameFormat,
+        title: appLocalizations.filenameFormat,
         context: context,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
@@ -69,10 +69,10 @@ class _FilenameSettingScreenState extends State<FilenameSettingScreen>
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
-              ItemBuilder.buildInputItem(
+              InputItem(
                 context: context,
                 focusNode: _focusNode,
-                hint: S.current.inputFilenameFormat,
+                hint: appLocalizations.inputFilenameFormat,
                 textInputAction: TextInputAction.done,
                 controller: _controller,
                 tailingType: TailingType.widget,
@@ -82,12 +82,12 @@ class _FilenameSettingScreenState extends State<FilenameSettingScreen>
                 tailingWidget: Row(
                   children: [
                     const SizedBox(width: 5),
-                    ItemBuilder.buildIconButton(
+                    CircleIconButton(
                       context: context,
                       icon: const Icon(Icons.refresh_rounded),
                       onTap: _reset,
                     ),
-                    ItemBuilder.buildIconButton(
+                    CircleIconButton(
                       context: context,
                       icon: const Icon(Icons.save_rounded),
                       onTap: _save,
@@ -103,9 +103,9 @@ class _FilenameSettingScreenState extends State<FilenameSettingScreen>
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    ItemBuilder.buildRoundButton(
+                    RoundIconTextButton(
                       context,
-                      text: S.current.availableFields,
+                      text: appLocalizations.availableFields,
                       textStyle: Theme.of(context)
                           .textTheme
                           .titleSmall
@@ -116,7 +116,7 @@ class _FilenameSettingScreenState extends State<FilenameSettingScreen>
                       background: Colors.transparent,
                     ),
                     ...FilenameField.values.map((field) {
-                      return ItemBuilder.buildRoundButton(
+                      return RoundIconTextButton(
                         context,
                         text: field.label,
                         textStyle: Theme.of(context).textTheme.titleSmall,
@@ -152,9 +152,9 @@ class _FilenameSettingScreenState extends State<FilenameSettingScreen>
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: [
                     _buildRow([
-                      S.current.field,
-                      S.current.description,
-                      S.current.example,
+                      appLocalizations.field,
+                      appLocalizations.description,
+                      appLocalizations.example,
                     ], fontWeightDelta: 2),
                     ...List.generate(
                       FilenameField.values.length,

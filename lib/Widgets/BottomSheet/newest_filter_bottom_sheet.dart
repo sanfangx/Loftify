@@ -1,10 +1,10 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:group_button/group_button.dart';
 import 'package:loftify/Api/tag_api.dart';
 import 'package:loftify/Widgets/Item/item_builder.dart';
 
 import '../../Utils/enums.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class NewestFilterBottomSheet extends StatefulWidget {
   const NewestFilterBottomSheet({
@@ -56,15 +56,17 @@ class NewestFilterBottomSheetState extends State<NewestFilterBottomSheet> {
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
-        color: Theme.of(context).canvasColor,
+        color: Theme
+            .of(context)
+            .canvasColor,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildHeader(),
-          ItemBuilder.buildDivider(context, horizontal: 0, vertical: 0),
+          MyDivider(horizontal: 0, vertical: 0),
           _buildButtons(),
-          ItemBuilder.buildDivider(context, horizontal: 0, vertical: 0),
+          MyDivider(horizontal: 0, vertical: 0),
           _buildFooter(),
         ],
       ),
@@ -76,8 +78,11 @@ class NewestFilterBottomSheetState extends State<NewestFilterBottomSheet> {
       padding: const EdgeInsets.symmetric(vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.filter,
-        style: Theme.of(context).textTheme.titleLarge,
+        appLocalizations.filter,
+        style: Theme
+            .of(context)
+            .textTheme
+            .titleLarge,
       ),
     );
   }
@@ -90,19 +95,20 @@ class NewestFilterBottomSheetState extends State<NewestFilterBottomSheet> {
         children: [
           ItemBuilder.buildTitle(
             context,
-            title: S.current.contentRange,
+            title: appLocalizations.contentRange,
             left: 0,
             bottomMargin: 12,
-            textStyle: Theme.of(context)
+            textStyle: Theme
+                .of(context)
                 .textTheme
                 .titleMedium
                 ?.apply(fontSizeDelta: -2),
           ),
-          ItemBuilder.buildGroupButtons(
+          ChewieItemBuilder.buildGroupButtons(
             buttons: [
-              S.current.noLimit,
-              S.current.followingUser,
-              S.current.haveNotVisitRecentSevenDays
+              appLocalizations.noLimit,
+              appLocalizations.followingUser,
+              appLocalizations.haveNotVisitRecentSevenDays
             ],
             controller: _rangeController,
             onSelected: (value, index, selected) {
@@ -111,17 +117,18 @@ class NewestFilterBottomSheetState extends State<NewestFilterBottomSheet> {
           ),
           ItemBuilder.buildTitle(
             context,
-            title: S.current.contentType,
+            title: appLocalizations.contentType,
             left: 0,
             topMargin: 20,
             bottomMargin: 12,
-            textStyle: Theme.of(context)
+            textStyle: Theme
+                .of(context)
                 .textTheme
                 .titleMedium
                 ?.apply(fontSizeDelta: -2),
           ),
-          ItemBuilder.buildGroupButtons(
-            buttons: [S.current.noLimit, S.current.words, S.current.images],
+          ChewieItemBuilder.buildGroupButtons(
+            buttons: [appLocalizations.noLimit, appLocalizations.words, appLocalizations.images],
             controller: _postTypeController,
             onSelected: (value, index, selected) {
               params.postTypes = TagPostType.values[index];
@@ -129,21 +136,22 @@ class NewestFilterBottomSheetState extends State<NewestFilterBottomSheet> {
           ),
           ItemBuilder.buildTitle(
             context,
-            title: S.current.releaseTime,
+            title: appLocalizations.releaseTime,
             left: 0,
             topMargin: 20,
             bottomMargin: 12,
-            textStyle: Theme.of(context)
+            textStyle: Theme
+                .of(context)
                 .textTheme
                 .titleMedium
                 ?.apply(fontSizeDelta: -2),
           ),
-          ItemBuilder.buildGroupButtons(
+          ChewieItemBuilder.buildGroupButtons(
             buttons: [
-              S.current.noLimit,
-              S.current.inOneDay,
-              S.current.inOneWeek,
-              S.current.inOneMonth
+              appLocalizations.noLimit,
+              appLocalizations.inOneDay,
+              appLocalizations.inOneWeek,
+              appLocalizations.inOneMonth
             ],
             controller: _recentDayController,
             onSelected: (value, index, selected) {
@@ -152,17 +160,18 @@ class NewestFilterBottomSheetState extends State<NewestFilterBottomSheet> {
           ),
           ItemBuilder.buildTitle(
             context,
-            title: S.current.tagProtection,
+            title: appLocalizations.tagProtection,
             left: 0,
             topMargin: 20,
             bottomMargin: 12,
-            textStyle: Theme.of(context)
+            textStyle: Theme
+                .of(context)
                 .textTheme
                 .titleMedium
                 ?.apply(fontSizeDelta: -2),
           ),
-          ItemBuilder.buildGroupButtons(
-            buttons: [S.current.tagProtection],
+          ChewieItemBuilder.buildGroupButtons(
+            buttons: [appLocalizations.tagProtection],
             controller: _tagProtectedController,
             enableDeselect: true,
             onSelected: (value, index, selected) {
@@ -187,19 +196,20 @@ class NewestFilterBottomSheetState extends State<NewestFilterBottomSheet> {
               context,
               icon: const Icon(Icons.refresh_rounded, size: 24),
               direction: Axis.vertical,
-              text: S.current.reset,
+              text: appLocalizations.reset,
               fontSizeDelta: -2,
               onTap: reset,
             ),
           ),
           const SizedBox(width: 20),
           Expanded(
-            child: ItemBuilder.buildRoundButton(
-              context,
-              text: S.current.confirm,
-              background: Theme.of(context).primaryColor,
+            child: RoundIconTextButton(
+              text: appLocalizations.confirm,
+              background: Theme
+                  .of(context)
+                  .primaryColor,
               color: Colors.white,
-              onTap: () {
+              onPressed: () {
                 widget.onConfirm?.call(params);
                 Navigator.pop(context, params);
               },

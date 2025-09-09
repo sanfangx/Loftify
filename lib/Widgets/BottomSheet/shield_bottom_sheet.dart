@@ -1,9 +1,9 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Widgets/Item/item_builder.dart';
 
-import '../../Resources/theme.dart';
 import '../../Utils/enums.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class ShieldBottomSheet extends StatefulWidget {
   const ShieldBottomSheet({
@@ -41,7 +41,7 @@ class ShieldBottomSheetState extends State<ShieldBottomSheet> {
           margin: const EdgeInsets.symmetric(horizontal: 50),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: MyTheme.getBackground(context),
+            color: ChewieTheme.getBackground(context),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -51,7 +51,7 @@ class ShieldBottomSheetState extends State<ShieldBottomSheet> {
             children: [
               _buildHeader(),
               _buildButtons(),
-              ItemBuilder.buildDivider(context, horizontal: 12, vertical: 0),
+              const MyDivider(horizontal: 12, vertical: 0),
               _buildFooter(),
             ],
           ),
@@ -65,7 +65,7 @@ class ShieldBottomSheetState extends State<ShieldBottomSheet> {
       padding: const EdgeInsets.symmetric(vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.reduceRecommend,
+        appLocalizations.reduceRecommend,
         style: Theme.of(context).textTheme.titleLarge,
       ),
     );
@@ -117,20 +117,18 @@ class ShieldBottomSheetState extends State<ShieldBottomSheet> {
         children: [
           SizedBox(
             height: 45,
-            child: ItemBuilder.buildRoundButton(
-              context,
-              text: S.current.uninterestedInContent,
-              onTap: widget.onShieldContent,
+            child: RoundIconTextButton(
+              text: appLocalizations.uninterestedInContent,
+              onPressed: widget.onShieldContent,
               fontSizeDelta: 2,
             ),
           ),
           const SizedBox(height: 10),
           SizedBox(
             height: 45,
-            child: ItemBuilder.buildRoundButton(
-              context,
-              text: S.current.uninterestedInUser,
-              onTap: widget.onShieldUser,
+            child: RoundIconTextButton(
+              text: appLocalizations.uninterestedInUser,
+              onPressed: widget.onShieldUser,
               fontSizeDelta: 2,
             ),
           ),

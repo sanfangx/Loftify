@@ -13,7 +13,7 @@ import '../../Utils/responsive_util.dart';
 import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class LofterBasicSettingScreen extends StatefulWidget {
   const LofterBasicSettingScreen({super.key});
@@ -25,7 +25,7 @@ class LofterBasicSettingScreen extends StatefulWidget {
       _LofterBasicSettingScreenState();
 }
 
-class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
+class _LofterBasicSettingScreenState extends BaseDynamicState<LofterBasicSettingScreen>
     with TickerProviderStateMixin {
   bool acceptGiftFlag = true;
   bool showReturnGiftPreviewImg = true;
@@ -51,7 +51,7 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load gift config", e, t);
-        IToast.showTop(S.current.loadGiftSettingFailed);
+        IToast.showTop(appLocalizations.loadGiftSettingFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -76,7 +76,7 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
           }
         } catch (e, t) {
           ILogger.error("Failed to load user info", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {
           setState(() {});
@@ -100,7 +100,7 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
           }
         } catch (e, t) {
           ILogger.error("Failed to load misc config", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {
           if (mounted) setState(() {});
@@ -128,10 +128,10 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
             value['meta']['status'] == 4212) {
           DialogBuilder.showConfirmDialog(
             context,
-            title: S.current.copyrightWatermarkTitle,
-            message: S.current.copyrightWatermarkMessage,
-            confirmButtonText: S.current.goToEdit,
-            cancelButtonText: S.current.editLater,
+            title: appLocalizations.copyrightWatermarkTitle,
+            message: appLocalizations.copyrightWatermarkMessage,
+            confirmButtonText: appLocalizations.goToEdit,
+            cancelButtonText: appLocalizations.editLater,
             onTapConfirm: () {
               UriUtil.launchUrlUri(
                   context, "https://www.lofter.com/theme/${blogInfo.blogName}");
@@ -149,10 +149,10 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: ItemBuilder.buildResponsiveAppBar(
+      appBar: ResponsiveAppBar(
         showBack: true,
         context: context,
-        title: S.current.lofterBasicSetting,
+        title: appLocalizations.lofterBasicSetting,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: EasyRefresh.builder(
@@ -173,14 +173,14 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
           physics: physics,
           padding: const EdgeInsets.symmetric(horizontal: 10),
           children: [
-            if (ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
-            ItemBuilder.buildRadioItem(
+            if (ResponsiveUtil.isLandscapeLayout()) const SizedBox(height: 10),
+            CheckboxItem(
               value: personalRecommend,
               context: context,
-              title: S.current.personalizedService,
+              title: appLocalizations.personalizedService,
               roundTop: true,
               roundBottom: true,
-              description: S.current.personalizedServiceDescription,
+              description: appLocalizations.personalizedServiceDescription,
               onTap: () {
                 SettingApi.updatePersonalRecommendSetting(
                   isEnable: !personalRecommend,
@@ -196,13 +196,13 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
               },
             ),
             const SizedBox(height: 10),
-            ItemBuilder.buildCaptionItem(
-                context: context, title: S.current.copyrightProtection),
-            ItemBuilder.buildRadioItem(
+            CaptionItem(
+                context: context, title: appLocalizations.copyrightProtection),
+            CheckboxItem(
               value: appimagestamp,
               context: context,
-              title: S.current.copyrightWatermark,
-              description: S.current.copyrightWatermarkDescription,
+              title: appLocalizations.copyrightWatermark,
+              description: appLocalizations.copyrightWatermarkDescription,
               onTap: () {
                 _updateCopyRightSetting(
                   copyRightType: CopyRightType.appimagestamp,
@@ -213,11 +213,11 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
                 );
               },
             ),
-            ItemBuilder.buildRadioItem(
+            CheckboxItem(
               value: imageprotection,
               context: context,
-              title: S.current.workProtection,
-              description: S.current.workProtectionDescription,
+              title: appLocalizations.workProtection,
+              description: appLocalizations.workProtectionDescription,
               onTap: () {
                 _updateCopyRightSetting(
                   copyRightType: CopyRightType.imageprotection,
@@ -228,12 +228,12 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
                 );
               },
             ),
-            ItemBuilder.buildRadioItem(
+            CheckboxItem(
               value: videoprotection,
               context: context,
               roundBottom: true,
-              title: S.current.shareVideoProtection,
-              description: S.current.shareVideoProtectionDescription,
+              title: appLocalizations.shareVideoProtection,
+              description: appLocalizations.shareVideoProtectionDescription,
               onTap: () {
                 _updateCopyRightSetting(
                   copyRightType: CopyRightType.videoprotection,
@@ -245,12 +245,12 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
               },
             ),
             const SizedBox(height: 10),
-            ItemBuilder.buildCaptionItem(
-                context: context, title: S.current.giftSetting),
-            ItemBuilder.buildRadioItem(
+            CaptionItem(
+                context: context, title: appLocalizations.giftSetting),
+            CheckboxItem(
               value: acceptGiftFlag,
               context: context,
-              title: S.current.acceptGift,
+              title: appLocalizations.acceptGift,
               onTap: () {
                 SettingApi.updateGiftSetting(
                   acceptGiftFlag: !acceptGiftFlag,
@@ -265,11 +265,11 @@ class _LofterBasicSettingScreenState extends State<LofterBasicSettingScreen>
                 });
               },
             ),
-            ItemBuilder.buildRadioItem(
+            CheckboxItem(
               value: showReturnGiftPreviewImg,
               roundBottom: true,
               context: context,
-              title: S.current.imageBlurPreview,
+              title: appLocalizations.imageBlurPreview,
               onTap: () {
                 SettingApi.updateGiftSetting(
                   acceptGiftFlag: acceptGiftFlag,

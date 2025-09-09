@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/login_api.dart';
 import 'package:loftify/Models/login_response.dart';
@@ -8,17 +9,13 @@ import 'package:loftify/Screens/Login/login_by_password_screen.dart';
 import 'package:loftify/Utils/app_provider.dart';
 import 'package:loftify/Utils/enums.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:loftify/Widgets/Custom/no_shadow_scroll_behavior.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Models/simple_response.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/request_util.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class LoginByCaptchaScreen extends StatefulWidget {
   const LoginByCaptchaScreen({super.key, this.initPhone});
@@ -31,14 +28,14 @@ class LoginByCaptchaScreen extends StatefulWidget {
   State<LoginByCaptchaScreen> createState() => _LoginByCaptchaScreenState();
 }
 
-class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
+class _LoginByCaptchaScreenState extends BaseDynamicState<LoginByCaptchaScreen>
     with TickerProviderStateMixin, WindowListener {
   late TextEditingController _mobileController;
   late TextEditingController _captchaController;
   late TextEditingController _captchaCodeController;
   dynamic _photoCaptcha;
   bool _isFetchingCaptchaCode = false;
-  String _captchaText = S.current.getCaptcha;
+  String _captchaText = appLocalizations.getCaptcha;
 
   @override
   void initState() {
@@ -63,11 +60,11 @@ class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
     String mobile = _mobileController.text;
     String captcha = _captchaController.text;
     if (mobile.isEmpty) {
-      IToast.showTop(S.current.phoneCannotBeEmpty);
+      IToast.showTop(appLocalizations.phoneCannotBeEmpty);
       return;
     }
     if (captcha.isEmpty) {
-      IToast.showTop(S.current.imageCaptchaCannotBeEmpty);
+      IToast.showTop(appLocalizations.imageCaptchaCannotBeEmpty);
       return;
     }
     LoginApi.getCaptchaCode(mobile, captcha).then((value) {
@@ -78,7 +75,7 @@ class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
       } else {
         _isFetchingCaptchaCode = true;
         setState(() {
-          _captchaText = S.current.resendAfterSeconds(60);
+          _captchaText = appLocalizations.resendAfterSeconds(60);
         });
         Timer.periodic(const Duration(seconds: 1), (timer) {
           if (timer.tick == 60) {
@@ -86,7 +83,7 @@ class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
             if (mounted) {
               setState(() {
                 _isFetchingCaptchaCode = false;
-                _captchaText = S.current.getCaptcha;
+                _captchaText = appLocalizations.getCaptcha;
                 _refreshPhotoCaptcha();
                 _captchaController.text = "";
               });
@@ -94,12 +91,12 @@ class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
           } else {
             if (mounted) {
               setState(() {
-                _captchaText = S.current.resendAfterSeconds(60 - timer.tick);
+                _captchaText = appLocalizations.resendAfterSeconds(60 - timer.tick);
               });
             }
           }
         });
-        IToast.showTop(S.current.sendCaptchaSuccess);
+        IToast.showTop(appLocalizations.sendCaptchaSuccess);
       }
     });
   }
@@ -108,7 +105,7 @@ class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
     String mobile = _mobileController.text;
     String password = _captchaCodeController.text;
     if (mobile.isEmpty || password.isEmpty) {
-      IToast.showTop(S.current.phoneOrCodeCaptchaCannotBeEmpty);
+      IToast.showTop(appLocalizations.phoneOrCodeCaptchaCannotBeEmpty);
       return;
     }
     LoginApi.loginByCaptchaCode(mobile, password).then((value) async {
@@ -117,13 +114,14 @@ class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
         IToast.showTop(loginResponse.desc);
         _refreshPhotoCaptcha();
       } else {
-        IToast.showTop(S.current.loginSuccess);
+        IToast.showTop(appLocalizations.loginSuccess);
         appProvider.token = loginResponse.token ?? "";
         await RequestUtil.clearCookie();
-        await HiveUtil.put(HiveUtil.userIdKey, loginResponse.userid);
-        await HiveUtil.put(HiveUtil.tokenKey, loginResponse.token);
-        await HiveUtil.put(HiveUtil.deviceIdKey, loginResponse.deviceid);
-        await HiveUtil.put(HiveUtil.tokenTypeKey, TokenType.captchCode.index);
+        await ChewieHiveUtil.put(HiveUtil.userIdKey, loginResponse.userid);
+        await ChewieHiveUtil.put(HiveUtil.tokenKey, loginResponse.token);
+        await ChewieHiveUtil.put(HiveUtil.deviceIdKey, loginResponse.deviceid);
+        await ChewieHiveUtil.put(
+            HiveUtil.tokenTypeKey, TokenType.captchCode.index);
         mainScreenState?.login();
       }
     });
@@ -138,13 +136,9 @@ class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: ItemBuilder.buildSimpleAppBar(
-          title: S.current.loginByCaptcha,
-          context: context,
-          leadingIcon: Icons.close_rounded,
-          transparent: true,
-          titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
-          showLeading: !ResponsiveUtil.isLandscape(),
+        appBar: ResponsiveAppBar(
+          title: appLocalizations.loginByCaptcha,
+          titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
         ),
         body: Container(
           margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -155,56 +149,67 @@ class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
                 child: ListView(
                   children: [
                     const SizedBox(height: 50),
-                    ItemBuilder.buildInputItem(
-                      context: context,
-                      hint: S.current.inputPhone,
+                    InputItem(
+                      hint: appLocalizations.inputPhone,
                       textInputAction: TextInputAction.next,
                       controller: _mobileController,
-                      tailingType: TailingType.clear,
-                      leadingIcon: Icons.phone_android_rounded,
+                      tailingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.clear,
+                      ),
+                      leadingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.icon,
+                        icon: Icons.phone_android_rounded,
+                      ),
                       keyboardType: TextInputType.number,
                     ),
-                    ItemBuilder.buildInputItem(
-                      context: context,
-                      hint: S.current.inputImageCaptcha,
+                    InputItem(
+                      hint: appLocalizations.inputImageCaptcha,
                       textInputAction: TextInputAction.next,
-                      leadingIcon: Icons.verified_outlined,
+                      leadingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.icon,
+                        icon: Icons.verified_outlined,
+                      ),
+                      tailingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.widget,
+                        widget: _photoCaptcha != null
+                            ? GestureDetector(
+                                onTap: () {
+                                  _refreshPhotoCaptcha();
+                                },
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8)),
+                                  child: Image.memory(_photoCaptcha,
+                                      width: 80, height: 40),
+                                ),
+                              )
+                            : const SizedBox(width: 80, height: 40),
+                      ),
                       controller: _captchaController,
-                      tailingType: TailingType.widget,
                       keyboardType: TextInputType.number,
-                      tailingWidget: _photoCaptcha != null
-                          ? GestureDetector(
-                              onTap: () {
-                                _refreshPhotoCaptcha();
-                              },
-                              child: ClipRRect(
-                                borderRadius:
-                                    const BorderRadius.all(Radius.circular(8)),
-                                child: Image.memory(_photoCaptcha,
-                                    width: 80, height: 40),
-                              ),
-                            )
-                          : const SizedBox(width: 80, height: 40),
                     ),
-                    ItemBuilder.buildInputItem(
-                      context: context,
-                      hint: S.current.inputCodeCaptcha,
+                    InputItem(
+                      hint: appLocalizations.inputCodeCaptcha,
                       textInputAction: TextInputAction.next,
                       controller: _captchaCodeController,
-                      tailingType: TailingType.text,
-                      tailingText: _captchaText,
-                      leadingIcon: Icons.password_rounded,
-                      tailingEnable: !_isFetchingCaptchaCode,
-                      onTailingTap: _fetchCaptchaCode,
+                      tailingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.text,
+                        text: _captchaText,
+                        enable: !_isFetchingCaptchaCode,
+                        onTap: _fetchCaptchaCode,
+                      ),
+                      leadingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.icon,
+                        icon: Icons.password_rounded,
+                      ),
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 30),
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 50),
-                      child: ItemBuilder.buildRoundButton(
-                        context,
-                        text: S.current.login,
-                        onTap: _login,
+                      child: RoundIconTextButton(
+                        text: appLocalizations.login,
+                        onPressed: _login,
                         background: Theme.of(context).primaryColor,
                         color: Colors.white,
                         fontSizeDelta: 2,
@@ -222,17 +227,17 @@ class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
                   children: [
                     ItemBuilder.buildTextDivider(
                       context: context,
-                      text: S.current.otherLoginMethods,
+                      text: appLocalizations.otherLoginMethods,
                     ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        ItemBuilder.buildSmallIcon(
+                        ToolButton(
                             context: context,
                             icon: Icons.password_rounded,
-                            onTap: () {
+                            onPressed: () {
                               RouteUtil.pushCupertinoRoute(
                                 context,
                                 LoginByPasswordScreen(
@@ -241,17 +246,17 @@ class _LoginByCaptchaScreenState extends State<LoginByCaptchaScreen>
                               );
                             }),
                         const SizedBox(width: 30),
-                        ItemBuilder.buildSmallIcon(
+                        ToolButton(
                             context: context,
                             icon: Icons.card_membership_rounded,
-                            onTap: () {
+                            onPressed: () {
                               RouteUtil.pushCupertinoRoute(
                                 context,
                                 const LoginByLofterIDScreen(),
                               );
                             }),
                         // const SizedBox(width: 30),
-                        // ItemBuilder.buildSmallIcon(
+                        // ToolButton(
                         //     context: context,
                         //     icon: Icons.mail_outline_rounded,
                         //     onTap: () {

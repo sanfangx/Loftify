@@ -22,7 +22,7 @@ import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class GeneralSettingScreen extends StatefulWidget {
   const GeneralSettingScreen({super.key});
@@ -33,27 +33,27 @@ class GeneralSettingScreen extends StatefulWidget {
   State<GeneralSettingScreen> createState() => GeneralSettingScreenState();
 }
 
-class GeneralSettingScreenState extends State<GeneralSettingScreen>
+class GeneralSettingScreenState extends BaseDynamicState<GeneralSettingScreen>
     with TickerProviderStateMixin {
   String _cacheSize = "";
   List<Tuple2<String, Locale?>> _supportedLocaleTuples = [];
-  bool inAppBrowser = HiveUtil.getBool(HiveUtil.inappWebviewKey);
+  bool inAppBrowser = ChewieHiveUtil.getBool(HiveUtil.inappWebviewKey);
   String currentVersion = "";
   String latestVersion = "";
   ReleaseItem? latestReleaseItem;
-  bool autoCheckUpdate = HiveUtil.getBool(HiveUtil.autoCheckUpdateKey);
-  bool enableMinimizeToTray = HiveUtil.getBool(HiveUtil.enableCloseToTrayKey);
-  bool recordWindowState = HiveUtil.getBool(HiveUtil.recordWindowStateKey);
-  bool enableCloseNotice = HiveUtil.getBool(HiveUtil.enableCloseNoticeKey);
+  bool autoCheckUpdate = ChewieHiveUtil.getBool(HiveUtil.autoCheckUpdateKey);
+  bool enableMinimizeToTray = ChewieHiveUtil.getBool(HiveUtil.enableCloseToTrayKey);
+  bool recordWindowState = ChewieHiveUtil.getBool(HiveUtil.recordWindowStateKey);
+  bool enableCloseNotice = ChewieHiveUtil.getBool(HiveUtil.enableCloseNoticeKey);
   int doubleTapAction = Utils.patchEnum(
-      HiveUtil.getInt(HiveUtil.doubleTapActionKey, defaultValue: 1),
+      ChewieHiveUtil.getInt(HiveUtil.doubleTapActionKey, defaultValue: 1),
       DoubleTapAction.values.length);
   int downloadSuccessAction = Utils.patchEnum(
-      HiveUtil.getInt(HiveUtil.downloadSuccessActionKey),
+      ChewieHiveUtil.getInt(HiveUtil.downloadSuccessActionKey),
       DownloadSuccessAction.values.length);
   String _logSize = "";
-  bool launchAtStartup = HiveUtil.getBool(HiveUtil.launchAtStartupKey);
-  bool showTray = HiveUtil.getBool(HiveUtil.showTrayKey);
+  bool launchAtStartup = ChewieHiveUtil.getBool(HiveUtil.launchAtStartupKey);
+  bool showTray = ChewieHiveUtil.getBool(HiveUtil.showTrayKey);
 
   Future<void> getLogSize() async {
     double size = await FileOutput.getLogsSize();
@@ -64,7 +64,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
 
   refreshLauchAtStartup() {
     setState(() {
-      launchAtStartup = HiveUtil.getBool(HiveUtil.launchAtStartupKey);
+      launchAtStartup = ChewieHiveUtil.getBool(HiveUtil.launchAtStartupKey);
     });
   }
 
@@ -93,7 +93,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
   void filterLocale() {
     _supportedLocaleTuples = [];
     List<Locale> locales = S.delegate.supportedLocales;
-    _supportedLocaleTuples.add(Tuple2(S.current.followSystem, null));
+    _supportedLocaleTuples.add(Tuple2(appLocalizations.followSystem, null));
     for (Locale locale in locales) {
       dynamic tuple = LocaleUtil.getTuple(locale);
       if (tuple != null) {
@@ -130,9 +130,9 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
       color: Colors.transparent,
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: ItemBuilder.buildResponsiveAppBar(
+        appBar: ResponsiveAppBar(
           showBack: true,
-          title: S.current.generalSetting,
+          title: appLocalizations.generalSetting,
           context: context,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         ),
@@ -140,12 +140,12 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
-              if (ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
+              if (ResponsiveUtil.isLandscapeLayout()) const SizedBox(height: 10),
               Selector<AppProvider, Locale?>(
                 selector: (context, globalProvider) => globalProvider.locale,
-                builder: (context, locale, child) => ItemBuilder.buildEntryItem(
+                builder: (context, locale, child) => EntryItem(
                   context: context,
-                  title: S.current.language,
+                  title: appLocalizations.language,
                   tip: LocaleUtil.getLabel(locale)!,
                   roundTop: true,
                   roundBottom: true,
@@ -161,7 +161,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
                         },
                         selected: locale,
                         context: context,
-                        title: S.current.chooseLanguage,
+                        title: appLocalizations.chooseLanguage,
                         onCloseTap: () => Navigator.pop(context),
                       ),
                     );
@@ -169,11 +169,11 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
                 ),
               ),
               const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.operationSetting),
-              ItemBuilder.buildEntryItem(
+              CaptionItem(
+                  context: context, title: appLocalizations.operationSetting),
+              EntryItem(
                 context: context,
-                title: S.current.doubleTapInDetailPage,
+                title: appLocalizations.doubleTapInDetailPage,
                 tip: DoubleTapAction.values[doubleTapAction].label,
                 onTap: () {
                   BottomSheetBuilder.showListBottomSheet(
@@ -184,12 +184,12 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
                         Navigator.pop(sheetContext);
                         setState(() {
                           doubleTapAction = newAction.index;
-                          HiveUtil.put(
+                          ChewieHiveUtil.put(
                               HiveUtil.doubleTapActionKey, doubleTapAction);
                         });
                       },
                       selected: DoubleTapAction.values[doubleTapAction],
-                      title: S.current.chooseDoubleTapInDetailPage,
+                      title: appLocalizations.chooseDoubleTapInDetailPage,
                       context: context,
                       onCloseTap: () => Navigator.pop(sheetContext),
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,10 +197,10 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
                   );
                 },
               ),
-              ItemBuilder.buildEntryItem(
+              EntryItem(
                 context: context,
-                title: S.current.afterDownloadSuccess,
-                description: S.current.afterDownloadSuccessDescription,
+                title: appLocalizations.afterDownloadSuccess,
+                description: appLocalizations.afterDownloadSuccessDescription,
                 roundBottom: true,
                 tip: DownloadSuccessAction.values[downloadSuccessAction].label,
                 onTap: () {
@@ -212,13 +212,13 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
                         Navigator.pop(sheetContext);
                         setState(() {
                           downloadSuccessAction = newAction.index;
-                          HiveUtil.put(HiveUtil.downloadSuccessActionKey,
+                          ChewieHiveUtil.put(HiveUtil.downloadSuccessActionKey,
                               downloadSuccessAction);
                         });
                       },
                       selected:
                           DownloadSuccessAction.values[downloadSuccessAction],
-                      title: S.current.chooseAfterDownloadSuccess,
+                      title: appLocalizations.chooseAfterDownloadSuccess,
                       context: context,
                       onCloseTap: () => Navigator.pop(sheetContext),
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,26 +229,26 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
               if (ResponsiveUtil.isDesktop()) ..._desktopSetting(),
               if (ResponsiveUtil.isMobile()) ..._mobileSetting(),
               const SizedBox(height: 10),
-              ItemBuilder.buildRadioItem(
+              CheckboxItem(
                 value: autoCheckUpdate,
                 roundTop: true,
                 context: context,
-                title: S.current.autoCheckUpdates,
+                title: appLocalizations.autoCheckUpdates,
                 onTap: () {
                   setState(() {
                     autoCheckUpdate = !autoCheckUpdate;
-                    HiveUtil.put(HiveUtil.autoCheckUpdateKey, autoCheckUpdate);
+                    ChewieHiveUtil.put(HiveUtil.autoCheckUpdateKey, autoCheckUpdate);
                   });
                 },
               ),
-              ItemBuilder.buildEntryItem(
+              EntryItem(
                 context: context,
-                title: S.current.checkUpdates,
+                title: appLocalizations.checkUpdates,
                 roundBottom: true,
                 description:
                     Utils.compareVersion(latestVersion, currentVersion) > 0
-                        ? S.current.newVersion(latestVersion)
-                        : S.current.alreadyLatestVersion,
+                        ? appLocalizations.newVersion(latestVersion)
+                        : appLocalizations.alreadyLatestVersion,
                 descriptionColor:
                     Utils.compareVersion(latestVersion, currentVersion) > 0
                         ? Colors.redAccent
@@ -270,32 +270,32 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
   _mobileSetting() {
     return [
       const SizedBox(height: 10),
-      ItemBuilder.buildRadioItem(
+      CheckboxItem(
         value: inAppBrowser,
         context: context,
-        title: S.current.inAppBrowser,
+        title: appLocalizations.inAppBrowser,
         roundTop: true,
         onTap: () {
           setState(() {
             inAppBrowser = !inAppBrowser;
-            HiveUtil.put(HiveUtil.inappWebviewKey, inAppBrowser);
+            ChewieHiveUtil.put(HiveUtil.inappWebviewKey, inAppBrowser);
           });
         },
       ),
-      ItemBuilder.buildEntryItem(
+      EntryItem(
         context: context,
-        title: S.current.clearCache,
+        title: appLocalizations.clearCache,
         roundBottom: true,
         tip: _cacheSize,
         onTap: () {
-          CustomLoadingDialog.showLoading(title: S.current.clearingCache);
+          CustomLoadingDialog.showLoading(title: appLocalizations.clearingCache);
           getTemporaryDirectory().then((tempDir) {
             CacheUtil.delDir(tempDir).then((value) {
               CacheUtil.loadCache().then((value) {
                 setState(() {
                   _cacheSize = value;
                   CustomLoadingDialog.dismissLoading();
-                  IToast.showTop(S.current.clearCacheSuccess);
+                  IToast.showTop(appLocalizations.clearCacheSuccess);
                 });
               });
             });
@@ -308,34 +308,34 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
   _logSetting() {
     return [
       const SizedBox(height: 10),
-      ItemBuilder.buildEntryItem(
+      EntryItem(
         context: context,
-        title: S.current.exportLog,
-        description: S.current.exportLogHint,
+        title: appLocalizations.exportLog,
+        description: appLocalizations.exportLogHint,
         roundTop: true,
         onTap: () {
           FileUtil.exportLogs();
         },
       ),
-      ItemBuilder.buildEntryItem(
+      EntryItem(
         context: context,
-        title: S.current.clearLog,
+        title: appLocalizations.clearLog,
         roundBottom: true,
         tip: _logSize,
         onTap: () async {
           DialogBuilder.showConfirmDialog(
             context,
-            title: S.current.clearLogTitle,
-            message: S.current.clearLogHint,
+            title: appLocalizations.clearLogTitle,
+            message: appLocalizations.clearLogHint,
             onTapConfirm: () async {
-              CustomLoadingDialog.showLoading(title: S.current.clearingLog);
+              CustomLoadingDialog.showLoading(title: appLocalizations.clearingLog);
               try {
                 await FileOutput.clearLogs();
                 await getLogSize();
-                IToast.showTop(S.current.clearLogSuccess);
+                IToast.showTop(appLocalizations.clearLogSuccess);
               } catch (e, t) {
                 ILogger.error("Failed to clear logs", e, t);
-                IToast.showTop(S.current.clearLogFailed);
+                IToast.showTop(appLocalizations.clearLogFailed);
               } finally {
                 CustomLoadingDialog.dismissLoading();
               }
@@ -349,16 +349,16 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
   _desktopSetting() {
     return [
       const SizedBox(height: 10),
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.desktopSetting),
-      ItemBuilder.buildRadioItem(
+      CaptionItem(
+          context: context, title: appLocalizations.desktopSetting),
+      CheckboxItem(
         context: context,
-        title: S.current.launchAtStartup,
+        title: appLocalizations.launchAtStartup,
         value: launchAtStartup,
         onTap: () async {
           setState(() {
             launchAtStartup = !launchAtStartup;
-            HiveUtil.put(HiveUtil.launchAtStartupKey, launchAtStartup);
+            ChewieHiveUtil.put(HiveUtil.launchAtStartupKey, launchAtStartup);
           });
           if (launchAtStartup) {
             await LaunchAtStartup.instance.enable();
@@ -368,14 +368,14 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
           Utils.initTray();
         },
       ),
-      ItemBuilder.buildRadioItem(
+      CheckboxItem(
         context: context,
-        title: S.current.showTray,
+        title: appLocalizations.showTray,
         value: showTray,
         onTap: () async {
           setState(() {
             showTray = !showTray;
-            HiveUtil.put(HiveUtil.showTrayKey, showTray);
+            ChewieHiveUtil.put(HiveUtil.showTrayKey, showTray);
             if (showTray) {
               Utils.initTray();
             } else {
@@ -386,16 +386,16 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
       ),
       Visibility(
         visible: showTray,
-        child: ItemBuilder.buildEntryItem(
+        child: EntryItem(
           context: context,
-          title: S.current.closeWindowOption,
+          title: appLocalizations.closeWindowOption,
           tip: enableMinimizeToTray
-              ? S.current.minimizeToTray
-              : S.current.exitApp,
+              ? appLocalizations.minimizeToTray
+              : appLocalizations.exitApp,
           onTap: () {
             List<Tuple2<String, dynamic>> options = [
-              Tuple2(S.current.minimizeToTray, 0),
-              Tuple2(S.current.exitApp, 1),
+              Tuple2(appLocalizations.minimizeToTray, 0),
+              Tuple2(appLocalizations.exitApp, 1),
             ];
             BottomSheetBuilder.showListBottomSheet(
               context,
@@ -406,19 +406,19 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
                   if (idx == 0) {
                     setState(() {
                       enableMinimizeToTray = true;
-                      HiveUtil.put(
+                      ChewieHiveUtil.put(
                           HiveUtil.enableCloseToTrayKey, enableMinimizeToTray);
                     });
                   } else if (idx == 1) {
                     setState(() {
                       enableMinimizeToTray = false;
-                      HiveUtil.put(
+                      ChewieHiveUtil.put(
                           HiveUtil.enableCloseToTrayKey, enableMinimizeToTray);
                     });
                   }
                 },
                 selected: enableMinimizeToTray ? 0 : 1,
-                title: S.current.chooseCloseWindowOption,
+                title: appLocalizations.chooseCloseWindowOption,
                 context: context,
                 onCloseTap: () => Navigator.pop(sheetContext),
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,16 +427,16 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
           },
         ),
       ),
-      ItemBuilder.buildRadioItem(
+      CheckboxItem(
         context: context,
-        title: S.current.autoMemoryWindowPositionAndSize,
+        title: appLocalizations.autoMemoryWindowPositionAndSize,
         value: recordWindowState,
-        description: S.current.autoMemoryWindowPositionAndSizeTip,
+        description: appLocalizations.autoMemoryWindowPositionAndSizeTip,
         roundBottom: true,
         onTap: () async {
           setState(() {
             recordWindowState = !recordWindowState;
-            HiveUtil.put(HiveUtil.recordWindowStateKey, recordWindowState);
+            ChewieHiveUtil.put(HiveUtil.recordWindowStateKey, recordWindowState);
           });
           HiveUtil.setWindowSize(await windowManager.getSize());
           HiveUtil.setWindowPosition(await windowManager.getPosition());

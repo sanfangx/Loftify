@@ -1,17 +1,12 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/tag_api.dart';
 import 'package:loftify/Models/recommend_response.dart';
-import 'package:loftify/Resources/theme.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/utils.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/PostItem/recommend_flow_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class TagInsearchScreen extends StatefulWidget {
   const TagInsearchScreen({super.key, required this.tag});
@@ -24,7 +19,7 @@ class TagInsearchScreen extends StatefulWidget {
   State<TagInsearchScreen> createState() => _TagInsearchScreenState();
 }
 
-class _TagInsearchScreenState extends State<TagInsearchScreen>
+class _TagInsearchScreenState extends BaseDynamicState<TagInsearchScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -57,7 +52,7 @@ class _TagInsearchScreenState extends State<TagInsearchScreen>
     super.build(context);
     return Scaffold(
       appBar: _buildAppBar(),
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       body: Column(
         children: [
           _buildSearchBar(),
@@ -69,7 +64,7 @@ class _TagInsearchScreenState extends State<TagInsearchScreen>
                   children: [
                     if (_relatedTagList.isNotEmpty && _postList.isEmpty)
                       ItemBuilder.buildTitle(context,
-                          title: S.current.allAreSearching, bottomMargin: 8),
+                          title: appLocalizations.allAreSearching, bottomMargin: 8),
                     if (_relatedTagList.isNotEmpty && _postList.isEmpty)
                       ItemBuilder.buildWrapTagList(
                         context,
@@ -91,7 +86,7 @@ class _TagInsearchScreenState extends State<TagInsearchScreen>
   }
 
   _performSearch(String key) {
-    if (Utils.isNotEmpty(key)) {
+    if (StringUtil.isNotEmpty(key)) {
       _fetchResult(key, refresh: true);
       FocusScope.of(context).requestFocus(FocusNode());
     }
@@ -162,7 +157,7 @@ class _TagInsearchScreenState extends State<TagInsearchScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load tag insearch result list", e, t);
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -181,7 +176,7 @@ class _TagInsearchScreenState extends State<TagInsearchScreen>
         return await _fetchResult(_searchController.text);
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         noMore: _noMore,
         onLoad: () async {
           return await _fetchResult(_searchController.text);
@@ -221,7 +216,7 @@ class _TagInsearchScreenState extends State<TagInsearchScreen>
         hintFontSizeDelta: 1,
         context: context,
         background: Colors.grey.withAlpha(40),
-        hintText: S.current.multipleSearchKeySeparatedBySpaces,
+        hintText: appLocalizations.multipleSearchKeySeparatedBySpaces,
         onSubmitted: (value) {
           _performSearch(value);
         },
@@ -231,16 +226,15 @@ class _TagInsearchScreenState extends State<TagInsearchScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
       centerTitle: true,
-      titleWidget: ItemBuilder.buildClickable(
+      titleWidget: ClickableWrapper(child:
         ItemBuilder.buildTagItem(
           context,
           widget.tag,
           TagType.normal,
-          shownTag: S.current.searchInTag(widget.tag),
+          shownTag: appLocalizations.searchInTag(widget.tag),
           backgroundColor: Theme.of(context).primaryColor.withAlpha(30),
           color: Theme.of(context).primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -248,7 +242,7 @@ class _TagInsearchScreenState extends State<TagInsearchScreen>
           showTagLabel: false,
         ),
       ),
-      actions: [ItemBuilder.buildBlankIconButton(context)],
+      actions: const [BlankIconButton()],
     );
   }
 }

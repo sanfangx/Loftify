@@ -12,7 +12,7 @@ import '../../Utils/responsive_util.dart';
 import '../../Utils/route_util.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'about_setting_screen.dart';
 import 'experiment_setting_screen.dart';
 
@@ -25,7 +25,7 @@ class SettingScreen extends StatefulWidget {
   State<SettingScreen> createState() => _SettingScreenState();
 }
 
-class _SettingScreenState extends State<SettingScreen>
+class _SettingScreenState extends BaseDynamicState<SettingScreen>
     with TickerProviderStateMixin {
   @override
   void initState() {
@@ -37,9 +37,9 @@ class _SettingScreenState extends State<SettingScreen>
     return Container(
       color: Colors.transparent,
       child: Scaffold(
-        appBar: ItemBuilder.buildResponsiveAppBar(
+        appBar: ResponsiveAppBar(
           showBack: true,
-          title: S.current.setting,
+          title: appLocalizations.setting,
           context: context,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         ),
@@ -47,12 +47,12 @@ class _SettingScreenState extends State<SettingScreen>
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
-              if (ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.basicSetting),
-              ItemBuilder.buildEntryItem(
+              if (ResponsiveUtil.isLandscapeLayout()) const SizedBox(height: 10),
+              CaptionItem(
+                  context: context, title: appLocalizations.basicSetting),
+              EntryItem(
                 context: context,
-                title: S.current.generalSetting,
+                title: appLocalizations.generalSetting,
                 showLeading: true,
                 onTap: () {
                   RouteUtil.pushPanelCupertinoRoute(context,
@@ -60,9 +60,9 @@ class _SettingScreenState extends State<SettingScreen>
                 },
                 leading: Icons.settings_outlined,
               ),
-              ItemBuilder.buildEntryItem(
+              EntryItem(
                 context: context,
-                title: S.current.appearanceSetting,
+                title: appLocalizations.appearanceSetting,
                 showLeading: true,
                 onTap: () {
                   RouteUtil.pushPanelCupertinoRoute(
@@ -70,9 +70,9 @@ class _SettingScreenState extends State<SettingScreen>
                 },
                 leading: Icons.color_lens_outlined,
               ),
-              ItemBuilder.buildEntryItem(
+              EntryItem(
                 context: context,
-                title: S.current.imageSetting,
+                title: appLocalizations.imageSetting,
                 showLeading: true,
                 onTap: () {
                   RouteUtil.pushPanelCupertinoRoute(
@@ -80,9 +80,9 @@ class _SettingScreenState extends State<SettingScreen>
                 },
                 leading: Icons.image_outlined,
               ),
-              // ItemBuilder.buildEntryItem(
+              // EntryItem(
               //   context: context,
-              //   title: S.current.operationSetting,
+              //   title: appLocalizations.operationSetting,
               //   showLeading: true,
               //   onTap: () {
               //     RouteUtil.pushPanelCupertinoRoute(
@@ -90,9 +90,9 @@ class _SettingScreenState extends State<SettingScreen>
               //   },
               //   leading: Icons.touch_app_outlined,
               // ),
-              ItemBuilder.buildEntryItem(
+              EntryItem(
                 context: context,
-                title: S.current.experimentSetting,
+                title: appLocalizations.experimentSetting,
                 showLeading: true,
                 roundBottom: true,
                 onTap: () {
@@ -113,9 +113,9 @@ class _SettingScreenState extends State<SettingScreen>
   }
 
   _buildAbout() {
-    return ItemBuilder.buildEntryItem(
+    return EntryItem(
       context: context,
-      title: S.current.about,
+      title: appLocalizations.about,
       roundBottom: true,
       roundTop: true,
       showLeading: true,
@@ -130,43 +130,43 @@ class _SettingScreenState extends State<SettingScreen>
   List<Widget> _buildLofter() {
     return [
       const SizedBox(height: 10),
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.lofterSetting),
-      ItemBuilder.buildEntryItem(
+      CaptionItem(
+          context: context, title: appLocalizations.lofterSetting),
+      EntryItem(
         context: context,
         showLeading: true,
-        title: S.current.lofterBasicSetting,
+        title: appLocalizations.lofterBasicSetting,
         onTap: () {
           RouteUtil.pushPanelCupertinoRoute(
               context, const LofterBasicSettingScreen());
         },
         leading: Icons.copyright_rounded,
       ),
-      ItemBuilder.buildEntryItem(
+      EntryItem(
         context: context,
         showLeading: true,
-        title: S.current.blacklistSetting,
+        title: appLocalizations.blacklistSetting,
         onTap: () {
           RouteUtil.pushPanelCupertinoRoute(
               context, const BlacklistSettingScreen());
         },
         leading: Icons.block_rounded,
       ),
-      ItemBuilder.buildEntryItem(
+      EntryItem(
         context: context,
         showLeading: true,
-        title: S.current.tagShieldSetting,
+        title: appLocalizations.tagShieldSetting,
         onTap: () {
           RouteUtil.pushPanelCupertinoRoute(
               context, const TagShieldSettingScreen());
         },
         leading: Icons.tag_rounded,
       ),
-      ItemBuilder.buildEntryItem(
+      EntryItem(
         context: context,
         showLeading: true,
         roundBottom: true,
-        title: S.current.userDynamicShieldSetting,
+        title: appLocalizations.userDynamicShieldSetting,
         onTap: () {
           RouteUtil.pushPanelCupertinoRoute(
               context, const UserDynamicShieldSettingScreen());

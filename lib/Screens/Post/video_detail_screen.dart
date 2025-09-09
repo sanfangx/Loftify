@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
@@ -13,27 +14,16 @@ import 'package:loftify/Screens/Info/user_detail_screen.dart';
 import 'package:loftify/Screens/Post/video_list_controller.dart';
 import 'package:loftify/Utils/app_provider.dart';
 import 'package:loftify/Utils/enums.dart';
-import 'package:loftify/Utils/file_util.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:loftify/Utils/responsive_util.dart';
-import 'package:loftify/Utils/route_util.dart';
 import 'package:loftify/Widgets/PostItem/general_post_item_builder.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../Models/illust.dart';
-import '../../Resources/colors.dart';
-import '../../Resources/theme.dart';
 import '../../Utils/cloud_control_provider.dart';
-import '../../Utils/constant.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/uri_util.dart';
-import '../../Utils/utils.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/BottomSheet/comment_bottom_sheet.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class QuickerScrollPhysics extends BouncingScrollPhysics {
   const QuickerScrollPhysics({super.parent});
@@ -76,7 +66,7 @@ class VideoDetailScreen extends StatefulWidget {
   State<VideoDetailScreen> createState() => _VideoDetailScreenState();
 }
 
-class _VideoDetailScreenState extends State<VideoDetailScreen>
+class _VideoDetailScreenState extends BaseDynamicState<VideoDetailScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   PostListItem? _currentPostItem;
   final List<PostListItem> _postItemList = [];
@@ -160,8 +150,8 @@ class _VideoDetailScreenState extends State<VideoDetailScreen>
       blogId = widget.favoritePostDetailData!.post!.blogId;
     } else if (widget.meta != null) {
       permalink = widget.meta!['permalink']!;
-      postId = Utils.hexToInt(widget.meta!['postId']!);
-      blogId = Utils.hexToInt(widget.meta!['blogId']!);
+      postId = NumberUtil.hexToInt(widget.meta!['postId']!);
+      blogId = NumberUtil.hexToInt(widget.meta!['blogId']!);
     } else if (widget.searchPost != null) {
       postId = widget.searchPost!.id;
       blogId = widget.searchPost!.blogId;
@@ -220,7 +210,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load video detail", e, t);
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
       }
       if (mounted) setState(() {});
     });
@@ -268,7 +258,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen>
         child: Stack(
           children: [
             _buildBody(),
-            if (!ResponsiveUtil.isLandscape()) _buildTopWidget(),
+            if (!ResponsiveUtil.isLandscapeLayout()) _buildTopWidget(),
           ],
         ),
       ),
@@ -410,7 +400,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen>
                   ),
                 ),
                 enableDrag: false,
-                backgroundColor: MyTheme.getBackground(context),
+                backgroundColor: ChewieTheme.getBackground(context),
               );
             },
             onTapAvatar: () {
@@ -495,16 +485,16 @@ class _VideoDetailScreenState extends State<VideoDetailScreen>
   }
 
   _hasContent(PostListItem postListItem) {
-    String title = Utils.clearBlank(postListItem.postData!.postView.title);
-    String content = Utils.clearBlank(
-        Utils.extractTextFromHtml(postListItem.postData!.postView.digest));
+    String title = StringUtil.clearBlank(postListItem.postData!.postView.title);
+    String content = StringUtil.clearBlank(
+        HtmlUtil.extractTextFromHtml(postListItem.postData!.postView.digest));
     return (title.isNotEmpty || content.isNotEmpty);
   }
 
   _buildPostContent(PostListItem postListItem) {
-    String title = Utils.clearBlank(postListItem.postData!.postView.title);
-    String digest = Utils.limitString(
-        Utils.extractTextFromHtml(postListItem.postData!.postView.digest));
+    String title = StringUtil.clearBlank(postListItem.postData!.postView.title);
+    String digest = StringUtil.limitString(
+        HtmlUtil.extractTextFromHtml(postListItem.postData!.postView.digest));
     return _hasContent(postListItem)
         ? Container(
             padding:
@@ -575,8 +565,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen>
         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
         child: Row(
           children: [
-            ItemBuilder.buildIconButton(
-              context: context,
+            CircleIconButton(
               onTap: () {
                 Navigator.pop(context);
               },
@@ -659,7 +648,7 @@ class VideoListButtonColumn extends StatelessWidget {
                   left: 0,
                   right: 0,
                   child: Center(
-                    child: ItemBuilder.buildClickable(
+                    child: ClickableWrapper(child:
                       GestureDetector(
                         onTap: onFollow,
                         child: Container(
@@ -692,14 +681,14 @@ class VideoListButtonColumn extends StatelessWidget {
           _IconButton(
             icon: Icon(Icons.favorite_rounded,
                 size: 35,
-                color: isLiked ? MyColors.likeButtonColor : Colors.white),
+                color: isLiked ? ChewieColors.likeButtonColor : Colors.white),
             text: '$likeCount',
             onTap: onLike,
           ),
           _IconButton(
             icon: Icon(Icons.thumb_up_rounded,
                 size: 35,
-                color: isShared ? MyColors.shareButtonColor : Colors.white),
+                color: isShared ? ChewieColors.shareButtonColor : Colors.white),
             text: '$shareCount',
             onTap: onShare,
           ),
@@ -728,7 +717,7 @@ class VideoListButtonColumn extends StatelessWidget {
                 : _IconButton(
                     icon: const Icon(Icons.download_rounded,
                         size: 35, color: Colors.white),
-                    text: S.current.download,
+                    text: appLocalizations.download,
                     onTap: onDownload,
                   ),
           const SizedBox(height: 20),
@@ -770,7 +759,7 @@ class _IconButton extends StatelessWidget {
         ),
       ],
     );
-    return ItemBuilder.buildClickable(
+    return ClickableWrapper(child:
       Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: body,

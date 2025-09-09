@@ -1,22 +1,15 @@
-import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Api/message_api.dart';
 import 'package:loftify/Models/message_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Info/user_detail_screen.dart';
 import 'package:loftify/Screens/Post/post_detail_screen.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/responsive_util.dart';
-import 'package:loftify/Utils/route_util.dart';
 
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
 import '../../Utils/utils.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class SystemNoticeScreen extends StatefulWidget {
   const SystemNoticeScreen({super.key});
@@ -27,7 +20,7 @@ class SystemNoticeScreen extends StatefulWidget {
   State<SystemNoticeScreen> createState() => _SystemNoticeScreenState();
 }
 
-class _SystemNoticeScreenState extends State<SystemNoticeScreen>
+class _SystemNoticeScreenState extends BaseDynamicState<SystemNoticeScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -43,13 +36,13 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
   final EasyRefreshController _allRefreshController = EasyRefreshController();
   final EasyRefreshController _likeRefreshController = EasyRefreshController();
   final EasyRefreshController _recommendRefreshController =
-      EasyRefreshController();
+  EasyRefreshController();
   final EasyRefreshController _giftRefreshController = EasyRefreshController();
   final EasyRefreshController _atRefreshController = EasyRefreshController();
   final EasyRefreshController _subscribeRefreshController =
-      EasyRefreshController();
+  EasyRefreshController();
   final EasyRefreshController _collectionRefreshController =
-      EasyRefreshController();
+  EasyRefreshController();
   final EasyRefreshController _otherRefreshController = EasyRefreshController();
   bool _allNoMore = false;
   bool _likeNoMore = false;
@@ -60,14 +53,14 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
   bool _collectionNoMore = false;
   bool _otherNoMore = false;
   final List<String> _tabLabelList = [
-    S.current.all,
-    S.current.like,
-    S.current.recommend,
-    S.current.gift,
-    S.current.atMe,
-    S.current.subscribe,
-    S.current.favorite,
-    S.current.other,
+    appLocalizations.all,
+    appLocalizations.like,
+    appLocalizations.recommend,
+    appLocalizations.gift,
+    appLocalizations.atMe,
+    appLocalizations.subscribe,
+    appLocalizations.favorite,
+    appLocalizations.other,
   ];
   late TabController _tabController;
   int _currentTabIndex = 0;
@@ -82,7 +75,7 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
     _tabController = TabController(length: _tabLabelList.length, vsync: this);
     _tabController.animation?.addListener(() {
       int indexChange =
-          _tabController.offset.abs() > 0.8 ? _tabController.offset.round() : 0;
+      _tabController.offset.abs() > 0.8 ? _tabController.offset.round() : 0;
       int index = _tabController.index + indexChange;
       if (index != _currentTabIndex) {
         setState(() => _currentTabIndex = index);
@@ -97,7 +90,7 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
     int offset = refresh ? 0 : _likeMessages.length;
     return await HiveUtil.getUserInfo().then((blogInfo) async {
       return await MessageApi.getLikeMessages(
-              blogId: blogInfo!.blogId, offset: offset)
+          blogId: blogInfo!.blogId, offset: offset)
           .then((value) {
         try {
           if (value['meta']['status'] != 200) {
@@ -120,7 +113,7 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
           }
         } catch (e, t) {
           ILogger.error("Failed to load system notice list", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {
           if (mounted) setState(() {});
@@ -130,13 +123,12 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
     });
   }
 
-  _fetchSystemNotices(
-    MessageType type,
-    List list, {
-    bool refresh = false,
-    Function()? resetNoMore,
-    Function()? onNoMore,
-  }) async {
+  _fetchSystemNotices(MessageType type,
+      List list, {
+        bool refresh = false,
+        Function()? resetNoMore,
+        Function()? onNoMore,
+      }) async {
     if (_loading) return;
     if (refresh) resetNoMore?.call();
     _loading = true;
@@ -168,7 +160,7 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
           }
         } catch (e, t) {
           ILogger.error("Failed to load system notice list", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {
           if (mounted) setState(() {});
@@ -198,7 +190,7 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: _buildTabView(),
     );
@@ -227,22 +219,21 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
       },
       triggerAxis: Axis.vertical,
       child: _allMessages.isEmpty
-          ? ItemBuilder.buildEmptyPlaceholder(
-              context: context, text: S.current.noNotice)
-          : ItemBuilder.buildLoadMoreNotification(
-              noMore: _allNoMore,
-              onLoad: () {
-                _fetchSystemNotices(MessageType.all, _allMessages,
-                    resetNoMore: () => _allNoMore = false,
-                    onNoMore: () => _allNoMore = true);
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 10),
-                itemBuilder: (context, index) =>
-                    _buildItem(_allMessages[index]),
-                itemCount: _allMessages.length,
-              ),
-            ),
+          ? EmptyPlaceholder(text: appLocalizations.noNotice)
+          : LoadMoreNotification(
+        noMore: _allNoMore,
+        onLoad: () {
+          _fetchSystemNotices(MessageType.all, _allMessages,
+              resetNoMore: () => _allNoMore = false,
+              onNoMore: () => _allNoMore = true);
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.only(top: 10),
+          itemBuilder: (context, index) =>
+              _buildItem(_allMessages[index]),
+          itemCount: _allMessages.length,
+        ),
+      ),
     );
   }
 
@@ -258,20 +249,19 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
       },
       triggerAxis: Axis.vertical,
       child: _likeMessages.isEmpty
-          ? ItemBuilder.buildEmptyPlaceholder(
-              context: context, text: S.current.noNotice)
-          : ItemBuilder.buildLoadMoreNotification(
-              noMore: _likeNoMore,
-              onLoad: () {
-                _fetchLikeMessages();
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 10),
-                itemBuilder: (context, index) =>
-                    _buildItem(_likeMessages[index]),
-                itemCount: _likeMessages.length,
-              ),
-            ),
+          ? EmptyPlaceholder(text: appLocalizations.noNotice)
+          : LoadMoreNotification(
+        noMore: _likeNoMore,
+        onLoad: () {
+          _fetchLikeMessages();
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.only(top: 10),
+          itemBuilder: (context, index) =>
+              _buildItem(_likeMessages[index]),
+          itemCount: _likeMessages.length,
+        ),
+      ),
     );
   }
 
@@ -298,22 +288,21 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
       },
       triggerAxis: Axis.vertical,
       child: _recommendMessages.isEmpty
-          ? ItemBuilder.buildEmptyPlaceholder(
-              context: context, text: S.current.noNotice)
-          : ItemBuilder.buildLoadMoreNotification(
-              noMore: _recommendNoMore,
-              onLoad: () {
-                _fetchSystemNotices(MessageType.recommend, _recommendMessages,
-                    resetNoMore: () => _recommendNoMore = false,
-                    onNoMore: () => _recommendNoMore = true);
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 10),
-                itemBuilder: (context, index) =>
-                    _buildItem(_recommendMessages[index]),
-                itemCount: _recommendMessages.length,
-              ),
-            ),
+          ? EmptyPlaceholder(text: appLocalizations.noNotice)
+          : LoadMoreNotification(
+        noMore: _recommendNoMore,
+        onLoad: () {
+          _fetchSystemNotices(MessageType.recommend, _recommendMessages,
+              resetNoMore: () => _recommendNoMore = false,
+              onNoMore: () => _recommendNoMore = true);
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.only(top: 10),
+          itemBuilder: (context, index) =>
+              _buildItem(_recommendMessages[index]),
+          itemCount: _recommendMessages.length,
+        ),
+      ),
     );
   }
 
@@ -340,22 +329,21 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
       },
       triggerAxis: Axis.vertical,
       child: _giftMessages.isEmpty
-          ? ItemBuilder.buildEmptyPlaceholder(
-              context: context, text: S.current.noNotice)
-          : ItemBuilder.buildLoadMoreNotification(
-              noMore: _giftNoMore,
-              onLoad: () {
-                _fetchSystemNotices(MessageType.gift, _giftMessages,
-                    resetNoMore: () => _giftNoMore = false,
-                    onNoMore: () => _giftNoMore = true);
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 10),
-                itemBuilder: (context, index) =>
-                    _buildItem(_giftMessages[index]),
-                itemCount: _giftMessages.length,
-              ),
-            ),
+          ? EmptyPlaceholder(text: appLocalizations.noNotice)
+          : LoadMoreNotification(
+        noMore: _giftNoMore,
+        onLoad: () {
+          _fetchSystemNotices(MessageType.gift, _giftMessages,
+              resetNoMore: () => _giftNoMore = false,
+              onNoMore: () => _giftNoMore = true);
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.only(top: 10),
+          itemBuilder: (context, index) =>
+              _buildItem(_giftMessages[index]),
+          itemCount: _giftMessages.length,
+        ),
+      ),
     );
   }
 
@@ -382,21 +370,20 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
       },
       triggerAxis: Axis.vertical,
       child: _atMessages.isEmpty
-          ? ItemBuilder.buildEmptyPlaceholder(
-              context: context, text: S.current.noNotice)
-          : ItemBuilder.buildLoadMoreNotification(
-              noMore: _atNoMore,
-              onLoad: () {
-                _fetchSystemNotices(MessageType.at, _atMessages,
-                    resetNoMore: () => _atNoMore = false,
-                    onNoMore: () => _atNoMore = true);
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 10),
-                itemBuilder: (context, index) => _buildItem(_atMessages[index]),
-                itemCount: _atMessages.length,
-              ),
-            ),
+          ? EmptyPlaceholder(text: appLocalizations.noNotice)
+          : LoadMoreNotification(
+        noMore: _atNoMore,
+        onLoad: () {
+          _fetchSystemNotices(MessageType.at, _atMessages,
+              resetNoMore: () => _atNoMore = false,
+              onNoMore: () => _atNoMore = true);
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.only(top: 10),
+          itemBuilder: (context, index) => _buildItem(_atMessages[index]),
+          itemCount: _atMessages.length,
+        ),
+      ),
     );
   }
 
@@ -423,22 +410,21 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
       },
       triggerAxis: Axis.vertical,
       child: _subscribeMessages.isEmpty
-          ? ItemBuilder.buildEmptyPlaceholder(
-              context: context, text: S.current.noNotice)
-          : ItemBuilder.buildLoadMoreNotification(
-              noMore: _subscribeNoMore,
-              onLoad: () {
-                _fetchSystemNotices(MessageType.subscribe, _subscribeMessages,
-                    resetNoMore: () => _subscribeNoMore = false,
-                    onNoMore: () => _subscribeNoMore = true);
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 10),
-                itemBuilder: (context, index) =>
-                    _buildItem(_subscribeMessages[index]),
-                itemCount: _subscribeMessages.length,
-              ),
-            ),
+          ? EmptyPlaceholder(text: appLocalizations.noNotice)
+          : LoadMoreNotification(
+        noMore: _subscribeNoMore,
+        onLoad: () {
+          _fetchSystemNotices(MessageType.subscribe, _subscribeMessages,
+              resetNoMore: () => _subscribeNoMore = false,
+              onNoMore: () => _subscribeNoMore = true);
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.only(top: 10),
+          itemBuilder: (context, index) =>
+              _buildItem(_subscribeMessages[index]),
+          itemCount: _subscribeMessages.length,
+        ),
+      ),
     );
   }
 
@@ -465,22 +451,21 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
       },
       triggerAxis: Axis.vertical,
       child: _collectionMessages.isEmpty
-          ? ItemBuilder.buildEmptyPlaceholder(
-              context: context, text: S.current.noNotice)
-          : ItemBuilder.buildLoadMoreNotification(
-              noMore: _collectionNoMore,
-              onLoad: () {
-                _fetchSystemNotices(MessageType.collection, _collectionMessages,
-                    resetNoMore: () => _collectionNoMore = false,
-                    onNoMore: () => _collectionNoMore = true);
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 10),
-                itemBuilder: (context, index) =>
-                    _buildItem(_collectionMessages[index]),
-                itemCount: _collectionMessages.length,
-              ),
-            ),
+          ? EmptyPlaceholder(text: appLocalizations.noNotice)
+          : LoadMoreNotification(
+        noMore: _collectionNoMore,
+        onLoad: () {
+          _fetchSystemNotices(MessageType.collection, _collectionMessages,
+              resetNoMore: () => _collectionNoMore = false,
+              onNoMore: () => _collectionNoMore = true);
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.only(top: 10),
+          itemBuilder: (context, index) =>
+              _buildItem(_collectionMessages[index]),
+          itemCount: _collectionMessages.length,
+        ),
+      ),
     );
   }
 
@@ -507,172 +492,176 @@ class _SystemNoticeScreenState extends State<SystemNoticeScreen>
       },
       triggerAxis: Axis.vertical,
       child: _otherMessages.isEmpty
-          ? ItemBuilder.buildEmptyPlaceholder(
-              context: context, text: S.current.noNotice)
-          : ItemBuilder.buildLoadMoreNotification(
-              noMore: _otherNoMore,
-              onLoad: () {
-                _fetchSystemNotices(MessageType.other, _otherMessages,
-                    resetNoMore: () => _otherNoMore = false,
-                    onNoMore: () => _otherNoMore = true);
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 10),
-                itemBuilder: (context, index) =>
-                    _buildItem(_otherMessages[index]),
-                itemCount: _otherMessages.length,
-              ),
-            ),
+          ? EmptyPlaceholder(text: appLocalizations.noNotice)
+          : LoadMoreNotification(
+        noMore: _otherNoMore,
+        onLoad: () {
+          _fetchSystemNotices(MessageType.other, _otherMessages,
+              resetNoMore: () => _otherNoMore = false,
+              onNoMore: () => _otherNoMore = true);
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.only(top: 10),
+          itemBuilder: (context, index) =>
+              _buildItem(_otherMessages[index]),
+          itemCount: _otherMessages.length,
+        ),
+      ),
     );
   }
 
   _buildItem(MessageItem item) {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
-        onTap: () {
-          RouteUtil.pushPanelCupertinoRoute(
-            context,
-            PostDetailScreen(
-              simpleMessagePost: item.simplePost,
-              isArticle: item.type == 1,
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(width: 10),
-              GestureDetector(
-                child: ItemBuilder.buildAvatar(
-                  context: context,
-                  size: 50,
-                  imageUrl: item.actUserBlogInfo.bigAvaImg,
-                ),
-                onTap: () {
-                  RouteUtil.pushPanelCupertinoRoute(
-                    context,
-                    UserDetailScreen(
-                      blogId: item.actUserId,
-                      blogName: item.actUserBlogInfo.blogName,
-                    ),
-                  );
-                },
+    return ClickableGestureDetector(
+      onTap: () {
+        RouteUtil.pushPanelCupertinoRoute(
+          context,
+          PostDetailScreen(
+            simpleMessagePost: item.simplePost,
+            isArticle: item.type == 1,
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(width: 10),
+            GestureDetector(
+              child: ItemBuilder.buildAvatar(
+                context: context,
+                size: 50,
+                imageUrl: item.actUserBlogInfo.bigAvaImg,
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Theme.of(context).dividerColor,
-                        width: 0.5,
-                      ),
+              onTap: () {
+                RouteUtil.pushPanelCupertinoRoute(
+                  context,
+                  UserDetailScreen(
+                    blogId: item.actUserId,
+                    blogName: item.actUserBlogInfo.blogName,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Theme
+                          .of(context)
+                          .dividerColor,
+                      width: 0.5,
                     ),
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: item.actUserBlogInfo.blogNickName,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.apply(
-                                          fontSizeDelta: 1,
-                                        ),
-                                  ),
-                                  TextSpan(
-                                    text: item.defString.replaceFirst(
-                                        item.actUserBlogInfo.blogNickName, ""),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.apply(
-                                          fontSizeDelta: 1,
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.color,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              Utils.formatTimestamp(item.publishTime),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelMedium
-                                  ?.apply(
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: item.actUserBlogInfo.blogNickName,
+                                  style: Theme
+                                      .of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.apply(
                                     fontSizeDelta: 1,
                                   ),
+                                ),
+                                TextSpan(
+                                  text: item.defString.replaceFirst(
+                                      item.actUserBlogInfo.blogNickName, ""),
+                                  style: Theme
+                                      .of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.apply(
+                                    fontSizeDelta: 1,
+                                    color: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 10),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            TimeUtil.formatTimestamp(item.publishTime),
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.apply(
+                              fontSizeDelta: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: ItemBuilder.buildCachedImage(
-                          imageUrl: item.thumbnail,
-                          context: context,
-                          height: 50,
-                          width: 50,
-                          fit: BoxFit.cover,
-                          showLoading: false,
-                        ),
+                    ),
+                    const SizedBox(width: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: ChewieItemBuilder.buildCachedImage(
+                        imageUrl: item.thumbnail,
+                        context: context,
+                        height: 50,
+                        width: 50,
+                        fit: BoxFit.cover,
+                        showLoading: false,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 10),
-            ],
-          ),
+            ),
+            const SizedBox(width: 10),
+          ],
         ),
       ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: S.current.notice,
+      title: appLocalizations.notice,
       bottomHeight: 56,
-      bottomWidget: ItemBuilder.buildTabBar(
-        context,
-        _tabController,
-        _tabLabelList
+      bottomWidget: TabBarWrapper(
+        tabController: _tabController,
+        tabs: _tabLabelList
             .asMap()
             .entries
             .map(
-              (entry) => ItemBuilder.buildAnimatedTab(context,
+              (entry) =>
+              ItemBuilder.buildAnimatedTab(context,
                   selected: entry.key == _currentTabIndex,
                   text: entry.value,
                   normalUserBold: true,
                   sameFontSize: true),
-            )
+        )
             .toList(),
         onTap: (index) {
           setState(() {
             _currentTabIndex = index;
           });
         },
-        width: MediaQuery.sizeOf(context).width,
-        background: MyTheme.getBackground(context),
-        showBorder: ResponsiveUtil.isLandscape(),
+        width: MediaQuery
+            .sizeOf(context)
+            .width,
+        background: ChewieTheme.getBackground(context),
+        showBorder: ResponsiveUtil.isLandscapeLayout(),
       ),
     );
   }

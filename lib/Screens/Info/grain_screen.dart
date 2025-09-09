@@ -1,22 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Api/user_api.dart';
 import 'package:loftify/Models/recommend_response.dart';
-import 'package:loftify/Resources/theme.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:loftify/Screens/Post/grain_detail_screen.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
-import '../../Utils/utils.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'nested_mixin.dart';
 
 class GrainScreen extends StatefulWidgetForNested {
@@ -44,7 +35,7 @@ class GrainScreen extends StatefulWidgetForNested {
   State<GrainScreen> createState() => _GrainScreenState();
 }
 
-class _GrainScreenState extends State<GrainScreen>
+class _GrainScreenState extends BaseDynamicState<GrainScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -109,7 +100,7 @@ class _GrainScreenState extends State<GrainScreen>
         } catch (e, t) {
           _initPhase = InitPhase.failed;
           ILogger.error("Failed to load grain list", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {
           if (mounted) setState(() {});
@@ -132,7 +123,7 @@ class _GrainScreenState extends State<GrainScreen>
     super.build(context);
     return Scaffold(
       backgroundColor: widget.infoMode == InfoMode.me
-          ? MyTheme.getBackground(context)
+          ? ChewieTheme.getBackground(context)
           : Colors.transparent,
       appBar: widget.infoMode == InfoMode.me ? _buildAppBar() : null,
       body: _buildBody(),
@@ -142,11 +133,9 @@ class _GrainScreenState extends State<GrainScreen>
   _buildBody() {
     switch (_initPhase) {
       case InitPhase.connecting:
-        return ItemBuilder.buildLoadingWidget(context,
-            background: Colors.transparent);
+        return const LoadingWidget(background: Colors.transparent);
       case InitPhase.failed:
-        return ItemBuilder.buildErrorWidget(
-          context: context,
+        return CustomErrorWidget(
           onTap: _onRefresh,
         );
       case InitPhase.successful:
@@ -159,10 +148,7 @@ class _GrainScreenState extends State<GrainScreen>
           childBuilder: (context, physics) {
             return _grainList.isNotEmpty
                 ? _buildMainBody(physics)
-                : ItemBuilder.buildEmptyPlaceholder(
-                    context: context,
-                    text: S.current.noGrain,
-                    physics: physics);
+                : EmptyPlaceholder(text: appLocalizations.noGrain, physics: physics);
           },
         );
       default:
@@ -171,7 +157,7 @@ class _GrainScreenState extends State<GrainScreen>
   }
 
   Widget _buildMainBody(ScrollPhysics physics) {
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       noMore: _noMore,
       onLoad: _onLoad,
       child: WaterfallFlow.extent(
@@ -203,87 +189,84 @@ class _GrainScreenState extends State<GrainScreen>
     Function()? onTap,
     double verticalPadding = 12,
   }) {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
-        onTap: onTap,
-        child: Container(
-          color: Colors.transparent,
-          padding:
-              EdgeInsets.symmetric(vertical: verticalPadding, horizontal: 16),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: ItemBuilder.buildCachedImage(
-                      context: context,
-                      imageUrl: grain.coverUrl,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      showLoading: false,
-                    ),
+    return ClickableGestureDetector(
+      onTap: onTap,
+      child: Container(
+        color: Colors.transparent,
+        padding:
+            EdgeInsets.symmetric(vertical: verticalPadding, horizontal: 16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: ChewieItemBuilder.buildCachedImage(
+                    context: context,
+                    imageUrl: grain.coverUrl,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    showLoading: false,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SizedBox(
-                      height: 80,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            grain.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            "${grain.postCount}${S.current.chapter} · ${S.current.updateAt}${Utils.formatTimestamp(grain.updateTime)}",
-                            style: Theme.of(context).textTheme.labelMedium,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          SizedBox(
-                            height: 20,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: [
-                                ...List.generate(
-                                  grain.tags.length,
-                                  (index) => Container(
-                                    margin: const EdgeInsets.only(right: 5),
-                                    child: ItemBuilder.buildSmallTagItem(
-                                      context,
-                                      grain.tags[index],
-                                      showIcon: false,
-                                    ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 80,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          grain.name,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          "${grain.postCount}${appLocalizations.chapter} · ${appLocalizations.updateAt}${TimeUtil.formatTimestamp(grain.updateTime)}",
+                          style: Theme.of(context).textTheme.labelMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(
+                          height: 20,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              ...List.generate(
+                                grain.tags.length,
+                                (index) => Container(
+                                  margin: const EdgeInsets.only(right: 5),
+                                  child: ItemBuilder.buildSmallTagItem(
+                                    context,
+                                    grain.tags[index],
+                                    showIcon: false,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              )
-            ],
-          ),
+                ),
+              ],
+            )
+          ],
         ),
       ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: S.current.myGrains,
-      actions: [ItemBuilder.buildBlankIconButton(context)],
+      title: appLocalizations.myGrains,
+      actions: const [BlankIconButton()],
     );
   }
 }

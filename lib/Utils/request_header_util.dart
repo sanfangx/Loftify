@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:loftify/Utils/enums.dart';
@@ -7,7 +8,6 @@ import 'package:loftify/Utils/utils.dart';
 
 import 'app_provider.dart';
 import 'hive_util.dart';
-import 'jwt_decoder.dart';
 
 class RequestHeaderUtil {
   static const String defaultMarket = "xiaomi";
@@ -34,7 +34,7 @@ class RequestHeaderUtil {
 
   static getAuthHeader() {
     int tokenTypeIndex =
-        HiveUtil.getInt(HiveUtil.tokenTypeKey, defaultValue: 0);
+    ChewieHiveUtil.getInt(HiveUtil.tokenTypeKey, defaultValue: 0);
     tokenTypeIndex = max(tokenTypeIndex, 0);
     TokenType tokenType = TokenType.values[tokenTypeIndex];
     String? token = appProvider.token;
@@ -55,7 +55,7 @@ class RequestHeaderUtil {
 
   static getShortHeader() {
     int tokenTypeIndex =
-        HiveUtil.getInt(HiveUtil.tokenTypeKey, defaultValue: 0);
+    ChewieHiveUtil.getInt(HiveUtil.tokenTypeKey, defaultValue: 0);
     tokenTypeIndex = max(tokenTypeIndex, 0);
     TokenType tokenType = TokenType.values[tokenTypeIndex];
     String? token = appProvider.token;
@@ -86,7 +86,7 @@ class RequestHeaderUtil {
       "x-reqid": getXReqId(),
       "portrait": getPortrait(),
     };
-    if (Utils.isNotEmpty(appProvider.captchaToken)) {
+    if (StringUtil.isNotEmpty(appProvider.captchaToken)) {
       headers.addAll({"capttoken": appProvider.captchaToken});
     }
     Map<String, dynamic> authHeader = getAuthHeader();
@@ -122,17 +122,18 @@ class RequestHeaderUtil {
     if (androidInfo == null) {
       return defaultUA;
     }
-    return "LOFTER-Android 8.0.12 (${androidInfo!.model}; Android ${androidInfo!.version.release}; null) WIFI";
+    return "LOFTER-Android 8.0.12 (${androidInfo!.model}; Android ${androidInfo!
+        .version.release}; null) WIFI";
   }
 
   static String getMarket() {
     if (androidInfo == null) {
       return defaultProduct;
     }
-    if (Utils.isNotEmpty(androidInfo!.manufacturer)) {
+    if (StringUtil.isNotEmpty(androidInfo!.manufacturer)) {
       return androidInfo!.manufacturer;
     }
-    if (Utils.isNotEmpty(androidInfo!.brand)) {
+    if (StringUtil.isNotEmpty(androidInfo!.brand)) {
       return androidInfo!.brand;
     }
     return defaultProduct;
@@ -151,6 +152,6 @@ class RequestHeaderUtil {
   }
 
   static String getXReqId({int length = 8}) {
-    return Utils.getRandomString(length: length);
+    return StringUtil.getRandomString(length: length);
   }
 }

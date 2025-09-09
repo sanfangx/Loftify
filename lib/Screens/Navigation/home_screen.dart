@@ -1,22 +1,13 @@
 import 'dart:async';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/recommend_api.dart';
-import 'package:loftify/Resources/theme.dart';
-import 'package:loftify/Screens/refresh_interface.dart';
-import 'package:loftify/Utils/itoast.dart';
 import 'package:loftify/Widgets/PostItem/recommend_flow_item_builder.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Models/recommend_response.dart';
 import '../../Utils/app_provider.dart';
-import '../../Utils/constant.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Hidable/scroll_to_hide.dart';
-import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 int krefreshTimeout = 300;
 
@@ -34,7 +25,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen>
+class HomeScreenState extends BaseDynamicState<HomeScreen>
     with
         TickerProviderStateMixin,
         AutomaticKeepAliveClientMixin,
@@ -106,7 +97,7 @@ class HomeScreenState extends State<HomeScreen>
           return IndicatorResult.success;
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load data", e, t);
         return IndicatorResult.fail;
       } finally {
@@ -128,10 +119,9 @@ class HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
-      appBar: ItemBuilder.buildResponsiveAppBar(
-        context: context,
-        title: S.current.home,
+      backgroundColor: ChewieTheme.getBackground(context),
+      appBar: ResponsiveAppBar(
+        title: appLocalizations.home,
         titleLeftMargin: 15,
       ),
       body: Stack(
@@ -174,12 +164,12 @@ class HomeScreenState extends State<HomeScreen>
             ),
           ),
           Positioned(
-            right: ResponsiveUtil.isLandscape() ? 16 : 12,
-            bottom: ResponsiveUtil.isLandscape() ? 16 : 76,
-            child: ScrollToHide(
+            right: ResponsiveUtil.isLandscapeLayout() ? 16 : 12,
+            bottom: ResponsiveUtil.isLandscapeLayout() ? 16 : 76,
+            child: ScrollToHide.multi(
               controller: _scrollToHideController,
               scrollControllers: [_scrollController],
-              hideDirection: AxisDirection.down,
+              hideDirection: Axis.vertical,
               child: _buildFloatingButtons(),
             ),
           ),
@@ -207,11 +197,10 @@ class HomeScreenState extends State<HomeScreen>
   }
 
   _buildFloatingButtons() {
-    return ResponsiveUtil.isLandscape()
+    return ResponsiveUtil.isLandscapeLayout()
         ? Column(
             children: [
-              ItemBuilder.buildShadowIconButton(
-                context: context,
+              ShadowIconButton(
                 icon: RotationTransition(
                   turns: Tween(begin: 0.0, end: 1.0)
                       .animate(_refreshRotationController),
@@ -222,8 +211,7 @@ class HomeScreenState extends State<HomeScreen>
                 },
               ),
               const SizedBox(height: 10),
-              ItemBuilder.buildShadowIconButton(
-                context: context,
+              ShadowIconButton(
                 icon: const Icon(Icons.arrow_upward_rounded),
                 onTap: () {
                   scrollToTop();

@@ -1,3 +1,4 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:loftify/Models/collection_response.dart';
 
 import '../Utils/utils.dart';
@@ -950,15 +951,15 @@ class VideoInfo {
   factory VideoInfo.fromJson(Map<String, dynamic> json) {
     json['type'] = "uservideo";
     return VideoInfo(
-      duration: Utils.parseToInt(json['duration']),
+      duration: NumberUtil.parseToInt(json['duration']),
       flashurl: json['flashurl'] ?? "",
       h265Url: json['h265Url'] ?? "",
       imgHeight: json['imgHeight'] ?? json['img_height'] ?? "",
       imgWidth: json['imgWidth'] ?? json['img_width'] ?? "",
       originUrl: json['originUrl'] ?? "",
-      size: Utils.parseToInt(json['size']),
+      size: NumberUtil.parseToInt(json['size']),
       type: json['type'],
-      vid: Utils.parseToInt(json['vid']),
+      vid: NumberUtil.parseToInt(json['vid']),
       videoFirstImg: json['videoFirstImg'] ?? json['video_first_img'] ?? "",
       videoImgUrl: json['videoImgUrl'] ?? json['video_img_url'] ?? "",
     );

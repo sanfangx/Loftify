@@ -1,3 +1,4 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:dio/dio.dart';
 
 import '../Utils/request_util.dart';
@@ -72,7 +73,7 @@ class PostApi {
       "checkpwd": 1,
       "needgetpoststat": 1,
     };
-    if (Utils.isNotEmpty(blogDomain)) {
+    if (StringUtil.isNotEmpty(blogDomain)) {
       data.addAll({
         "blogdomain": blogDomain,
         "blogId": blogId,

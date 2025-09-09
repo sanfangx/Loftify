@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:loftify/Screens/Setting/general_setting_screen.dart';
-import 'package:loftify/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:tuple/tuple.dart';
 
-import '../Resources/fonts.dart';
-import '../Resources/theme_color_data.dart';
 import '../Screens/Navigation/home_screen.dart';
 import '../Screens/Navigation/search_screen.dart';
 import '../Screens/main_screen.dart';
 import '../Screens/panel_screen.dart';
-import '../Widgets/Custom/keyboard_handler.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'enums.dart';
 import 'hive_util.dart';
-
-GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>();
 
 NavigatorState? get globalNavigatorState => globalNavigatorKey.currentState;
 
@@ -94,24 +88,24 @@ class AppProvider with ChangeNotifier {
   }
 
   bool _enableLandscapeInTablet =
-      HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey);
+      ChewieHiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey);
 
   bool get enableLandscapeInTablet => _enableLandscapeInTablet;
 
   set enableLandscapeInTablet(bool value) {
     _enableLandscapeInTablet = value;
-    HiveUtil.put(HiveUtil.enableLandscapeInTabletKey, value);
+    ChewieHiveUtil.put(HiveUtil.enableLandscapeInTabletKey, value);
     notifyListeners();
   }
 
   SideBarChoice _sidebarChoice = SideBarChoice.fromString(
-      HiveUtil.getString(HiveUtil.sidebarChoiceKey) ?? "");
+      ChewieHiveUtil.getString(HiveUtil.sidebarChoiceKey) ?? "");
 
   SideBarChoice get sidebarChoice => _sidebarChoice;
 
   set sidebarChoice(SideBarChoice value) {
     _sidebarChoice = value;
-    HiveUtil.put(HiveUtil.sidebarChoiceKey, value.key);
+    ChewieHiveUtil.put(HiveUtil.sidebarChoiceKey, value.key);
     notifyListeners();
     panelScreenState?.jumpToPage(_sidebarChoice.index);
   }
@@ -134,11 +128,11 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  ThemeColorData _lightTheme = HiveUtil.getLightTheme();
+  ChewieThemeColorData _lightTheme = HiveUtil.getLightTheme();
 
-  ThemeColorData get lightTheme => _lightTheme;
+  ChewieThemeColorData get lightTheme => _lightTheme;
 
-  set lightTheme(ThemeColorData value) {
+  set lightTheme(ChewieThemeColorData value) {
     _lightTheme = value;
     notifyListeners();
   }
@@ -149,11 +143,11 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  ThemeColorData _darkTheme = HiveUtil.getDarkTheme();
+  ChewieThemeColorData _darkTheme = HiveUtil.getDarkTheme();
 
-  ThemeColorData get darkTheme => _darkTheme;
+  ChewieThemeColorData get darkTheme => _darkTheme;
 
-  set darkTheme(ThemeColorData value) {
+  set darkTheme(ChewieThemeColorData value) {
     _darkTheme = value;
     notifyListeners();
   }
@@ -201,7 +195,7 @@ class AppProvider with ChangeNotifier {
   }
 
   List<String> _searchHistoryList =
-      HiveUtil.getStringList(HiveUtil.searchHistoryKey)!;
+      ChewieHiveUtil.getStringList(HiveUtil.searchHistoryKey)!;
 
   List<String> get searchHistoryList => _searchHistoryList;
 
@@ -209,30 +203,30 @@ class AppProvider with ChangeNotifier {
     if (value != _searchHistoryList) {
       _searchHistoryList = value;
       notifyListeners();
-      HiveUtil.put(HiveUtil.searchHistoryKey, value);
+      ChewieHiveUtil.put(HiveUtil.searchHistoryKey, value);
     }
   }
 
   static String getThemeModeLabel(ActiveThemeMode themeMode) {
     switch (themeMode) {
       case ActiveThemeMode.system:
-        return S.current.followSystem;
+        return appLocalizations.followSystem;
       case ActiveThemeMode.light:
-        return S.current.lightTheme;
+        return appLocalizations.lightTheme;
       case ActiveThemeMode.dark:
-        return S.current.darkTheme;
+        return appLocalizations.darkTheme;
     }
   }
 
   static List<Tuple2<String, ActiveThemeMode>> getSupportedThemeMode() {
     return [
-      Tuple2(S.current.followSystem, ActiveThemeMode.system),
-      Tuple2(S.current.lightTheme, ActiveThemeMode.light),
-      Tuple2(S.current.darkTheme, ActiveThemeMode.dark),
+      Tuple2(appLocalizations.followSystem, ActiveThemeMode.system),
+      Tuple2(appLocalizations.lightTheme, ActiveThemeMode.light),
+      Tuple2(appLocalizations.darkTheme, ActiveThemeMode.dark),
     ];
   }
 
-  int _autoLockSeconds = HiveUtil.getInt(HiveUtil.autoLockSecondsKey);
+  int _autoLockSeconds = ChewieHiveUtil.getInt(HiveUtil.autoLockSecondsKey);
 
   int get autoLockSeconds => _autoLockSeconds;
 
@@ -240,7 +234,7 @@ class AppProvider with ChangeNotifier {
     if (value != _autoLockSeconds) {
       _autoLockSeconds = value;
       notifyListeners();
-      HiveUtil.put(HiveUtil.autoLockSecondsKey, value);
+      ChewieHiveUtil.put(HiveUtil.autoLockSecondsKey, value);
     }
   }
 
@@ -251,17 +245,17 @@ class AppProvider with ChangeNotifier {
         return tuple.item1;
       }
     }
-    return S.current.immediatelyLock;
+    return appLocalizations.immediatelyLock;
   }
 
   static List<Tuple2<String, int>> getAutoLockOptions() {
     return [
-      Tuple2(S.current.immediatelyLock, 0),
-      Tuple2(S.current.after30SecondsLock, 30),
-      Tuple2(S.current.after1MinuteLock, 60),
-      Tuple2(S.current.after3MinutesLock, 3 * 60),
-      Tuple2(S.current.after5MinutesLock, 5 * 60),
-      Tuple2(S.current.after10MinutesLock, 10 * 60),
+      Tuple2(appLocalizations.immediatelyLock, 0),
+      Tuple2(appLocalizations.after30SecondsLock, 30),
+      Tuple2(appLocalizations.after1MinuteLock, 60),
+      Tuple2(appLocalizations.after3MinutesLock, 3 * 60),
+      Tuple2(appLocalizations.after5MinutesLock, 5 * 60),
+      Tuple2(appLocalizations.after10MinutesLock, 10 * 60),
     ];
   }
 
@@ -275,13 +269,13 @@ class AppProvider with ChangeNotifier {
     }
   }
 
-  String _token = HiveUtil.getString(HiveUtil.tokenKey) ?? "";
+  String _token = ChewieHiveUtil.getString(HiveUtil.tokenKey) ?? "";
 
   String get token => _token;
 
   set token(String value) {
     if (value != _token) {
-      HiveUtil.put(HiveUtil.tokenKey, value);
+      ChewieHiveUtil.put(HiveUtil.tokenKey, value);
       _token = value;
       notifyListeners();
     }

@@ -11,7 +11,7 @@ class GrainPostItemBuilder {
     List<PhotoLink> photoLinks = [];
     switch (getPostType(item)) {
       case PostType.video:
-        if (Utils.isNotEmpty(item.postData.postView.firstImageUrl)) {
+        if (StringUtil.isNotEmpty(item.postData.postView.firstImageUrl)) {
           photoLinks = Utils.parseJsonList(item.postData.postView.firstImageUrl)
               .map((e) => PhotoLink(
                     orign: e.toString(),
@@ -119,9 +119,9 @@ class GrainPostItemBuilder {
   }
 
   static bool hasContent(GrainPostItem item) {
-    String title = Utils.clearBlank(item.postData.postView.title);
-    String content = Utils.clearBlank(
-        Utils.extractTextFromHtml(item.postData.postView.content));
+    String title = StringUtil.clearBlank(item.postData.postView.title);
+    String content = StringUtil.clearBlank(
+        HtmlUtil.extractTextFromHtml(item.postData.postView.content));
     return (title.isNotEmpty || content.isNotEmpty);
   }
 

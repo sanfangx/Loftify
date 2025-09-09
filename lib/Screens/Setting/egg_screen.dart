@@ -1,12 +1,11 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:loftify/Utils/lottie_files.dart';
 
 import '../../Models/cloud_control.dart';
 import '../../Utils/cloud_control_provider.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/lottie_util.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class EggScreen extends StatefulWidget {
   const EggScreen({super.key});
@@ -17,12 +16,14 @@ class EggScreen extends StatefulWidget {
   State<EggScreen> createState() => _EggScreenState();
 }
 
-class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
+class _EggScreenState extends BaseDynamicState<EggScreen>
+    with TickerProviderStateMixin {
   Widget? celebrateWidget;
   bool _showCelebrate = false;
   late AnimationController _celebrateController;
-  bool overrideCloudControl =
-      HiveUtil.getBool(HiveUtil.overrideCloudControlKey, defaultValue: false);
+  bool overrideCloudControl = ChewieHiveUtil.getBool(
+      HiveUtil.overrideCloudControlKey,
+      defaultValue: false);
 
   @override
   void initState() {
@@ -31,7 +32,7 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
       _celebrateController = AnimationController(
           duration: const Duration(seconds: 5), vsync: this);
       celebrateWidget = LottieUtil.load(
-        LottieUtil.celebrate,
+        LottieFiles.celebrate,
         size: MediaQuery.sizeOf(context).width * 2,
         controller: _celebrateController,
       );
@@ -63,8 +64,7 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
     return Stack(
       children: [
         Scaffold(
-          appBar: ItemBuilder.buildResponsiveAppBar(
-            context: context,
+          appBar: ResponsiveAppBar(
             showBack: true,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           ),
@@ -74,8 +74,8 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
               children: [
                 const SizedBox(height: 20),
                 Center(
-                  child: ItemBuilder.buildClickable(
-                    GestureDetector(
+                  child: ClickableWrapper(
+                    child: GestureDetector(
                       onTap: diaplayCelebrate,
                       child: Hero(
                         tag: "logo-egg",
@@ -101,20 +101,16 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
                   ),
                 ),
                 const SizedBox(height: 30),
-                ItemBuilder.buildContainerItem(
+                ContainerItem(
                   backgroundColor: Theme.of(context).canvasColor,
-                  bottomRadius: true,
-                  topRadius: true,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 10),
-                    child: ItemBuilder.buildHtmlWidget(
-                      context,
-                      S.current.eggMessage,
-                      textStyle: Theme.of(context).textTheme.bodyLarge,
+                    child: CustomHtmlWidget(
+                      content: appLocalizations.eggMessage,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
-                  context: context,
                 ),
                 ..._buildButton(),
               ],
@@ -139,17 +135,16 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
   _buildButton() {
     return [
       const SizedBox(height: 10),
-      ItemBuilder.buildRadioItem(
+      CheckboxItem(
         value: overrideCloudControl,
-        context: context,
-        title: S.current.overrideCloudControl,
-        description: S.current.overrideCloudControlDescription,
+        title: appLocalizations.overrideCloudControl,
+        description: appLocalizations.overrideCloudControlDescription,
         roundTop: true,
         roundBottom: true,
         onTap: () {
           setState(() {
             overrideCloudControl = !overrideCloudControl;
-            HiveUtil.put(
+            ChewieHiveUtil.put(
                 HiveUtil.overrideCloudControlKey, overrideCloudControl);
             if (overrideCloudControl) {
               controlProvider.globalControl =

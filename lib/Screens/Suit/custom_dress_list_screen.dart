@@ -1,18 +1,12 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/gift_api.dart';
 import 'package:loftify/Models/gift_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Suit/custom_bg_avatar_list_screen.dart';
 import 'package:loftify/Screens/Suit/dress_detail_screen.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Api/dress_api.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'emote_detail_screen.dart';
 
 class CustomDressListScreen extends StatefulWidget {
@@ -35,7 +29,7 @@ class CustomDressListScreen extends StatefulWidget {
   State<CustomDressListScreen> createState() => _CustomDressListScreenState();
 }
 
-class _CustomDressListScreenState extends State<CustomDressListScreen>
+class _CustomDressListScreenState extends BaseDynamicState<CustomDressListScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -127,7 +121,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
       }
     } catch (e, t) {
       ILogger.error("Failed to load dress list", e, t);
-      if (mounted) IToast.showTop(S.current.loadFailed);
+      if (mounted) IToast.showTop(appLocalizations.loadFailed);
       return IndicatorResult.fail;
     } finally {
       if (mounted) setState(() {});
@@ -167,15 +161,13 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
               return widget.propType == 3
                   ? _giftEmoteList.isNotEmpty
                       ? _buildEmoteBody(physics)
-                      : ItemBuilder.buildEmptyPlaceholder(
-                          context: context,
-                          text: S.current.noEmotePackage,
+                      : EmptyPlaceholder(
+                          text: appLocalizations.noEmotePackage,
                           physics: physics)
                   : _giftDressList.isNotEmpty
                       ? _buildDressBody(physics)
-                      : ItemBuilder.buildEmptyPlaceholder(
-                          context: context,
-                          text: S.current.noDress,
+                      : EmptyPlaceholder(
+                          text: appLocalizations.noDress,
                           physics: physics);
             },
           ),
@@ -185,7 +177,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
   }
 
   Widget _buildDressBody(ScrollPhysics physics) {
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       child: WaterfallFlow.builder(
         physics: physics,
         cacheExtent: 9999,
@@ -206,7 +198,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
   }
 
   Widget _buildEmoteBody(ScrollPhysics physics) {
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       child: WaterfallFlow.builder(
         physics: physics,
         cacheExtent: 9999,
@@ -239,7 +231,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
-          color: MyTheme.getCardBackground(context),
+          color: ChewieTheme.canvasColor,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -261,7 +253,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
                         childAspectRatio: 1,
                       ),
                       itemBuilder: (context, index) {
-                        return ItemBuilder.buildCachedImage(
+                        return ChewieItemBuilder.buildCachedImage(
                           imageUrl: item.partList[index].partUrl,
                           context: context,
                           showLoading: false,
@@ -271,7 +263,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
                         );
                       },
                     )
-                  : ItemBuilder.buildCachedImage(
+                  : ChewieItemBuilder.buildCachedImage(
                       imageUrl: item.coverImg,
                       context: context,
                       showLoading: false,
@@ -287,15 +279,14 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
             ),
             const SizedBox(height: 5),
             Text(
-              S.current.pendantCount(item.partCount),
+              appLocalizations.pendantCount(item.partCount),
               style: Theme.of(context).textTheme.labelMedium,
             ),
             const SizedBox(height: 10),
-            ItemBuilder.buildRoundButton(
-              context,
-              text: S.current.viewDetail,
+            RoundIconTextButton(
+              text: appLocalizations.viewDetail,
               background: Theme.of(context).primaryColor,
-              onTap: () {
+              onPressed: () {
                 RouteUtil.pushPanelCupertinoRoute(
                   context,
                   DressDetailScreen(
@@ -324,7 +315,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
-          color: MyTheme.getCardBackground(context),
+          color: ChewieTheme.canvasColor,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -346,7 +337,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
                         childAspectRatio: 1,
                       ),
                       itemBuilder: (context, index) {
-                        return ItemBuilder.buildCachedImage(
+                        return ChewieItemBuilder.buildCachedImage(
                           imageUrl: item.emoteList[index].url,
                           context: context,
                           showLoading: false,
@@ -356,7 +347,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
                         );
                       },
                     )
-                  : ItemBuilder.buildCachedImage(
+                  : ChewieItemBuilder.buildCachedImage(
                       imageUrl: item.name,
                       context: context,
                       showLoading: false,
@@ -372,15 +363,14 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
             ),
             const SizedBox(height: 5),
             Text(
-              S.current.emoteCount(item.emoteCount),
+              appLocalizations.emoteCount(item.emoteCount),
               style: Theme.of(context).textTheme.labelMedium,
             ),
             const SizedBox(height: 10),
-            ItemBuilder.buildRoundButton(
-              context,
-              text: S.current.viewDetail,
+            RoundIconTextButton(
+              text: appLocalizations.viewDetail,
               background: Theme.of(context).primaryColor,
-              onTap: () {
+              onPressed: () {
                 RouteUtil.pushPanelCupertinoRoute(
                   context,
                   EmoteDetailScreen(

@@ -1,25 +1,14 @@
-import 'dart:io';
-
-import 'package:context_menus/context_menus.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:loftify/Api/user_api.dart';
 import 'package:loftify/Models/history_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Utils/hive_util.dart';
 
 import '../../Models/post_detail_response.dart';
-import '../../Utils/constant.dart';
 import '../../Utils/enums.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/utils.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/PostItem/common_info_post_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'nested_mixin.dart';
 
 class LikeScreen extends StatefulWidgetForNested {
@@ -47,7 +36,7 @@ class LikeScreen extends StatefulWidgetForNested {
   State<LikeScreen> createState() => _LikeScreenState();
 }
 
-class _LikeScreenState extends State<LikeScreen>
+class _LikeScreenState extends BaseDynamicState<LikeScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -89,7 +78,7 @@ class _LikeScreenState extends State<LikeScreen>
           .then((value) {
         try {
           if (value['meta']['status'] != 200) {
-            if (Utils.isNotEmpty(
+            if (StringUtil.isNotEmpty(
                 value['meta']['desc'] ?? value['meta']['msg'])) {
               IToast.showTop(value['meta']['desc'] ?? value['meta']['msg']);
             }
@@ -108,7 +97,7 @@ class _LikeScreenState extends State<LikeScreen>
                   if (item > 0) {
                     int month = e.monthCount.indexOf(item);
                     _archiveDataList.add(ArchiveData(
-                      desc: S.current.yearAndMonth(e.year, month + 1),
+                      desc: appLocalizations.yearAndMonth(e.year, month + 1),
                       count: item,
                       endTime: 0,
                       startTime: 0,
@@ -137,7 +126,7 @@ class _LikeScreenState extends State<LikeScreen>
         } catch (e, t) {
           _initPhase = InitPhase.failed;
           ILogger.error("Failed to load like list", e, t);
-          if (mounted) IToast.showTop(S.current.loadFailed);
+          if (mounted) IToast.showTop(appLocalizations.loadFailed);
           return IndicatorResult.fail;
         } finally {
           if (mounted) setState(() {});
@@ -160,7 +149,7 @@ class _LikeScreenState extends State<LikeScreen>
     super.build(context);
     return Scaffold(
       backgroundColor: widget.infoMode == InfoMode.me
-          ? MyTheme.getBackground(context)
+          ? ChewieTheme.getBackground(context)
           : Colors.transparent,
       appBar: widget.infoMode == InfoMode.me ? _buildAppBar() : null,
       body: _buildBody(),
@@ -170,11 +159,9 @@ class _LikeScreenState extends State<LikeScreen>
   _buildBody() {
     switch (_initPhase) {
       case InitPhase.connecting:
-        return ItemBuilder.buildLoadingWidget(context,
-            background: Colors.transparent);
+        return const LoadingWidget(background: Colors.transparent);
       case InitPhase.failed:
-        return ItemBuilder.buildErrorWidget(
-          context: context,
+        return CustomErrorWidget(
           onTap: _onRefresh,
         );
       case InitPhase.successful:
@@ -189,17 +176,16 @@ class _LikeScreenState extends State<LikeScreen>
               childBuilder: (context, physics) {
                 return _archiveDataList.isNotEmpty && _likeList.isNotEmpty
                     ? _buildNineGridGroup(physics)
-                    : ItemBuilder.buildEmptyPlaceholder(
-                        context: context,
-                        text: S.current.noLike,
+                    : EmptyPlaceholder(
+                        text: appLocalizations.noLike,
                         physics: physics,
                         shrinkWrap: false,
                       );
               },
             ),
             Positioned(
-              right: ResponsiveUtil.isLandscape() ? 16 : 12,
-              bottom: ResponsiveUtil.isLandscape() ? 16 : 76,
+              right: ResponsiveUtil.isLandscapeLayout() ? 16 : 12,
+              bottom: ResponsiveUtil.isLandscapeLayout() ? 16 : 76,
               child: _buildFloatingButtons(),
             ),
           ],
@@ -223,14 +209,14 @@ class _LikeScreenState extends State<LikeScreen>
       }
       widgets.add(ItemBuilder.buildTitle(
         context,
-        title: S.current.descriptionWithPostCount(e.desc, e.count.toString()),
+        title: appLocalizations.descriptionWithPostCount(e.desc, e.count.toString()),
         topMargin: 16,
         bottomMargin: 0,
       ));
       widgets.add(_buildNineGrid(startIndex, count));
       startIndex += e.count;
     }
-    return ItemBuilder.buildLoadMoreNotification(
+    return LoadMoreNotification(
       noMore: _noMore,
       onLoad: _onLoad,
       child: ListView(
@@ -259,13 +245,11 @@ class _LikeScreenState extends State<LikeScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: S.current.myLikes,
+      title: appLocalizations.myLikes,
       actions: [
-        ItemBuilder.buildIconButton(
-            context: context,
+        CircleIconButton(
             icon: Icon(Icons.more_vert_rounded,
                 color: Theme.of(context).iconTheme.color),
             onTap: () {
@@ -276,11 +260,11 @@ class _LikeScreenState extends State<LikeScreen>
   }
 
   _buildMoreButtons() {
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig(
-          S.current.clearInvalidContent,
-          icon: const Icon(Icons.delete_outline_rounded),
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem(
+          appLocalizations.clearInvalidContent,
+          iconData: Icons.delete_outline_rounded,
           onPressed: () async {
             UserApi.deleteInvalidLike(blogId: await HiveUtil.getUserId())
                 .then((value) {
@@ -290,7 +274,7 @@ class _LikeScreenState extends State<LikeScreen>
                 _likeList
                     .removeWhere((e) => CommonInfoItemBuilder.isInvalid(e));
                 setState(() {});
-                IToast.showTop(S.current.clearSuccess);
+                IToast.showTop(appLocalizations.clearSuccess);
               }
             });
           },
@@ -300,11 +284,10 @@ class _LikeScreenState extends State<LikeScreen>
   }
 
   _buildFloatingButtons() {
-    return ResponsiveUtil.isLandscape()
+    return ResponsiveUtil.isLandscapeLayout()
         ? Column(
             children: [
-              ItemBuilder.buildShadowIconButton(
-                context: context,
+              ShadowIconButton(
                 icon: const Icon(Icons.more_vert_rounded),
                 onTap: () {
                   BottomSheetBuilder.showContextMenu(

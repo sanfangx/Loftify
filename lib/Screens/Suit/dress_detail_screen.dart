@@ -1,24 +1,15 @@
-import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loftify/Api/dress_api.dart';
 import 'package:loftify/Models/gift_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Info/nested_mixin.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Utils/enums.dart';
-import '../../Utils/file_util.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
-import '../../Widgets/Custom/hero_photo_view_screen.dart';
-import '../../Widgets/Dialog/custom_dialog.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class DressDetailScreen extends StatefulWidgetForNested {
   const DressDetailScreen({
@@ -35,7 +26,7 @@ class DressDetailScreen extends StatefulWidgetForNested {
   State<DressDetailScreen> createState() => _DressDetailScreenState();
 }
 
-class _DressDetailScreenState extends State<DressDetailScreen>
+class _DressDetailScreenState extends BaseDynamicState<DressDetailScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -49,7 +40,7 @@ class _DressDetailScreenState extends State<DressDetailScreen>
   void initState() {
     super.initState();
     currentAvatarImg =
-        HiveUtil.getString(HiveUtil.customAvatarBoxKey, defaultValue: null);
+        ChewieHiveUtil.getString(HiveUtil.customAvatarBoxKey, defaultValue: null);
     setState(() {});
   }
 
@@ -72,7 +63,7 @@ class _DressDetailScreenState extends State<DressDetailScreen>
         }
       } catch (e, t) {
         ILogger.error("Failed to load dress detail", e, t);
-        if (mounted) IToast.showTop(S.current.loadFailed);
+        if (mounted) IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -89,7 +80,7 @@ class _DressDetailScreenState extends State<DressDetailScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       appBar: _buildAppBar(),
       body: EasyRefresh.builder(
           refreshOnStart: true,
@@ -122,15 +113,15 @@ class _DressDetailScreenState extends State<DressDetailScreen>
   _dressOrUnDress(GiftPartItem item) async {
     HapticFeedback.mediumImpact();
     if (currentAvatarImg == item.partUrl) {
-      await HiveUtil.put(HiveUtil.customAvatarBoxKey, "");
+      await ChewieHiveUtil.put(HiveUtil.customAvatarBoxKey, "");
       currentAvatarImg = "";
       setState(() {});
-      IToast.showTop(S.current.unDressSuccess);
+      IToast.showTop(appLocalizations.unDressSuccess);
     } else {
-      await HiveUtil.put(HiveUtil.customAvatarBoxKey, item.partUrl);
+      await ChewieHiveUtil.put(HiveUtil.customAvatarBoxKey, item.partUrl);
       currentAvatarImg = item.partUrl;
       setState(() {});
-      IToast.showTop(S.current.dressSuccess);
+      IToast.showTop(appLocalizations.dressSuccess);
     }
   }
 
@@ -138,7 +129,7 @@ class _DressDetailScreenState extends State<DressDetailScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: MyTheme.getCardBackground(context),
+        color: ChewieTheme.canvasColor,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -171,7 +162,7 @@ class _DressDetailScreenState extends State<DressDetailScreen>
                     },
                     child: Hero(
                       tag: item.partUrl,
-                      child: ItemBuilder.buildCachedImage(
+                      child: ChewieItemBuilder.buildCachedImage(
                         context: context,
                         width: 90,
                         height: 90,
@@ -189,7 +180,7 @@ class _DressDetailScreenState extends State<DressDetailScreen>
           ),
           const SizedBox(height: 5),
           Text(
-            item.partType == 1 ? S.current.avatarBox : S.current.commentBubble,
+            item.partType == 1 ? appLocalizations.avatarBox : appLocalizations.commentBubble,
             style: Theme.of(context).textTheme.labelMedium,
           ),
           const SizedBox(height: 10),
@@ -198,12 +189,11 @@ class _DressDetailScreenState extends State<DressDetailScreen>
               if (item.partType == 1) const SizedBox(width: 0),
               if (item.partType == 1)
                 Center(
-                  child: ItemBuilder.buildIconButton(
-                    context: context,
+                  child: CircleIconButton(
                     icon: const Icon(Icons.download_done_rounded, size: 24),
                     onTap: () async {
                       CustomLoadingDialog.showLoading(
-                          title: S.current.downloading);
+                          title: appLocalizations.downloading);
                       String url = item.partUrl;
                       await FileUtil.saveImage(context, url);
                       CustomLoadingDialog.dismissLoading();
@@ -213,10 +203,10 @@ class _DressDetailScreenState extends State<DressDetailScreen>
               if (item.partType != 1)
                 Expanded(
                   flex: 2,
-                  child: ItemBuilder.buildRoundButton(context,
-                      text: S.current.download, onTap: () async {
+                  child: RoundIconTextButton(
+                      text: appLocalizations.download, onPressed: () async {
                     CustomLoadingDialog.showLoading(
-                        title: S.current.downloading);
+                        title: appLocalizations.downloading);
                     String url = item.partUrl;
                     await FileUtil.saveImage(context, url);
                     CustomLoadingDialog.dismissLoading();
@@ -226,15 +216,14 @@ class _DressDetailScreenState extends State<DressDetailScreen>
               if (item.partType == 1)
                 Expanded(
                   flex: 3,
-                  child: ItemBuilder.buildRoundButton(
-                    context,
+                  child: RoundIconTextButton(
                     text: currentAvatarImg == item.partUrl
-                        ? S.current.dressingCurrently
-                        : S.current.dressImmediately,
+                        ? appLocalizations.dressingCurrently
+                        : appLocalizations.dressImmediately,
                     background: currentAvatarImg == item.partUrl
                         ? null
                         : Theme.of(context).primaryColor,
-                    onTap: () {
+                    onPressed: () {
                       _dressOrUnDress(item);
                     },
                   ),
@@ -247,10 +236,9 @@ class _DressDetailScreenState extends State<DressDetailScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
-      title: S.current.dressDetail,
+      title: appLocalizations.dressDetail,
     );
   }
 }

@@ -1,12 +1,10 @@
-import 'package:context_menus/context_menus.dart';
-import 'package:custom_sliding_segmented_control/custom_sliding_segmented_control.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loftify/Api/tag_api.dart';
 import 'package:loftify/Models/recommend_response.dart';
 import 'package:loftify/Models/tag_response.dart';
-import 'package:loftify/Resources/theme.dart';
 import 'package:loftify/Screens/Post/tag_collection_grain_screen.dart';
 import 'package:loftify/Screens/Post/tag_insearch_screen.dart';
 import 'package:loftify/Screens/Post/tag_related_screen.dart';
@@ -14,27 +12,16 @@ import 'package:loftify/Screens/Suit/dress_screen.dart';
 import 'package:loftify/Utils/asset_util.dart';
 import 'package:loftify/Utils/enums.dart';
 import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/ilogger.dart';
-import 'package:loftify/Utils/itoast.dart';
-import 'package:loftify/Utils/responsive_util.dart';
-import 'package:loftify/Utils/route_util.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../Models/post_detail_response.dart';
 import '../../Utils/cloud_control_provider.dart';
-import '../../Utils/constant.dart';
 import '../../Utils/uri_util.dart';
 import '../../Utils/utils.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/BottomSheet/newest_filter_bottom_sheet.dart';
-import '../../Widgets/Custom/custom_tab_indicator.dart';
-import '../../Widgets/Custom/sliver_appbar_delegate.dart';
-import '../../Widgets/Custom/subordinate_scroll_controller.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
 import '../../Widgets/PostItem/recommend_flow_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class TagDetailScreen extends StatefulWidget {
   const TagDetailScreen({super.key, required this.tag});
@@ -47,7 +34,7 @@ class TagDetailScreen extends StatefulWidget {
   State<TagDetailScreen> createState() => _TagDetailScreenState();
 }
 
-class _TagDetailScreenState extends State<TagDetailScreen>
+class _TagDetailScreenState extends BaseDynamicState<TagDetailScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -61,15 +48,16 @@ class _TagDetailScreenState extends State<TagDetailScreen>
   final List<SubordinateScrollController?> scrollControllers =
       List.filled(3, null);
 
-  PostLayoutType _postLayoutType = PostLayoutType.values[Utils.patchEnum(
-      HiveUtil.getInt(HiveUtil.tagDetailPostLayoutTypeKey, defaultValue: 0),
+  PostLayoutType _postLayoutType = PostLayoutType.values[ChewieUtils.patchEnum(
+      ChewieHiveUtil.getInt(HiveUtil.tagDetailPostLayoutTypeKey,
+          defaultValue: 0),
       PostLayoutType.values.length)];
 
   int _currentTabIndex = 0;
   final List<String> _tabLabelList = [
-    S.current.explore,
-    S.current.newest,
-    S.current.hottest
+    appLocalizations.explore,
+    appLocalizations.newest,
+    appLocalizations.hottest
   ];
 
   late GetTagPostListParams _hottestParams;
@@ -103,11 +91,10 @@ class _TagDetailScreenState extends State<TagDetailScreen>
     super.build(context);
     return Scaffold(
       appBar: _buildAppBar(),
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.getBackground(context),
       body: _tagDetailData != null
           ? _buildMainBody()
-          : ItemBuilder.buildLoadingWidget(context,
-              background: MyTheme.getBackground(context)),
+          : LoadingWidget(background: ChewieTheme.getBackground(context)),
     );
   }
 
@@ -135,7 +122,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
           if (mounted) setState(() {});
         }
       } catch (e, t) {
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         ILogger.error("Failed to load tag", e, t);
       }
     });
@@ -144,7 +131,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
   _buildMainBody() {
     return Container(
       decoration: BoxDecoration(
-        color: MyTheme.getBackground(context),
+        color: ChewieTheme.getBackground(context),
       ),
       child: ExtendedNestedScrollView(
         controller: _scrollController,
@@ -192,14 +179,14 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                       LoftifyItemBuilder.buildFramedDoubleButton(
                         context: context,
                         isFollowed: _tagDetailData!.favorited,
-                        positiveText: S.current.subscribed,
-                        negtiveText: S.current.subscribe,
+                        positiveText: appLocalizations.subscribed,
+                        negtiveText: appLocalizations.subscribe,
                         onTap: () {
                           HapticFeedback.mediumImpact();
                           TagApi.subscribeOrUnSubscribe(
                             tag: widget.tag,
                             isSubscribe: !_tagDetailData!.favorited,
-                            id: Utils.parseToInt(
+                            id: NumberUtil.parseToInt(
                                 _tagDetailData!.favoritedTagId),
                           ).then((value) {
                             if (value['meta']['status'] != 200) {
@@ -213,7 +200,8 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                           });
                         },
                       ),
-                      if (ResponsiveUtil.isLandscape()) ..._buildButtons(true),
+                      if (ResponsiveUtil.isLandscapeLayout())
+                        ..._buildButtons(true),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -232,7 +220,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                         ),
                       ItemBuilder.buildTagItem(
                         context,
-                        "${Utils.formatCount(_tagDetailData!.tagViewCount)}${S.current.viewCount}",
+                        "${StringUtil.formatCount(_tagDetailData!.tagViewCount)}${appLocalizations.viewCount}",
                         TagType.normal,
                         showTagLabel: false,
                         showIcon: false,
@@ -241,7 +229,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                       ItemBuilder.buildTagItem(
                         context,
                         showTagLabel: false,
-                        "${Utils.formatCount(_tagDetailData!.postAllCount)}${S.current.participateCount}",
+                        "${StringUtil.formatCount(_tagDetailData!.postAllCount)}${appLocalizations.participateCount}",
                         TagType.normal,
                         showIcon: false,
                         jumpToTag: false,
@@ -249,7 +237,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                     ],
                   ),
                   const SizedBox(height: 12),
-                  ItemBuilder.buildDivider(context, horizontal: 0, vertical: 0),
+                  MyDivider(horizontal: 0, vertical: 0),
                 ],
               ),
             ),
@@ -269,10 +257,10 @@ class _TagDetailScreenState extends State<TagDetailScreen>
   Widget _buildTabBar() {
     return SliverPersistentHeader(
       pinned: true,
-      key: ValueKey(Utils.getRandomString()),
+      key: ValueKey(StringUtil.getRandomString()),
       delegate: SliverAppBarDelegate(
         radius: 0,
-        background: MyTheme.getBackground(context),
+        background: ChewieTheme.getBackground(context),
         tabBar: TabBar(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
           overlayColor: WidgetStateProperty.all(Colors.transparent),
@@ -290,7 +278,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
           labelStyle: Theme.of(context).textTheme.titleLarge,
           unselectedLabelStyle:
               Theme.of(context).textTheme.titleLarge?.apply(color: Colors.grey),
-          indicator: CustomTabIndicator(
+          indicator: UnderlinedTabIndicator(
             borderColor: Theme.of(context).primaryColor,
           ),
           onTap: (index) {
@@ -364,7 +352,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
     bool showTagDress = controlProvider.globalControl.showTagDress;
     bool showEntries = _tagDetailData!.collectionRank != null ||
         (_tagDetailData!.propGiftTagConfig != null && showTagDress) ||
-        Utils.isNotEmpty(_tagDetailData!.relatedTags);
+        StringUtil.isNotEmpty(_tagDetailData!.relatedTags);
     return showEntries
         ? Container(
             height: 70,
@@ -378,18 +366,18 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                   _buildEntryItem(
                       darkBg: AssetUtil.collectionDarkIllust,
                       lightBg: AssetUtil.collectionLightIllust,
-                      title: S.current.collectionGrain,
-                      desc: S.current.collectionGrainDetail(
+                      title: appLocalizations.collectionGrain,
+                      desc: appLocalizations.collectionGrainDetail(
                           _tagDetailData!.collectionRank!.title),
                       onTap: () {
                         RouteUtil.pushPanelCupertinoRoute(
                             context, TagCollectionGrainScreen(tag: widget.tag));
                       }),
-                if (Utils.isNotEmpty(_tagDetailData!.relatedTags))
+                if (StringUtil.isNotEmpty(_tagDetailData!.relatedTags))
                   _buildEntryItem(
                       darkBg: AssetUtil.tagDarkIllust,
                       lightBg: AssetUtil.tagLightIllust,
-                      title: S.current.relatedTag,
+                      title: appLocalizations.relatedTag,
                       desc: _tagDetailData!.relatedTags,
                       onTap: () {
                         RouteUtil.pushPanelCupertinoRoute(
@@ -399,8 +387,8 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                   _buildEntryItem(
                     darkBg: AssetUtil.dressDarkIllust,
                     lightBg: AssetUtil.dressLightIllust,
-                    title: S.current.relatedDressShort,
-                    desc: S.current.relatedDressShortDetail(
+                    title: appLocalizations.relatedDressShort,
+                    desc: appLocalizations.relatedDressShortDetail(
                         _tagDetailData!.propGiftTagConfig!.slotCount),
                     onTap: () {
                       RouteUtil.pushPanelCupertinoRoute(
@@ -420,8 +408,8 @@ class _TagDetailScreenState extends State<TagDetailScreen>
     required String desc,
     Function()? onTap,
   }) {
-    return ItemBuilder.buildClickable(
-      GestureDetector(
+    return ClickableWrapper(
+      child: GestureDetector(
         onTap: onTap,
         child: Container(
           margin: const EdgeInsets.only(right: 12),
@@ -480,7 +468,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: MyTheme.getBackground(context),
+            color: ChewieTheme.getBackground(context),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.max,
@@ -500,8 +488,8 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   children: <int, Widget>{
-                    0: Text(S.current.releaseRecently),
-                    1: Text(S.current.commentRecently),
+                    0: Text(appLocalizations.releaseRecently),
+                    1: Text(appLocalizations.commentRecently),
                   },
                   initialValue: _currentNewestIndex,
                   onValueChanged: (index) {
@@ -531,7 +519,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                   Icons.filter_alt_rounded,
                   size: 16,
                 ),
-                text: S.current.filter,
+                text: appLocalizations.filter,
                 onTap: () {
                   BottomSheetBuilder.showBottomSheet(
                     context,
@@ -562,7 +550,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
           height: 50,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: MyTheme.getBackground(context),
+            color: ChewieTheme.getBackground(context),
           ),
           child: Row(
             children: [
@@ -581,10 +569,10 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   children: <int, Widget>{
-                    0: Text(S.current.all),
-                    1: Text(S.current.dayRank),
-                    2: Text(S.current.weekRank),
-                    3: Text(S.current.monthRank),
+                    0: Text(appLocalizations.all),
+                    1: Text(appLocalizations.dayRank),
+                    2: Text(appLocalizations.weekRank),
+                    3: Text(appLocalizations.monthRank),
                   },
                   initialValue: _currentHottestIndex,
                   onValueChanged: (index) {
@@ -624,7 +612,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
                   Icons.filter_alt_rounded,
                   size: 16,
                 ),
-                text: S.current.filter,
+                text: appLocalizations.filter,
                 onTap: () {
                   BottomSheetBuilder.showBottomSheet(
                     context,
@@ -646,11 +634,10 @@ class _TagDetailScreenState extends State<TagDetailScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return ItemBuilder.buildResponsiveAppBar(
-      context: context,
+    return ResponsiveAppBar(
       showBack: true,
       titleWidget: Text(
-        S.current.tag,
+        appLocalizations.tag,
         style: Theme.of(context).textTheme.titleMedium?.apply(
               fontWeightDelta: 2,
             ),
@@ -662,8 +649,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
   List<Widget> _buildButtons([bool small = false]) {
     return [
       const SizedBox(width: 5),
-      ItemBuilder.buildIconButton(
-        context: context,
+      CircleIconButton(
         icon: AssetUtil.loadDouble(
           context,
           AssetUtil.searchLightIcon,
@@ -677,8 +663,7 @@ class _TagDetailScreenState extends State<TagDetailScreen>
         },
       ),
       const SizedBox(width: 5),
-      ItemBuilder.buildIconButton(
-        context: context,
+      CircleIconButton(
         icon: Icon(
           _postLayoutType == PostLayoutType.waterfallflow
               ? Icons.view_agenda_outlined
@@ -693,14 +678,13 @@ class _TagDetailScreenState extends State<TagDetailScreen>
           } else {
             _postLayoutType = PostLayoutType.waterfallflow;
           }
-          HiveUtil.put(
+          ChewieHiveUtil.put(
               HiveUtil.tagDetailPostLayoutTypeKey, _postLayoutType.index);
           setState(() {});
         },
       ),
       const SizedBox(width: 5),
-      ItemBuilder.buildIconButton(
-        context: context,
+      CircleIconButton(
         icon: Icon(
           Icons.more_vert_rounded,
           color: Theme.of(context).iconTheme.color,
@@ -715,23 +699,23 @@ class _TagDetailScreenState extends State<TagDetailScreen>
   }
 
   _buildMoreButtons() {
-    String url = UriUtil.getTagUrlByTagName(widget.tag);
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig(
-          S.current.copyLink,
-          icon: const Icon(Icons.copy_rounded),
+    String url = LoftifyUriUtil.getTagUrlByTagName(widget.tag);
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem(
+          appLocalizations.copyLink,
+          iconData: Icons.copy_rounded,
           onPressed: () {
-            Utils.copy(context, url);
+            ChewieUtils.copy(context, url);
           },
         ),
-        ContextMenuButtonConfig(S.current.openWithBrowser,
-            icon: const Icon(Icons.open_in_browser_rounded), onPressed: () {
+        FlutterContextMenuItem(appLocalizations.openWithBrowser,
+            iconData: Icons.open_in_browser_rounded, onPressed: () {
           UriUtil.openExternal(url);
         }),
-        ContextMenuButtonConfig(S.current.shareToOtherApps,
-            icon: const Icon(Icons.share_rounded), onPressed: () {
-          UriUtil.share(context, url);
+        FlutterContextMenuItem(appLocalizations.shareToOtherApps,
+            iconData: Icons.share_rounded, onPressed: () {
+          UriUtil.share(url);
         }),
       ],
     );
@@ -752,7 +736,7 @@ class RecommendTab extends StatefulWidget {
   State<StatefulWidget> createState() => RecommendTabState();
 }
 
-class RecommendTabState extends State<RecommendTab>
+class RecommendTabState extends BaseDynamicState<RecommendTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -813,7 +797,7 @@ class RecommendTabState extends State<RecommendTab>
         }
       } catch (e, t) {
         ILogger.error("Failed to load tag recommend result list", e, t);
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         _recommendResultLoading = false;
@@ -834,7 +818,7 @@ class RecommendTabState extends State<RecommendTab>
         return await _fetchRecommendResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         onLoad: _fetchRecommendResult,
         noMore: _recommendNoMore,
         child: isWaterfallFlow
@@ -893,7 +877,7 @@ class HottestTab extends StatefulWidget {
   State<StatefulWidget> createState() => HottestTabState();
 }
 
-class HottestTabState extends State<HottestTab>
+class HottestTabState extends BaseDynamicState<HottestTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -980,7 +964,7 @@ class HottestTabState extends State<HottestTab>
         return await _fetchHottestResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         onLoad: _fetchHottestResult,
         noMore: _hottestNoMore,
         child: isWaterfallFlow
@@ -1039,7 +1023,7 @@ class NewestTab extends StatefulWidget {
   State<StatefulWidget> createState() => NewestTabState();
 }
 
-class NewestTabState extends State<NewestTab>
+class NewestTabState extends BaseDynamicState<NewestTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -1105,7 +1089,7 @@ class NewestTabState extends State<NewestTab>
         }
       } catch (e, t) {
         ILogger.error("Failed to load tag newest result list", e, t);
-        IToast.showTop(S.current.loadFailed);
+        IToast.showTop(appLocalizations.loadFailed);
         return IndicatorResult.fail;
       } finally {
         if (mounted) setState(() {});
@@ -1127,7 +1111,7 @@ class NewestTabState extends State<NewestTab>
         return await _fetchNewestResult();
       },
       triggerAxis: Axis.vertical,
-      childBuilder: (context, physics) => ItemBuilder.buildLoadMoreNotification(
+      childBuilder: (context, physics) => LoadMoreNotification(
         onLoad: _fetchNewestResult,
         noMore: _newestNoMore,
         child: isWaterfallFlow
