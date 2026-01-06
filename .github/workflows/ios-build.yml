@@ -16,25 +16,32 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 3. 强行重写依赖（解决 intl 冲突）
+      - name: 3. 精准注入依赖重写
         run: |
-          # 这一步直接在 pubspec.yaml 末尾添加重写逻辑
-          # 意思是：无视所有插件的限制，全局强行使用 intl 0.20.2
-          echo "" >> pubspec.yaml
-          echo "dependency_overrides:" >> pubspec.yaml
-          echo "  intl: 0.20.2" >> pubspec.yaml
+          # 1. 先把文件中所有关于 intl 的版本限制都删掉，防止多处冲突
+          sed -i '' '/intl:/d' pubspec.yaml
           
-          # 检查文件末尾是否添加成功
-          tail -n 5 pubspec.yaml
+          # 2. 如果文件里已经有 dependency_overrides:，就在它下面插入一行
+          # 如果没有，就在文件末尾创建它
+          if grep -q "dependency_overrides:" pubspec.yaml; then
+            sed -i '' '/dependency_overrides:/a\
+            \  intl: 0.20.2' pubspec.yaml
+          else
+            echo "" >> pubspec.yaml
+            echo "dependency_overrides:" >> pubspec.yaml
+            echo "  intl: 0.20.2" >> pubspec.yaml
+          fi
           
-          # 强制获取依赖
+          # 打印后 30 行检查格式
+          tail -n 30 pubspec.yaml
+          
           flutter pub get
           
       - name: 4. 安装 iOS 原生依赖
         run: |
           cd ios
-          # 针对可能存在的旧缓存进行清理
           rm -rf Podfile.lock
+          # 这一步在 Mac 机器上非常重要，跳过它会导致插件无法在 iOS 运行
           pod install --repo-update
           cd ..
 
