@@ -28,13 +28,22 @@ jobs:
           
           flutter pub get
           
-      - name: 4. iOS Preparation (Fix Platform Version)
+      - name: 4. iOS Preparation (Force Platform 13.0)
         run: |
           cd ios
-          # 强制修改 Podfile 中的平台版本为 iOS 13.0（满足大多数现代插件要求）
-          sed -i '' "s/# platform :ios, '9.0'/platform :ios, '13.0'/g" Podfile
-          sed -i '' "s/platform :ios, '11.0'/platform :ios, '13.0'/g" Podfile
-          sed -i '' "s/platform :ios, '12.0'/platform :ios, '13.0'/g" Podfile
+          # 1. 彻底移除旧的 platform 声明并重新注入到文件头
+          sed -i '' '/platform :ios/d' Podfile
+          echo "platform :ios, '13.0'" | cat - Podfile > temp && mv temp Podfile
+          
+          # 2. 强制修改项目设置中的 IPHONEOS_DEPLOYMENT_TARGET
+          # 这确保所有 Pod 依赖都以 iOS 13.0 编译
+          echo "post_install do |installer|" >> Podfile
+          echo "  installer.pods_project.targets.each do |target|" >> Podfile
+          echo "    target.build_configurations.each do |config|" >> Podfile
+          echo "      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'" >> Podfile
+          echo "    end" >> Podfile
+          echo "  end" >> Podfile
+          echo "end" >> Podfile
           
           rm -f Podfile.lock
           pod install --repo-update
@@ -42,7 +51,8 @@ jobs:
 
       - name: 5. Build iOS (Unsigned)
         run: |
-          flutter build ios --release --no-codesign
+          # 编译时也强制指定部署版本
+          flutter build ios --release --no-codesign --build-number=1 --build-name=1.0.0
 
       - name: 6. Create IPA for TrollStore
         run: |
