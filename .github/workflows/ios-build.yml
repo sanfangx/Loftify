@@ -13,36 +13,37 @@ jobs:
       - name: 2. 安装最新版 Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable' # 自动使用最新版，满足项目对 SDK >= 3.6.0 的要求
+          channel: 'stable'
           cache: true
 
-      - name: 3. 解决插件版本冲突
+      - name: 3. 暴力破解依赖冲突
         run: |
-          # 强制将 intl 升级到 0.20.2 以适配最新的 Flutter
-          # 这一步会直接修改 pubspec.yaml，解决你之前遇到的冲突
-          flutter pub add intl:0.20.2
+          # 1. 强制修改主项目的 intl 版本
+          sed -i '' 's/intl: .*/intl: ^0.20.2/g' pubspec.yaml
           
-          # 获取所有依赖
+          # 2. 关键手术：直接修改那个“搞事情”的插件内部配置
+          # 这个插件在本地 awesome_chewie 目录下，我们强行把它要求的 0.19 改成 0.20
+          if [ -f "awesome_chewie/pubspec.yaml" ]; then
+            sed -i '' 's/intl: .*/intl: ^0.20.2/g' awesome_chewie/pubspec.yaml
+          fi
+
+          # 3. 强制获取依赖
           flutter pub get
           
       - name: 4. 安装 iOS 原生依赖
         run: |
           cd ios
-          # 更新并安装 CocoaPods 插件
           pod install --repo-update
           cd ..
 
       - name: 5. 编译 iOS 工程 (免签名)
         run: |
-          # 编译出 Release 模式的 .app 文件，不进行签名
           flutter build ios --release --no-codesign
 
       - name: 6. 封装为巨魔 IPA
         run: |
-          # 建立巨魔识别的标准 Payload 结构
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
-          # 压缩为 ipa
           zip -r Loftify_TrollStore.ipa Payload
 
       - name: 7. 上传安装包
