@@ -10,38 +10,38 @@ jobs:
       - name: 1. 拉取代码
         uses: actions/checkout@v4
 
-      - name: 2. 安装 Flutter
+      - name: 2. 安装旧版 Flutter (兼容 intl 0.19.0)
         uses: subosito/flutter-action@v2
         with:
+          # 降低版本到 3.22.2，这个版本通常能跑通 intl 0.19.x 的项目
+          flutter-version: '3.22.2'
           channel: 'stable'
           cache: true
 
-      - name: 3. 初始化 iOS 环境
+      - name: 3. 初始化环境
         run: |
-          # 强制覆盖冲突的依赖版本
-          flutter pub add intl:0.20.2
-          # 运行下载并尝试自动修复冲突
+          # 尝试清理一下缓存
+          flutter clean
+          # 下载依赖
           flutter pub get
           cd ios
-          # 安装 iOS 必要的依赖组件
+          # 更新并安装 iOS 插件
           pod install --repo-update
           cd ..
 
       - name: 4. 编译 iOS 工程
         run: |
-          # 使用 --no-codesign 跳过签名，这对巨魔用户是必须的
+          # 依然不签名编译
           flutter build ios --release --no-codesign
 
       - name: 5. 制作巨魔专用 IPA
         run: |
           mkdir Payload
-          # 将编译好的 .app 文件放入 Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
-          # 压缩并命名
           zip -r Loftify_TrollStore.ipa Payload
 
-      - name: 6. 发送安装包
+      - name: 6. 上传安装包
         uses: actions/upload-artifact@v4
         with:
-          name: Loftify-Installation-Package
+          name: Loftify-Fixed-Package
           path: Loftify_TrollStore.ipa
