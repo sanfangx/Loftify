@@ -21,21 +21,21 @@ jobs:
           # 仅替换 environment 节点下的 SDK 版本号
           sed -i '' '/environment:/,/dependencies:/ s/sdk: .*/sdk: ">=3.6.0 <4.0.0"/' pubspec.yaml
           
-          # 清理可能存在的旧冲突
+          # 清理并注入依赖重写
           sed -i '' '/dependency_overrides:/d' pubspec.yaml
           sed -i '' '/intl:/d' pubspec.yaml
-          
-          # 在文件末尾注入重写逻辑
           echo -e "\ndependency_overrides:\n  intl: 0.20.2" >> pubspec.yaml
-          
-          # 验证文件修改是否正确
-          head -n 20 pubspec.yaml
           
           flutter pub get
           
-      - name: 4. iOS Preparation
+      - name: 4. iOS Preparation (Fix Platform Version)
         run: |
           cd ios
+          # 强制修改 Podfile 中的平台版本为 iOS 13.0（满足大多数现代插件要求）
+          sed -i '' "s/# platform :ios, '9.0'/platform :ios, '13.0'/g" Podfile
+          sed -i '' "s/platform :ios, '11.0'/platform :ios, '13.0'/g" Podfile
+          sed -i '' "s/platform :ios, '12.0'/platform :ios, '13.0'/g" Podfile
+          
           rm -f Podfile.lock
           pod install --repo-update
           cd ..
