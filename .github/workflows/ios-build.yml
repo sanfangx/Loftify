@@ -10,44 +10,43 @@ jobs:
       - name: 1. 拉取代码
         uses: actions/checkout@v4
 
-      - name: 2. 安装 Flutter (3.22.2)
+      - name: 2. 安装最新版 Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.2'
-          channel: 'stable'
+          channel: 'stable' # 自动使用最新版，满足项目对 SDK >= 3.6.0 的要求
           cache: true
 
-      - name: 3. 暴力修改环境限制
+      - name: 3. 解决插件版本冲突
         run: |
-          # 使用 perl 代替 sed，在 mac 环境下更可靠
-          perl -i -pe 's/sdk: ">=3.6.0 <4.0.0"/sdk: ">=3.4.0 <4.0.0"/g' pubspec.yaml
+          # 强制将 intl 升级到 0.20.2 以适配最新的 Flutter
+          # 这一步会直接修改 pubspec.yaml，解决你之前遇到的冲突
+          flutter pub add intl:0.20.2
           
-          # 打印一下文件内容，确保修改成功（我们在日志里能看到）
-          head -n 20 pubspec.yaml
-          
-          flutter clean
+          # 获取所有依赖
           flutter pub get
           
-      - name: 4. 安装 iOS 依赖 (关键步骤)
+      - name: 4. 安装 iOS 原生依赖
         run: |
           cd ios
-          # 有些项目需要先删掉 Pods 锁文件
-          rm -rf Podfile.lock
+          # 更新并安装 CocoaPods 插件
           pod install --repo-update
           cd ..
 
-      - name: 5. 编译 iOS 工程
+      - name: 5. 编译 iOS 工程 (免签名)
         run: |
+          # 编译出 Release 模式的 .app 文件，不进行签名
           flutter build ios --release --no-codesign
 
-      - name: 6. 制作巨魔专用 IPA
+      - name: 6. 封装为巨魔 IPA
         run: |
-          mkdir Payload
+          # 建立巨魔识别的标准 Payload 结构
+          mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
+          # 压缩为 ipa
           zip -r Loftify_TrollStore.ipa Payload
 
       - name: 7. 上传安装包
         uses: actions/upload-artifact@v4
         with:
-          name: Loftify-Final-Package
+          name: Loftify-Package
           path: Loftify_TrollStore.ipa
