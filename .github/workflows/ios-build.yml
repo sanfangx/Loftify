@@ -17,18 +17,22 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 3. 强制兼容处理
+      - name: 3. 暴力修改环境限制
         run: |
-          # 这一步最关键：强制把原作者要求的 3.6.0 降级为 3.4.0，以此匹配 Flutter 3.22.2
-          sed -i '' 's/sdk: ">=3.6.0 <4.0.0"/sdk: ">=3.4.0 <4.0.0"/g' pubspec.yaml
+          # 使用 perl 代替 sed，在 mac 环境下更可靠
+          perl -i -pe 's/sdk: ">=3.6.0 <4.0.0"/sdk: ">=3.4.0 <4.0.0"/g' pubspec.yaml
           
-          # 清理并强制获取依赖
+          # 打印一下文件内容，确保修改成功（我们在日志里能看到）
+          head -n 20 pubspec.yaml
+          
           flutter clean
           flutter pub get
           
-      - name: 4. 安装 iOS 依赖
+      - name: 4. 安装 iOS 依赖 (关键步骤)
         run: |
           cd ios
+          # 有些项目需要先删掉 Pods 锁文件
+          rm -rf Podfile.lock
           pod install --repo-update
           cd ..
 
