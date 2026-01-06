@@ -7,58 +7,51 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - name: 1. 拉取代码
+      - name: 1. Checkout Code
         uses: actions/checkout@v4
 
-      - name: 2. 安装最新版 Flutter
+      - name: 2. Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: 3. 强行修正依赖 (覆盖式重写)
+      - name: 3. Patch pubspec.yaml
         run: |
-          # 1. 直接用文本替换，但逻辑更简单：把所有 sdk: 这一行换掉
-          sed -i '' 's/sdk: .*/  sdk: ">=3.6.0 <4.0.0"/g' pubspec.yaml
+          # 仅替换 environment 节点下的 SDK 版本号
+          sed -i '' '/environment:/,/dependencies:/ s/sdk: .*/sdk: ">=3.6.0 <4.0.0"/' pubspec.yaml
           
-          # 2. 把所有 intl: 这一行删掉
+          # 清理可能存在的旧冲突
+          sed -i '' '/dependency_overrides:/d' pubspec.yaml
           sed -i '' '/intl:/d' pubspec.yaml
           
-          # 3. 把 dependency_overrides 删掉（如果存在），我们在末尾统一加
-          sed -i '' '/dependency_overrides:/d' pubspec.yaml
+          # 在文件末尾注入重写逻辑
+          echo -e "\ndependency_overrides:\n  intl: 0.20.2" >> pubspec.yaml
           
-          # 4. 在文件末尾追加全新的重写逻辑，确保不重复
-          echo "" >> pubspec.yaml
-          echo "dependency_overrides:" >> pubspec.yaml
-          echo "  intl: 0.20.2" >> pubspec.yaml
+          # 验证文件修改是否正确
+          head -n 20 pubspec.yaml
           
-          # 验证文件
-          cat pubspec.yaml
-          
-          # 获取依赖
           flutter pub get
           
-      - name: 4. 安装 iOS 原生依赖 (CocoaPods)
+      - name: 4. iOS Preparation
         run: |
           cd ios
-          # 删除可能冲突的锁文件
           rm -f Podfile.lock
-          # 强制更新库
           pod install --repo-update
           cd ..
 
-      - name: 5. 编译 iOS 工程 (免签名)
+      - name: 5. Build iOS (Unsigned)
         run: |
           flutter build ios --release --no-codesign
 
-      - name: 6. 制作巨魔 IPA
+      - name: 6. Create IPA for TrollStore
         run: |
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r Loftify_TrollStore.ipa Payload
 
-      - name: 7. 上传安装包
+      - name: 7. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Loftify-Package
+          name: Loftify-IPA
           path: Loftify_TrollStore.ipa
