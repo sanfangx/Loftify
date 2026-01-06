@@ -16,43 +16,61 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 3. 彻底重写依赖配置文件 (解决所有格式与冲突)
+      - name: 3. 彻底重写依赖配置文件 (使用 Dart 脚本)
         run: |
-          # 这一步我们不再搜索替换，而是直接删除旧的，建立一个修正后的依赖配置
-          # 我们利用 Flutter 的全局覆盖功能
-          cat <<EOF > fix_dependency.py
-          import yaml
-          import sys
+          # 创建一个 Dart 脚本来处理文件
+          cat <<EOF > fix_pubspec.dart
+          import 'dart:io';
 
-          with open('pubspec.yaml', 'r') as f:
-              data = yaml.safe_load(f)
+          void main() {
+            var file = File('pubspec.yaml');
+            var lines = file.readAsLinesSync();
+            var newLines = <String>[];
+            
+            bool hasDependencyOverrides = false;
+            
+            for (var line in lines) {
+              // 1. 修正 SDK 版本要求
+              if (line.contains('sdk:')) {
+                newLines.add('  sdk: ">=3.6.0 <4.0.0"');
+                continue;
+              }
+              // 2. 检查是否已经存在 dependency_overrides
+              if (line.contains('dependency_overrides:')) {
+                hasDependencyOverrides = true;
+              }
+              // 3. 移除旧的 intl 限制
+              if (line.trim().startsWith('intl:')) {
+                continue;
+              }
+              newLines.add(line);
+            }
 
-          # 强制设置 SDK 范围
-          data['environment']['sdk'] = '>=3.6.0 <4.0.0'
-          
-          # 注入或更新重写逻辑，解决 intl 冲突
-          if 'dependency_overrides' not in data:
-              data['dependency_overrides'] = {}
-          data['dependency_overrides']['intl'] = '0.20.2'
-          
-          with open('pubspec.yaml', 'w') as f:
-              yaml.dump(data, f)
+            // 4. 强行注入 intl 0.20.2
+            if (hasDependencyOverrides) {
+              // 如果已存在，就在该行下面注入
+              int index = newLines.indexWhere((l) => l.contains('dependency_overrides:'));
+              newLines.insert(index + 1, '  intl: 0.20.2');
+            } else {
+              // 如果不存在，在末尾添加
+              newLines.add('\ndependency_overrides:');
+              newLines.add('  intl: 0.20.2');
+            }
+
+            file.writeAsStringSync(newLines.join('\n'));
+            print('pubspec.yaml 已成功修正');
+          }
           EOF
 
-          # GitHub Actions 的 macOS 自带 Python3 和 PyYAML
-          python3 -m pip install PyYAML
-          python3 fix_dependency.py
+          # 运行 Dart 脚本
+          dart fix_pubspec.dart
           
-          # 打印结果看看
-          echo "--- 修改后的 pubspec.yaml ---"
-          head -n 50 pubspec.yaml
-          
+          # 获取依赖
           flutter pub get
           
       - name: 4. 安装 iOS 原生依赖 (CocoaPods)
         run: |
           cd ios
-          # 清理可能导致报错的缓存
           rm -rf Podfile.lock
           pod install --repo-update
           cd ..
