@@ -18,7 +18,9 @@ jobs:
 
       - name: 3. 初始化 iOS 环境
         run: |
-          # 进入项目目录，如果你的仓库根目录就是代码，直接执行
+          # 强制覆盖冲突的依赖版本
+          flutter pub add intl:0.20.2
+          # 运行下载并尝试自动修复冲突
           flutter pub get
           cd ios
           # 安装 iOS 必要的依赖组件
