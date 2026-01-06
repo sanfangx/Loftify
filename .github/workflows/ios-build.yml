@@ -16,32 +16,44 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 3. 精准注入依赖重写
+      - name: 3. 彻底重写依赖配置文件 (解决所有格式与冲突)
         run: |
-          # 1. 先把文件中所有关于 intl 的版本限制都删掉，防止多处冲突
-          sed -i '' '/intl:/d' pubspec.yaml
+          # 这一步我们不再搜索替换，而是直接删除旧的，建立一个修正后的依赖配置
+          # 我们利用 Flutter 的全局覆盖功能
+          cat <<EOF > fix_dependency.py
+          import yaml
+          import sys
+
+          with open('pubspec.yaml', 'r') as f:
+              data = yaml.safe_load(f)
+
+          # 强制设置 SDK 范围
+          data['environment']['sdk'] = '>=3.6.0 <4.0.0'
           
-          # 2. 如果文件里已经有 dependency_overrides:，就在它下面插入一行
-          # 如果没有，就在文件末尾创建它
-          if grep -q "dependency_overrides:" pubspec.yaml; then
-            sed -i '' '/dependency_overrides:/a\
-            \  intl: 0.20.2' pubspec.yaml
-          else
-            echo "" >> pubspec.yaml
-            echo "dependency_overrides:" >> pubspec.yaml
-            echo "  intl: 0.20.2" >> pubspec.yaml
-          fi
+          # 注入或更新重写逻辑，解决 intl 冲突
+          if 'dependency_overrides' not in data:
+              data['dependency_overrides'] = {}
+          data['dependency_overrides']['intl'] = '0.20.2'
           
-          # 打印后 30 行检查格式
-          tail -n 30 pubspec.yaml
+          with open('pubspec.yaml', 'w') as f:
+              yaml.dump(data, f)
+          EOF
+
+          # GitHub Actions 的 macOS 自带 Python3 和 PyYAML
+          python3 -m pip install PyYAML
+          python3 fix_dependency.py
+          
+          # 打印结果看看
+          echo "--- 修改后的 pubspec.yaml ---"
+          head -n 50 pubspec.yaml
           
           flutter pub get
           
-      - name: 4. 安装 iOS 原生依赖
+      - name: 4. 安装 iOS 原生依赖 (CocoaPods)
         run: |
           cd ios
+          # 清理可能导致报错的缓存
           rm -rf Podfile.lock
-          # 这一步在 Mac 机器上非常重要，跳过它会导致插件无法在 iOS 运行
           pod install --repo-update
           cd ..
 
@@ -49,7 +61,7 @@ jobs:
         run: |
           flutter build ios --release --no-codesign
 
-      - name: 6. 封装为巨魔 IPA
+      - name: 6. 制作巨魔 IPA
         run: |
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
@@ -58,5 +70,5 @@ jobs:
       - name: 7. 上传安装包
         uses: actions/upload-artifact@v4
         with:
-          name: Loftify-Package
+          name: Loftify-Final-Package
           path: Loftify_TrollStore.ipa
