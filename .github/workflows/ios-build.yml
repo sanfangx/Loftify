@@ -1,7 +1,7 @@
-name: Build My IPA
+name: Build Loftify for TrollStore
 
 on:
-  workflow_dispatch: # 这是一个开关，让你能手动启动编译
+  workflow_dispatch:
 
 jobs:
   build:
@@ -10,26 +10,36 @@ jobs:
       - name: 1. 拉取代码
         uses: actions/checkout@v4
 
-      - name: 2. 安装 Flutter 环境
+      - name: 2. 安装 Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: 3. 下载插件包
-        run: flutter pub get
+      - name: 3. 初始化 iOS 环境
+        run: |
+          # 进入项目目录，如果你的仓库根目录就是代码，直接执行
+          flutter pub get
+          cd ios
+          # 安装 iOS 必要的依赖组件
+          pod install --repo-update
+          cd ..
 
-      - name: 4. 编译 iOS 工程 (不签名)
-        run: flutter build ios --release --no-codesign
+      - name: 4. 编译 iOS 工程
+        run: |
+          # 使用 --no-codesign 跳过签名，这对巨魔用户是必须的
+          flutter build ios --release --no-codesign
 
-      - name: 5. 打包成 IPA 格式
+      - name: 5. 制作巨魔专用 IPA
         run: |
           mkdir Payload
+          # 将编译好的 .app 文件放入 Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
-          zip -r Runner.ipa Payload
+          # 压缩并命名
+          zip -r Loftify_TrollStore.ipa Payload
 
-      - name: 6. 上传安装包
+      - name: 6. 发送安装包
         uses: actions/upload-artifact@v4
         with:
-          name: My-iOS-App # 下载时的文件名
-          path: Runner.ipa
+          name: Loftify-Installation-Package
+          path: Loftify_TrollStore.ipa
