@@ -16,23 +16,25 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 3. 暴力破解依赖冲突
+      - name: 3. 强行重写依赖（解决 intl 冲突）
         run: |
-          # 1. 强制修改主项目的 intl 版本
-          sed -i '' 's/intl: .*/intl: ^0.20.2/g' pubspec.yaml
+          # 这一步直接在 pubspec.yaml 末尾添加重写逻辑
+          # 意思是：无视所有插件的限制，全局强行使用 intl 0.20.2
+          echo "" >> pubspec.yaml
+          echo "dependency_overrides:" >> pubspec.yaml
+          echo "  intl: 0.20.2" >> pubspec.yaml
           
-          # 2. 关键手术：直接修改那个“搞事情”的插件内部配置
-          # 这个插件在本地 awesome_chewie 目录下，我们强行把它要求的 0.19 改成 0.20
-          if [ -f "awesome_chewie/pubspec.yaml" ]; then
-            sed -i '' 's/intl: .*/intl: ^0.20.2/g' awesome_chewie/pubspec.yaml
-          fi
-
-          # 3. 强制获取依赖
+          # 检查文件末尾是否添加成功
+          tail -n 5 pubspec.yaml
+          
+          # 强制获取依赖
           flutter pub get
           
       - name: 4. 安装 iOS 原生依赖
         run: |
           cd ios
+          # 针对可能存在的旧缓存进行清理
+          rm -rf Podfile.lock
           pod install --repo-update
           cd ..
 
