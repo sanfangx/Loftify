@@ -19,10 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: Android
-            os: ubuntu-latest
-            artifact_name: release-Android
-            artifact_path: build/app/outputs/flutter-apk/*.apk
           - target: Windows
             os: windows-latest
             artifact_name: release-Windows
@@ -40,13 +36,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Add Android keystore
-      - name: Setup Android keystore
-        if: matrix.target == 'Android'
-        run: |
-          echo "${{ secrets.ENCODED_KEYSTORE }}" | base64 -di > android/app/cloudchewie.jks
-          echo "${{ secrets.KEY_PROPERTIES }}" > android/key.properties
-
       # Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2.21.0
@@ -54,15 +43,6 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
           cache: true
-
-      # Setup JDK
-      - name: Setup JDK 17 (Android)
-        if: matrix.target == 'Android'
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: gradle
 
       # Flutter Pub Get
       - name: Flutter Pub Get
@@ -79,18 +59,6 @@ jobs:
         run: |
           echo "version=$(head -n 2 pubspec.yaml | tail -n 1 | cut -d ' ' -f 2 | cut -d '+' -f 1)" >> $GITHUB_OUTPUT
           echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
-
-      # Build Android .apk
-      - name: Build Android
-        if: matrix.target == 'Android'
-        run: |
-          flutter build apk --release
-          flutter build apk --release --split-per-abi
-          cd build/app/outputs/flutter-apk
-          mv app-release.apk Loftify-${{ steps.get_version.outputs.version }}-android-universal.apk
-          mv app-arm64-v8a-release.apk Loftify-${{ steps.get_version.outputs.version }}-android-arm64-v8a.apk
-          mv app-armeabi-v7a-release.apk Loftify-${{ steps.get_version.outputs.version }}-android-armeabi-v7a.apk
-          mv app-x86_64-release.apk Loftify-${{ steps.get_version.outputs.version }}-android-x86_64.apk
 
       # Build Windows .zip
       - name: Build Windows
