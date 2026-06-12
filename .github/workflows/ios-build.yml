@@ -2,7 +2,7 @@ name: iOS Build (Unsigned)
 
 on:
   push:
-    branches: [ main, master, ios-build ]
+    branches: [ main, master, ios-build-v2 ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
