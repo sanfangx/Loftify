@@ -67,7 +67,7 @@ jobs:
           if [ -d "$APP_DIR" ]; then
             mkdir -p build_artifacts/Payload
             cp -R "$APP_DIR" build_artifacts/Payload/
-            (cd build_artifacts && zip -r Runner.ipa Payload)
+            (cd build_artifacts && zip -r Loftify-2.5.0-ios.ipa Payload)
             cp "$APP_DIR/Info.plist" build_artifacts/
           else
             echo "Runner.app not found; listing build dir" && ls -R build/ios || true
@@ -77,5 +77,5 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: ios-Runner-ipa
-          path: build_artifacts/Runner.ipa
+          name: Loftify-2.5.0-ios-ipa
+          path: build_artifacts/Loftify-2.5.0-ios.ipa
