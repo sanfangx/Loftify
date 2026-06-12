@@ -47,5 +47,20 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+			<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<false/>
+		</dict>
+		<key>NSCameraUsageDescription</key>
+		<string>Allow Loftify to access your camera for video features.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Allow Loftify to use the microphone for video recording or playback features.</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>Allow Loftify to save images or videos to your library.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Allow Loftify to access your photo library for saving and selecting media.</string>
+		<key>NSFaceIDUsageDescription</key>
+		<string>Allow Loftify to use Face ID for secure authentication.</string>
 	</dict>
 </plist>
