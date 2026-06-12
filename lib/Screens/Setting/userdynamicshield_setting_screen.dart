@@ -3,7 +3,6 @@ import 'package:loftify/Models/recommend_response.dart';
 
 import '../../Api/setting_api.dart';
 import '../../Api/user_api.dart';
-import '../../Resources/theme.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
