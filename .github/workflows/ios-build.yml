@@ -59,13 +59,16 @@ jobs:
         run: |
           flutter build ios --release --no-codesign
 
-      - name: Archive .app
+      - name: Create unsigned IPA
         if: success()
         run: |
           mkdir -p build_artifacts
           APP_DIR="build/ios/iphoneos/Runner.app"
           if [ -d "$APP_DIR" ]; then
-            (cd build/ios/iphoneos && zip -r ../../build_artifacts/Runner.app.zip Runner.app)
+            mkdir -p build_artifacts/Payload
+            cp -R "$APP_DIR" build_artifacts/Payload/
+            (cd build_artifacts && zip -r Runner.ipa Payload)
+            cp "$APP_DIR/Info.plist" build_artifacts/
           else
             echo "Runner.app not found; listing build dir" && ls -R build/ios || true
           fi
@@ -74,5 +77,5 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: ios-Runner-app
-          path: build_artifacts/Runner.app.zip
+          name: ios-Runner-ipa
+          path: build_artifacts/Runner.ipa
