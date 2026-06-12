@@ -1,15 +1,15 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:loftify/Screens/Setting/filename_setting_screen.dart';
-import 'package:loftify/Utils/enums.dart';
-import 'package:loftify/Utils/route_util.dart';
+import 'package:awesome_chewie/src/Screens/Setting/filename_setting_screen.dart';
+import 'package:awesome_chewie/src/Utils/enums.dart';
+import 'package:awesome_chewie/src/Utils/route_util.dart';
 
 import '../../Utils/cloud_control_provider.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/list_bottom_sheet.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../l10n/l10n.dart';

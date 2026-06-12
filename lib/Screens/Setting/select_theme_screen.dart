@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:loftify/Resources/theme_color_data.dart';
-import 'package:loftify/Utils/app_provider.dart';
-import 'package:loftify/Utils/hive_util.dart';
-import 'package:loftify/Utils/responsive_util.dart';
+import 'package:awesome_chewie/src/Resources/theme_color_data.dart';
+import 'package:awesome_chewie/src/Utils/app_provider.dart';
+import 'package:awesome_chewie/src/Utils/hive_util.dart';
+import 'package:awesome_chewie/src/Utils/responsive_util.dart';
 
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
