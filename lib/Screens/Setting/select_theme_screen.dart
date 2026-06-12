@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
 
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../l10n/l10n.dart';
 

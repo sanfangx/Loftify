@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:loftify/Api/setting_api.dart';
 import 'package:loftify/Widgets/BottomSheet/input_bottom_sheet.dart';
-import 'package:loftify/Widgets/Dialog/custom_dialog.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 import '../../Resources/theme.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/Dialog/dialog_builder.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../Widgets/Item/loftify_item_builder.dart';
 import '../../l10n/l10n.dart';

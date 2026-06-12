@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:loftify/Utils/uri_util.dart';
-import 'package:loftify/Widgets/Dialog/custom_dialog.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 import '../../Api/setting_api.dart';
 import '../../Api/user_api.dart';
 import '../../Models/account_response.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Widgets/Dialog/dialog_builder.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../l10n/l10n.dart';
 

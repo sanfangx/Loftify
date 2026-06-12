@@ -8,9 +8,7 @@ import 'package:loftify/Screens/Setting/tagshield_setting_screen.dart';
 import 'package:loftify/Screens/Setting/userdynamicshield_setting_screen.dart';
 import 'package:loftify/Utils/app_provider.dart';
 
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../l10n/l10n.dart';
 import 'about_setting_screen.dart';
