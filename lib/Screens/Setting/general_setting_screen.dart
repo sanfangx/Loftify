@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
-import 'package:awesome_chewie/src/Models/github_response.dart';
-import 'package:awesome_chewie/src/Utils/cache_util.dart';
-import 'package:awesome_chewie/src/Utils/itoast.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
@@ -10,15 +8,8 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../Utils/app_provider.dart';
 import '../../Utils/enums.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/hive_util.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/utils.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:awesome_chewie/src/Utils/hive_util.dart';
-import 'package:awesome_chewie/src/Utils/itoast.dart';
-import 'package:awesome_chewie/src/Widgets/Custom/no_shadow_scroll_behavior.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 import '../../Utils/constant.dart';
 import '../../Utils/enums.dart';

@@ -1,13 +1,8 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:awesome_chewie/src/Utils/app_provider.dart';
-import 'package:awesome_chewie/src/Utils/file_util.dart';
-import 'package:awesome_chewie/src/Utils/hive_util.dart';
-import 'package:awesome_chewie/src/Utils/itoast.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/dialog_builder.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 import '../../Resources/fonts.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../l10n/l10n.dart';
