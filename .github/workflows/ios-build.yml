@@ -30,7 +30,10 @@ jobs:
         run: |
           flutter pub get
           dart run intl_utils:generate
-          sed -i '' 's/LocalizationsDelegate<dynamic>/LocalizationsDelegate<Object>/g' lib/generated/app_localizations.dart
+          mkdir -p lib/generated
+          if [ -f lib/generated/app_localizations.dart ]; then
+            sed -i '' 's/LocalizationsDelegate<dynamic>/LocalizationsDelegate<Object>/g' lib/generated/app_localizations.dart
+          fi
           cd third-party/chewie && flutter gen-l10n && cd ../..
 
       - name: Install CocoaPods
