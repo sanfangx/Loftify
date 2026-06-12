@@ -28,7 +28,7 @@ import 'package:loftify/Utils/uri_util.dart';
 import 'package:loftify/Widgets/BottomSheet/slide_captcha_bottom_sheet.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:screen_protector/screen_protector.dart';
+// import 'package:screen_protector/screen_protector.dart'; // iOS incompatible
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -58,19 +58,21 @@ class Utils {
   }
 
   static Future<void> enableSafeMode() async {
-    await ScreenProtector.preventScreenshotOn();
-    await ScreenProtector.protectDataLeakageOn();
-    await ScreenProtector.protectDataLeakageWithColor(
-        Theme.of(rootContext).scaffoldBackgroundColor);
+    // ScreenProtector removed for iOS compatibility
+    // await ScreenProtector.preventScreenshotOn();
+    // await ScreenProtector.protectDataLeakageOn();
+    // await ScreenProtector.protectDataLeakageWithColor(
+    //     Theme.of(rootContext).scaffoldBackgroundColor);
     if (ResponsiveUtil.isAndroid()) {
       FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
     }
   }
 
   static Future<void> disableSafeMode() async {
-    await ScreenProtector.preventScreenshotOff();
-    await ScreenProtector.protectDataLeakageOff();
-    await ScreenProtector.protectDataLeakageWithColorOff();
+    // ScreenProtector removed for iOS compatibility
+    // await ScreenProtector.preventScreenshotOff();
+    // await ScreenProtector.protectDataLeakageOff();
+    // await ScreenProtector.protectDataLeakageWithColorOff();
     if (ResponsiveUtil.isAndroid()) {
       FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
     }

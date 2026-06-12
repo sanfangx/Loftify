@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   gtk
   hotkey_manager_linux
   local_notifier
+  restart_app
   screen_retriever
   tray_manager
   url_launcher_linux

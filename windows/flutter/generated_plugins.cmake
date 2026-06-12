@@ -4,11 +4,13 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
+  flutter_inappwebview_windows
   hotkey_manager_windows
   local_auth_windows
   local_notifier
   permission_handler_windows
   protocol_handler_windows
+  restart_app
   screen_retriever
   share_plus
   tray_manager
