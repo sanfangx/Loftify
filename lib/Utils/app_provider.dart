@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:loftify/Screens/Setting/general_setting_screen.dart';
 import 'package:tuple/tuple.dart';
 

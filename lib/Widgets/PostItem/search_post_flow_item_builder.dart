@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 import '../../Models/post_detail_response.dart';
 import '../../Models/search_response.dart';
