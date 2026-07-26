@@ -1,8 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:loftify/Utils/app_provider.dart';
 import 'package:loftify/Utils/responsive_util.dart';
 
-import '../Widgets/Custom/custom_cupertino_route.dart';
 import '../Widgets/Dialog/dialog_builder.dart';
 import '../Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 
@@ -31,11 +31,11 @@ class RouteUtil {
         if (popAll) {
           Navigator.pushAndRemoveUntil(
               context,
-              CustomCupertinoPageRoute(builder: (context) => page),
+              CupertinoPageRoute(builder: (context) => page),
               (_) => false).then(onThen ?? (_) => {});
         } else {
           Navigator.push(
-                  context, CustomCupertinoPageRoute(builder: (context) => page))
+                  context, CupertinoPageRoute(builder: (context) => page))
               .then(onThen ?? (_) => {});
         }
       }
