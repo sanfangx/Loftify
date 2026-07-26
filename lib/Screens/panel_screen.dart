@@ -113,34 +113,53 @@ class PanelScreenState extends State<PanelScreen>
     ResponsiveUtil.doInLandscape(
       landscape: () {
         appProvider.showPanelNavigator = true;
-        panelNavigatorState?.push(RouteUtil.getFadeRoute(page));
+        panelNavigatorState?.push(RouteUtil.getFadeRoute(page)).then(
+          (_) => _onInnerNavigatorRoutePopped(),
+        );
         canRootPop = false;
         if (mounted) setState(() {});
       },
       portrait: () {
         appProvider.showPanelNavigator = true;
-        RouteUtil.pushCupertinoRoute(panelNavigatorState!.context, page);
+        RouteUtil.pushCupertinoRoute(
+          panelNavigatorState!.context,
+          page,
+          onThen: (_) => _onInnerNavigatorRoutePopped(),
+        );
         canRootPop = false;
         if (mounted) setState(() {});
       },
     );
   }
 
+  /// Called when a route pushed onto the inner Navigator finishes its pop
+  /// animation. Checks if the inner Navigator has popped back to its root
+  /// route (the empty placeholder), and if so, hides the overlay so the
+  /// underlying tab pages become interactive again.
+  void _onInnerNavigatorRoutePopped() {
+    final canStillPop = panelNavigatorState?.canPop() ?? false;
+    if (!canStillPop) {
+      appProvider.showPanelNavigator = false;
+    }
+    canRootPop = !canStillPop;
+    _pageController =
+        PageController(initialPage: appProvider.sidebarChoice.index);
+    if (mounted) setState(() {});
+  }
+
   popPage() {
     if (panelNavigatorState?.canPop() ?? false) {
       panelNavigatorState?.pop();
-      Future.delayed(const Duration(milliseconds: 400), () {
-        if (!(panelNavigatorState?.canPop() ?? false)) {
-          appProvider.showPanelNavigator = false;
-        }
-      });
+      // State cleanup (showPanelNavigator, canRootPop) is handled by
+      // _onInnerNavigatorRoutePopped(), which fires via the onThen
+      // callback after the pop animation completes.
     } else {
       appProvider.showPanelNavigator = false;
+      canRootPop = true;
+      _pageController =
+          PageController(initialPage: appProvider.sidebarChoice.index);
+      if (mounted) setState(() {});
     }
-    _pageController =
-        PageController(initialPage: appProvider.sidebarChoice.index);
-    canRootPop = !(panelNavigatorState?.canPop() ?? false);
-    if (mounted) setState(() {});
   }
 
   updateStatusBar() {
