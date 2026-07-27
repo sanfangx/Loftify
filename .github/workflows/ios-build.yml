@@ -59,12 +59,14 @@ jobs:
         run: |
           flutter build ios --release --no-codesign
 
-      - name: Create unsigned IPA
+      - name: Create unsigned IPA with Entitlements
         if: success()
         run: |
           mkdir -p build_artifacts
           APP_DIR="build/ios/iphoneos/Runner.app"
           if [ -d "$APP_DIR" ]; then
+            brew install ldid
+            ldid -Sios/Runner/Runner.entitlements "$APP_DIR/Runner"
             mkdir -p build_artifacts/Payload
             cp -R "$APP_DIR" build_artifacts/Payload/
             (cd build_artifacts && zip -r Loftify-2.5.0-ios.ipa Payload)
