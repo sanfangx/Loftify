@@ -167,7 +167,7 @@ class _FavoriteFolderDetailScreenState extends State<FavoriteFolderDetailScreen>
       startIndex += e.count;
     }
     return ListView(
-      cacheExtent: 9999,
+      cacheExtent: 500,
       physics: physics,
       children: widgets,
     );

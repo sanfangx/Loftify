@@ -143,7 +143,7 @@ class HomeScreenState extends State<HomeScreen>
             onLoad: _onLoad,
             child: WaterfallFlow.builder(
               controller: _scrollController,
-              cacheExtent: 9999,
+              cacheExtent: 500,
               padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
               gridDelegate:
                   const SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(

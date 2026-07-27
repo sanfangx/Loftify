@@ -105,7 +105,7 @@ class _DressDetailScreenState extends State<DressDetailScreen>
   Widget _buildBody(ScrollPhysics physics) {
     return WaterfallFlow.builder(
       physics: physics,
-      cacheExtent: 9999,
+      cacheExtent: 500,
       padding: const EdgeInsets.all(10),
       itemCount: _giftDress?.partList.length ?? 0,
       gridDelegate: const SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(

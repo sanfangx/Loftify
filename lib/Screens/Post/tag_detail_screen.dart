@@ -839,7 +839,7 @@ class RecommendTabState extends State<RecommendTab>
         noMore: _recommendNoMore,
         child: isWaterfallFlow
             ? WaterfallFlow.builder(
-                cacheExtent: 9999,
+                cacheExtent: 500,
                 physics: physics,
                 padding: const EdgeInsets.only(top: 10, left: 8, right: 8),
                 gridDelegate:
@@ -985,7 +985,7 @@ class HottestTabState extends State<HottestTab>
         noMore: _hottestNoMore,
         child: isWaterfallFlow
             ? WaterfallFlow.builder(
-                cacheExtent: 9999,
+                cacheExtent: 500,
                 physics: physics,
                 padding: const EdgeInsets.only(top: 10, left: 8, right: 8),
                 gridDelegate:
@@ -1132,7 +1132,7 @@ class NewestTabState extends State<NewestTab>
         noMore: _newestNoMore,
         child: isWaterfallFlow
             ? WaterfallFlow.builder(
-                cacheExtent: 9999,
+                cacheExtent: 500,
                 physics: physics,
                 padding: const EdgeInsets.only(top: 10, left: 8, right: 8),
                 gridDelegate:

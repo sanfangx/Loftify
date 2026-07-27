@@ -250,7 +250,7 @@ class CustomBgAvatarListScreenState extends State<CustomBgAvatarListScreen>
     return ItemBuilder.buildLoadMoreNotification(
       child: WaterfallFlow.builder(
         physics: physics,
-        cacheExtent: 9999,
+        cacheExtent: 500,
         padding: const EdgeInsets.all(10),
         itemCount: _productList.length,
         gridDelegate: const SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(

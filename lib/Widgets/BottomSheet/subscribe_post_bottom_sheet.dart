@@ -192,7 +192,7 @@ class SubscribePostBottomSheetState extends State<SubscribePostBottomSheet> {
       triggerAxis: Axis.vertical,
       child: _favoriteFolderList.isNotEmpty
           ? ListView(
-              cacheExtent: 9999,
+              cacheExtent: 500,
               padding: const EdgeInsets.symmetric(vertical: 6),
               children: List.generate(
                 _favoriteFolderList.length,

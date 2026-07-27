@@ -100,7 +100,7 @@ class DressSuitListScreenState extends State<DressSuitListScreen>
     return ItemBuilder.buildLoadMoreNotification(
       child: WaterfallFlow.builder(
         physics: physics,
-        cacheExtent: 9999,
+        cacheExtent: 500,
         padding: const EdgeInsets.all(10),
         itemCount: _dressSuitList.length,
         gridDelegate: const SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(

@@ -188,7 +188,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
     return ItemBuilder.buildLoadMoreNotification(
       child: WaterfallFlow.builder(
         physics: physics,
-        cacheExtent: 9999,
+        cacheExtent: 500,
         padding: const EdgeInsets.all(10),
         itemCount: _giftDressList.length,
         gridDelegate: const SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
@@ -209,7 +209,7 @@ class _CustomDressListScreenState extends State<CustomDressListScreen>
     return ItemBuilder.buildLoadMoreNotification(
       child: WaterfallFlow.builder(
         physics: physics,
-        cacheExtent: 9999,
+        cacheExtent: 500,
         padding: const EdgeInsets.all(10),
         itemCount: _giftEmoteList.length,
         gridDelegate: const SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(

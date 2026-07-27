@@ -188,7 +188,7 @@ class _TagInsearchScreenState extends State<TagInsearchScreen>
         },
         child: WaterfallFlow.builder(
           physics: physics,
-          cacheExtent: 9999,
+          cacheExtent: 500,
           padding: const EdgeInsets.only(top: 10, left: 8, right: 8),
           gridDelegate: const SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
             mainAxisSpacing: 6,

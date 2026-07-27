@@ -180,7 +180,7 @@ class _MineScreenState extends State<MineScreen>
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 10),
         child: ListView(
-          cacheExtent: 9999,
+          cacheExtent: 500,
           controller: _scrollController,
           children: [
             const SizedBox(height: 10),
@@ -207,7 +207,7 @@ class _MineScreenState extends State<MineScreen>
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 10),
               child: ListView(
-                cacheExtent: 9999,
+                cacheExtent: 500,
                 children: [
                   const SizedBox(height: 20),
                   _buildUserCard(),
@@ -236,7 +236,7 @@ class _MineScreenState extends State<MineScreen>
               behavior:
                   ScrollConfiguration.of(context).copyWith(scrollbars: false),
               child: ListView(
-                cacheExtent: 9999,
+                cacheExtent: 500,
                 children: [
                   const SizedBox(height: 10),
                   if (meInfoData != null) _buildFollowingCard(),

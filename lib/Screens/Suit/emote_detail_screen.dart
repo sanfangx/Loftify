@@ -103,7 +103,7 @@ class _EmoteDetailScreenState extends State<EmoteDetailScreen>
   Widget _buildBody(ScrollPhysics physics) {
     return WaterfallFlow.builder(
       physics: physics,
-      cacheExtent: 9999,
+      cacheExtent: 500,
       padding: const EdgeInsets.all(10),
       itemCount: _giftEmote?.emoteList.length ?? 0,
       gridDelegate: const SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(

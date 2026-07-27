@@ -110,7 +110,7 @@ class _TagRelatedScreenState extends State<TagRelatedScreen>
           return await _fetchResult();
         },
         child: WaterfallFlow.builder(
-          cacheExtent: 9999,
+          cacheExtent: 500,
           physics: physics,
           padding: const EdgeInsets.only(top: 10, left: 8, right: 8),
           gridDelegate: const SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(

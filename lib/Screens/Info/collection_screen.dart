@@ -259,7 +259,7 @@ class _CollectionScreenState extends State<CollectionScreen>
                             height: 20,
                             child: ListView(
                               scrollDirection: Axis.horizontal,
-                              cacheExtent: 9999,
+                              cacheExtent: 500,
                               children: [
                                 ...List.generate(
                                   tags.length,
