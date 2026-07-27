@@ -640,6 +640,8 @@ class MainScreenState extends State<MainScreen>
         cancleTimer();
         break;
       case AppLifecycleState.paused:
+        PaintingBinding.instance.imageCache.clear();
+        PaintingBinding.instance.imageCache.clearLiveImages();
         setTimer();
         break;
       case AppLifecycleState.detached:

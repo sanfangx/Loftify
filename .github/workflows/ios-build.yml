@@ -2,7 +2,7 @@ name: iOS Build (Unsigned)
 
 on:
   push:
-    branches: [ main, master, rebuild-from-13afbd3 ]
+    branches: [ main, master, rebuild-from-13afbd3, fix/background-memory-clear ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -24,7 +24,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
-          flutter-version: "3.27.3"
+          flutter-version: "3.24.5"
 
       - name: Cache CocoaPods
         uses: actions/cache@v4
