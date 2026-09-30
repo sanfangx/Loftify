@@ -47,7 +47,7 @@ jobs:
         run: |
           git config --global core.longpaths true
           flutter pub get
-          dart run intl_utils:generate
+          flutter pub run intl_utils:generate
           mkdir -p lib/generated
           if [ -f lib/generated/app_localizations.dart ]; then
             sed -i '' 's/LocalizationsDelegate<dynamic>/LocalizationsDelegate<Object>/g' lib/generated/app_localizations.dart
