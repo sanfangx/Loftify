@@ -1,0 +1,92 @@
+name: iOS Build (Unsigned)
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby (for CocoaPods)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version: "3.41.5"
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: pods-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: pods-${{ runner.os }}-
+
+      - name: Cache Flutter Pub
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool
+            **/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: pub-${{ runner.os }}-
+
+      - name: Flutter Pub Get & Generate
+        run: |
+          git config --global core.longpaths true
+          flutter pub get
+          dart run intl_utils:generate
+          mkdir -p lib/generated
+          if [ -f lib/generated/app_localizations.dart ]; then
+            sed -i '' 's/LocalizationsDelegate<dynamic>/LocalizationsDelegate<Object>/g' lib/generated/app_localizations.dart
+          fi
+          cd third-party/chewie && flutter pub get && flutter gen-l10n && cd ../..
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod repo update
+          pod install
+
+      - name: Build iOS (no codesign)
+        env:
+          COCOAPODS_DISABLE_STATS: "true"
+        run: |
+          flutter build ios --release --no-codesign
+
+      - name: Create unsigned IPA with Entitlements
+        if: success()
+        run: |
+          VERSION=$(head -n 2 pubspec.yaml | tail -n 1 | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          mkdir -p build_artifacts
+          APP_DIR="build/ios/iphoneos/Runner.app"
+          if [ -d "$APP_DIR" ]; then
+            brew install ldid
+            ldid -Sios/Runner/Runner.entitlements "$APP_DIR/Runner"
+            mkdir -p build_artifacts/Payload
+            cp -R "$APP_DIR" build_artifacts/Payload/
+            (cd build_artifacts && zip -r "Loftify-${VERSION}-ios.ipa" Payload)
+            cp "$APP_DIR/Info.plist" build_artifacts/
+          else
+            echo "Runner.app not found; listing build dir" && ls -R build/ios || true
+            exit 1
+          fi
+
+      - name: Upload Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Loftify-ios-ipa
+          path: build_artifacts/Loftify-*-ios.ipa

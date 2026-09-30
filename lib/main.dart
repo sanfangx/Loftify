@@ -84,8 +84,13 @@ Future<void> runMyApp(List<String> args) async {
 Future<void> initApp() async {
   FlutterError.onError = onError;
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
+  if (Platform.isIOS) {
+    imageCache.maximumSizeBytes = 1024 * 1024 * 200;
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 200;
+  } else {
+    imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
+  }
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await DatabaseManager.getDataBase();
   // Hive.defaultDirectory = await FileUtil.getApplicationDir();

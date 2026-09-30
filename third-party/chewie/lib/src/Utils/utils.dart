@@ -8,7 +8,6 @@ import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:local_auth/local_auth.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:screen_protector/screen_protector.dart';
 import 'package:window_manager/window_manager.dart';
 
 class ChewieUtils {
@@ -23,11 +22,6 @@ class ChewieUtils {
   }
 
   static Future<void> enableSafeMode() async {
-    await ScreenProtector.preventScreenshotOn();
-    await ScreenProtector.protectDataLeakageOn();
-    await ScreenProtector.protectDataLeakageWithBlur();
-    await ScreenProtector.protectDataLeakageWithColor(
-        ChewieTheme.scaffoldBackgroundColor);
     if (ResponsiveUtil.isAndroid()) {
       FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
       FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_BLUR_BEHIND);
@@ -35,10 +29,6 @@ class ChewieUtils {
   }
 
   static Future<void> disableSafeMode() async {
-    await ScreenProtector.preventScreenshotOff();
-    await ScreenProtector.protectDataLeakageOff();
-    await ScreenProtector.protectDataLeakageWithBlurOff();
-    await ScreenProtector.protectDataLeakageWithColorOff();
     if (ResponsiveUtil.isAndroid()) {
       FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
     }
