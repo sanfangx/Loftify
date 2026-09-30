@@ -608,6 +608,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
       case AppLifecycleState.inactive:
         break;
       case AppLifecycleState.resumed:
+        fetchData();
         cancleTimer();
         break;
       case AppLifecycleState.paused:
